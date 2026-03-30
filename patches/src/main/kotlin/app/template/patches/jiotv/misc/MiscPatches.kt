@@ -3,6 +3,7 @@ package app.rabil.patches.jiotv.misc
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.template.patches.shared.Constants.COMPATIBILITY_EXAMPLE
 import org.w3c.dom.Element
 
 @Suppress("unused")
@@ -12,7 +13,7 @@ val enableCleartextTrafficPatch = resourcePatch(
         "security config to allow cleartext HTTP traffic and user-installed CA certificates. " +
         "This enables MITM proxy tools like mitmproxy, Charles, and HTTP Toolkit to intercept traffic.",
 ) {
-    compatibleWith("com.jio.jioplay.tv"("7.1.7"))
+    compatibleWith(COMPATIBILITY_EXAMPLE)
 
     execute {
         // Patch AndroidManifest.xml: set usesCleartextTraffic=true
@@ -60,7 +61,7 @@ val enableDebuggingPatch = bytecodePatch(
         "in that method is: if (!SecurityUtils.isDebug && (!isSupportedDevice || ...)) " +
         "so setting isDebug=true skips the entire security gate.",
 ) {
-    compatibleWith("com.jio.jioplay.tv"("7.1.7"))
+    compatibleWith(COMPATIBILITY_EXAMPLE)
 
     // Include root and emulator patches for defense-in-depth (they also
     // patch the individual checks that D() calls, as a redundant layer).
@@ -79,7 +80,7 @@ val enableDebuggingPatch = bytecodePatch(
         // directly to permission handling regardless of device state.
         //
         // We patch the class initializer (<clinit>) to set isDebug = true at class load time.
-        val securityUtilsClass = findClass("Lcom/jio/jioplay/tv/utils/SecurityUtils;")!!
+        val securityUtilsClass = classDefBy("Lcom/jio/jioplay/tv/utils/SecurityUtils;")
 
         // If there's a static initializer, prepend our instruction
         val clinit = securityUtilsClass.methods.firstOrNull { it.name == "<clinit>" }
