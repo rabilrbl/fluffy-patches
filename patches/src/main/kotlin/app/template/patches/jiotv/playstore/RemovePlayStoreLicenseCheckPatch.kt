@@ -23,6 +23,13 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
             .toMutable()
             .addInstructions(0, "return-void")
 
+        // --- Bypass connectToLicensingService() ---
+        // Prevents binding to com.android.vending licensing service.
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "connectToLicensingService" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
         // --- Bypass performLocalInstallerCheck() → always return true ---
         // Checks getInstallSourceInfo() for "com.android.vending" as the installer.
         // For sideloaded APKs this fails. We make it always return true.
@@ -44,6 +51,31 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
             .methods.first { it.name == "onStart" }
             .toMutable()
             .addInstructions(0, "return-void")
+
+        // --- Block popup launchers in LicenseClient ---
+        // These two methods are responsible for opening blocking UI.
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "startErrorDialogActivity" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "startPaywallActivity" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        // --- Disable content provider bootstrap ---
+        // LicenseContentProvider.onCreate() eagerly triggers license init on app startup.
+        classDefBy("Lcom/pairip/licensecheck/LicenseContentProvider;")
+            .methods.first { it.name == "onCreate" }
+            .toMutable()
+            .addInstructions(
+                0,
+                """
+                    const/4 v0, 0x1
+                    return v0
+                """,
+            )
 
         // --- Bypass SignatureCheck.verifyIntegrity() ---
         // Verifies APK signature hash against hardcoded SHA-256 values:
