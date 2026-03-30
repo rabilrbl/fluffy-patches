@@ -2,6 +2,7 @@ package app.rabil.patches.jiotv.emulator
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.template.patches.shared.Constants.COMPATIBILITY_EXAMPLE
 
 @Suppress("unused")
 val removeEmulatorDetectionPatch = bytecodePatch(
@@ -10,7 +11,7 @@ val removeEmulatorDetectionPatch = bytecodePatch(
         "Bypasses Build.FINGERPRINT/MODEL/BRAND/HARDWARE checks, BlueStacks folder detection, " +
         "Fire TV detection, and Android TV (leanback) feature checks.",
 ) {
-    compatibleWith("com.jio.jioplay.tv"("7.1.7"))
+    compatibleWith(COMPATIBILITY_EXAMPLE)
 
     execute {
         // --- PermissionActivity.isRunningOnEmulator() → always return false ---
@@ -24,7 +25,7 @@ val removeEmulatorDetectionPatch = bytecodePatch(
         //   Build.HARDWARE contains "vbox86"
         // Also in onCreate: checks for /sdcard/windows/BstSharedFolder (BlueStacks)
         // and android.software.leanback system feature (Android TV).
-        findClass("Lcom/jio/media/tv/ui/permission_onboarding/PermissionActivity;")!!
+        classDefBy("Lcom/jio/media/tv/ui/permission_onboarding/PermissionActivity;")
             .methods.first { it.name == "isRunningOnEmulator" }
             .addInstructions(
                 0,
@@ -38,7 +39,7 @@ val removeEmulatorDetectionPatch = bytecodePatch(
         // Checks for amazon.hardware.fire_tv system feature and
         // Build.MODEL containing "AFT" (Amazon Fire TV stick/cube).
         // Returning true ensures the app runs on Fire TV and all device types.
-        findClass("Lcom/jio/media/tv/ui/permission_onboarding/PermissionActivity;")!!
+        classDefBy("Lcom/jio/media/tv/ui/permission_onboarding/PermissionActivity;")
             .methods.first { it.name == "isSupportedDevice" }
             .addInstructions(
                 0,

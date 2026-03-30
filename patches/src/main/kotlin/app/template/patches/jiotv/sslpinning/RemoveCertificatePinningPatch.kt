@@ -2,6 +2,7 @@ package app.rabil.patches.jiotv.sslpinning
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.template.patches.shared.Constants.COMPATIBILITY_EXAMPLE
 
 @Suppress("unused")
 val removeCertificatePinningPatch = bytecodePatch(
@@ -11,7 +12,7 @@ val removeCertificatePinningPatch = bytecodePatch(
         "(FirebaseConfig.isSslPining()). This patch disables the pinning toggle and also patches " +
         "the OkHttp3 CertificatePinner.check() method to prevent pin validation failures.",
 ) {
-    compatibleWith("com.jio.jioplay.tv"("7.1.7"))
+    compatibleWith(COMPATIBILITY_EXAMPLE)
 
     execute {
         // --- FirebaseConfig.isSslPining() → always return false ---
@@ -20,7 +21,7 @@ val removeCertificatePinningPatch = bytecodePatch(
         //   sha256/8Rw90Ej3Ttt8RRkrg+WYDS9n7IS03bk5bjP/UXPtaY8=
         //   sha256/Ko8tivDrEjiY90yGasP6ZpBU4jwXvHqVvQI0GS3GNdA=
         // Returning false skips the certificatePinner() builder call entirely.
-        findClass("Lcom/jio/jioplay/tv/data/firebase/FirebaseConfig;")!!
+        classDefBy("Lcom/jio/jioplay/tv/data/firebase/FirebaseConfig;")
             .methods.first { it.name == "isSslPining" }
             .addInstructions(
                 0,
@@ -35,7 +36,7 @@ val removeCertificatePinningPatch = bytecodePatch(
         // this prevents OkHttp from actually validating server certificates
         // against pinned hashes. Catches both check(String, List) and
         // check(String, Function0) overloads.
-        findClass("Lokhttp3/CertificatePinner;")!!
+        classDefBy("Lokhttp3/CertificatePinner;")
             .methods.filter { it.name == "check" }
             .forEach { method ->
                 method.addInstructions(0, "return-void")
@@ -44,7 +45,7 @@ val removeCertificatePinningPatch = bytecodePatch(
         // --- Legacy OkHttp CertificatePinner.check() → return-void ---
         // The app also bundles the older com.squareup.okhttp.CertificatePinner
         // (likely from an embedded SDK like Jio's media SDK). Patch for completeness.
-        findClass("Lcom/squareup/okhttp/CertificatePinner;")?.let { classDef ->
+        runCatching { classDefBy("Lcom/squareup/okhttp/CertificatePinner;") }.getOrNull()?.let { classDef ->
             classDef.methods.filter { it.name == "check" }
                 .forEach { method ->
                     method.addInstructions(0, "return-void")
