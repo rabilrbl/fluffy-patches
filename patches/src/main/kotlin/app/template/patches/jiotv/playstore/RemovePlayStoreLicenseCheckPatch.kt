@@ -8,8 +8,8 @@ import app.template.patches.shared.Constants.COMPATIBILITY_EXAMPLE
 @Suppress("unused")
 val removePlayStoreLicenseCheckPatch = bytecodePatch(
     name = "Remove Play Store license check",
-    description = "Removes the Play Store installation and license verification check (pairip). " +
-        "Bypasses LicenseClient, SignatureCheck, and StartupLauncher VM execution.",
+    description = "Removes Play Store/license enforcement (pairip + app-side updater redirects). " +
+        "Bypasses LicenseClient, SignatureCheck, StartupLauncher, and CommonUtils store/update gates.",
 ) {
     compatibleWith(COMPATIBILITY_EXAMPLE)
 
@@ -52,6 +52,24 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
             .toMutable()
             .addInstructions(0, "return-void")
 
+        // --- Hard-disable popup rendering paths in LicenseActivity ---
+        // Some builds can still route into these private UI methods.
+        classDefBy("Lcom/pairip/licensecheck/LicenseActivity;")
+            .methods.first { it.name == "showPaywallAndCloseApp" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        classDefBy("Lcom/pairip/licensecheck/LicenseActivity;")
+            .methods.first { it.name == "showErrorDialog" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        // Prevent forced process termination if LicenseActivity is ever launched.
+        classDefBy("Lcom/pairip/licensecheck/LicenseActivity;")
+            .methods.first { it.name == "closeApp" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
         // --- Block popup launchers in LicenseClient ---
         // These two methods are responsible for opening blocking UI.
         classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
@@ -61,6 +79,18 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
 
         classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
             .methods.first { it.name == "startPaywallActivity" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        // --- Fail-safe on response/error handlers ---
+        // If the service still answers with NOT_LICENSED, suppress downstream handling.
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "processResponse" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "handleError" }
             .toMutable()
             .addInstructions(0, "return-void")
 
@@ -93,6 +123,25 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
         // The VM bytecode performs additional integrity checks at runtime.
         classDefBy("Lcom/pairip/StartupLauncher;")
             .methods.first { it.name == "launch" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        // --- Disable app-side update trigger path ---
+        // PermissionActivity.onCreate() calls CommonUtils.checkIsUpdateAvailable() on startup.
+        // Returning early suppresses server-driven forced update/store popup flow.
+        classDefBy("Lcom/jio/jioplay/tv/utils/CommonUtils;")
+            .methods.first { it.name == "checkIsUpdateAvailable" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        // --- Disable Play Store redirection helpers used by in-app dialogs ---
+        classDefBy("Lcom/jio/jioplay/tv/utils/CommonUtils;")
+            .methods.first { it.name == "redirectToPlayStore" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        classDefBy("Lcom/jio/jioplay/tv/utils/CommonUtils;")
+            .methods.first { it.name == "takeToPlayStore" }
             .toMutable()
             .addInstructions(0, "return-void")
     }
