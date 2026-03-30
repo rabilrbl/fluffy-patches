@@ -2,10 +2,10 @@ group = "app.morphe"
 
 patches {
     about {
-        name = "XYZ Patches for use with Morphe"
-        description = "Example patches"
-        source = "git@github.com:MorpheApp/morphe-patches-template.git"
-        author = "Awesome dev"
+        name = "Fluffy Patches for use with Morphe"
+        description = "Fluffy patches"
+        source = "git@github.com:rabilrbl/fluffy-patches.git"
+        author = "Mohammed Rabil"
         contact = "na"
         website = "https://morphe.software"
         license = "GPLv3"
