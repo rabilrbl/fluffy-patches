@@ -2,6 +2,7 @@ package app.rabil.patches.jiotv.sslpinning
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.template.patches.shared.Constants.COMPATIBILITY_EXAMPLE
 
 @Suppress("unused")
@@ -23,6 +24,7 @@ val removeCertificatePinningPatch = bytecodePatch(
         // Returning false skips the certificatePinner() builder call entirely.
         classDefBy("Lcom/jio/jioplay/tv/data/firebase/FirebaseConfig;")
             .methods.first { it.name == "isSslPining" }
+            .toMutable()
             .addInstructions(
                 0,
                 """
@@ -39,7 +41,7 @@ val removeCertificatePinningPatch = bytecodePatch(
         classDefBy("Lokhttp3/CertificatePinner;")
             .methods.filter { it.name == "check" }
             .forEach { method ->
-                method.addInstructions(0, "return-void")
+                method.toMutable().addInstructions(0, "return-void")
             }
 
         // --- Legacy OkHttp CertificatePinner.check() → return-void ---
@@ -48,7 +50,7 @@ val removeCertificatePinningPatch = bytecodePatch(
         runCatching { classDefBy("Lcom/squareup/okhttp/CertificatePinner;") }.getOrNull()?.let { classDef ->
             classDef.methods.filter { it.name == "check" }
                 .forEach { method ->
-                    method.addInstructions(0, "return-void")
+                    method.toMutable().addInstructions(0, "return-void")
                 }
         }
     }

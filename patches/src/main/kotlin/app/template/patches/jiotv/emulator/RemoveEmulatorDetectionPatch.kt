@@ -2,6 +2,7 @@ package app.rabil.patches.jiotv.emulator
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.template.patches.shared.Constants.COMPATIBILITY_EXAMPLE
 
 @Suppress("unused")
@@ -27,6 +28,7 @@ val removeEmulatorDetectionPatch = bytecodePatch(
         // and android.software.leanback system feature (Android TV).
         classDefBy("Lcom/jio/media/tv/ui/permission_onboarding/PermissionActivity;")
             .methods.first { it.name == "isRunningOnEmulator" }
+            .toMutable()
             .addInstructions(
                 0,
                 """
@@ -41,6 +43,7 @@ val removeEmulatorDetectionPatch = bytecodePatch(
         // Returning true ensures the app runs on Fire TV and all device types.
         classDefBy("Lcom/jio/media/tv/ui/permission_onboarding/PermissionActivity;")
             .methods.first { it.name == "isSupportedDevice" }
+            .toMutable()
             .addInstructions(
                 0,
                 """

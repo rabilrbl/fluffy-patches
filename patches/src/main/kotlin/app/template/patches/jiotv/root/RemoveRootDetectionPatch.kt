@@ -2,6 +2,7 @@ package app.rabil.patches.jiotv.root
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.template.patches.shared.Constants.COMPATIBILITY_EXAMPLE
 
 @Suppress("unused")
@@ -23,6 +24,7 @@ val removeRootDetectionPatch = bytecodePatch(
         // to block rooted devices with "Your device is not compatible with JioTV" toast.
         classDefBy("Lcom/google/firebase/crashlytics/internal/common/CommonUtils;")
             .methods.first { it.name == "isRooted" }
+            .toMutable()
             .addInstructions(
                 0,
                 """
@@ -36,6 +38,7 @@ val removeRootDetectionPatch = bytecodePatch(
         // in case a future update changes the behavior.
         classDefBy("Lcom/jio/jioplay/tv/utils/SecurityUtils;")
             .methods.first { it.name == "isValidBuild" }
+            .toMutable()
             .addInstructions(
                 0,
                 """
@@ -49,6 +52,7 @@ val removeRootDetectionPatch = bytecodePatch(
         // Could fail on modified builds with non-numeric version names.
         classDefBy("Lcom/jio/jioplay/tv/utils/SecurityUtils;")
             .methods.first { it.name == "isValidVersionName" }
+            .toMutable()
             .addInstructions(
                 0,
                 """
@@ -63,6 +67,7 @@ val removeRootDetectionPatch = bytecodePatch(
         // finish() on PermissionActivity, killing the app. Neutering prevents this.
         classDefBy("Lcom/jio/jioplay/tv/utils/CommonUtils;")
             .methods.first { it.name == "showXposedFrameworkDetectionDialog" }
+            .toMutable()
             .addInstructions(0, "return-void")
     }
 }
