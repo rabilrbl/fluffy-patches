@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/rabilrbl/fluffy-patches/compare/v1.1.0...v1.2.0) (2026-03-30)
+
+
+### Features
+
+* **patches:** enhance license check bypassing in RemovePlayStoreLicenseCheckPatch ([644981e](https://github.com/rabilrbl/fluffy-patches/commit/644981ed18eb4a813e364964d32d6303abc074be))
+
 # [1.1.0](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0...v1.1.0) (2026-03-30)
 
 

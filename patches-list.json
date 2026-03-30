@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "patches": [
     {
       "name": "Enable cleartext traffic",
@@ -26,7 +26,7 @@
     },
     {
       "name": "Remove Play Store license check",
-      "description": "Removes the Play Store installation and license verification check (pairip). Bypasses LicenseClient, SignatureCheck, and StartupLauncher VM execution.",
+      "description": "Removes Play Store/license enforcement (pairip + app-side updater redirects). Bypasses LicenseClient, SignatureCheck, StartupLauncher, and CommonUtils store/update gates.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
