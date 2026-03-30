@@ -2,6 +2,7 @@ package app.rabil.patches.jiotv.playstore
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.template.patches.shared.Constants.COMPATIBILITY_EXAMPLE
 
 @Suppress("unused")
@@ -19,6 +20,7 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
         // Making it return-void immediately prevents all license checks.
         classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
             .methods.first { it.name == "initializeLicenseCheck" }
+            .toMutable()
             .addInstructions(0, "return-void")
 
         // --- Bypass performLocalInstallerCheck() → always return true ---
@@ -26,6 +28,7 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
         // For sideloaded APKs this fails. We make it always return true.
         classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
             .methods.first { it.name == "performLocalInstallerCheck" }
+            .toMutable()
             .addInstructions(
                 0,
                 """
@@ -39,6 +42,7 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
         // Preventing it from executing ensures no blocking UI is shown.
         classDefBy("Lcom/pairip/licensecheck/LicenseActivity;")
             .methods.first { it.name == "onStart" }
+            .toMutable()
             .addInstructions(0, "return-void")
 
         // --- Bypass SignatureCheck.verifyIntegrity() ---
@@ -48,6 +52,7 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
         // Patched/re-signed APKs have different signatures → SignatureTamperedException.
         classDefBy("Lcom/pairip/SignatureCheck;")
             .methods.first { it.name == "verifyIntegrity" }
+            .toMutable()
             .addInstructions(0, "return-void")
 
         // --- Bypass StartupLauncher.launch() ---
@@ -56,6 +61,7 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
         // The VM bytecode performs additional integrity checks at runtime.
         classDefBy("Lcom/pairip/StartupLauncher;")
             .methods.first { it.name == "launch" }
+            .toMutable()
             .addInstructions(0, "return-void")
     }
 }

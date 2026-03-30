@@ -3,6 +3,7 @@ package app.rabil.patches.jiotv.misc
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.template.patches.shared.Constants.COMPATIBILITY_EXAMPLE
 import org.w3c.dom.Element
 
@@ -85,7 +86,7 @@ val enableDebuggingPatch = bytecodePatch(
         // If there's a static initializer, prepend our instruction
         val clinit = securityUtilsClass.methods.firstOrNull { it.name == "<clinit>" }
         if (clinit != null) {
-            clinit.addInstructions(
+            clinit.toMutable().addInstructions(
                 0,
                 """
                     const/4 v0, 0x1
