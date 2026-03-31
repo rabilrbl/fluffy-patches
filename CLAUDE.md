@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**fluffy-patches** is a [Morphe Patches](https://morpheapp.github.io) repository containing patches for multiple Android apps. Each app gets its own subdirectory under `patches/`. Patches are compiled into a `.mpp` (Morphe Patch Package) file consumed by Morphe Manager.
+**fluffy-patches** is a [Morphe Patches](https://github.com/MorpheApp/morphe-patches) repository containing patches for multiple Android apps. Each app gets its own subdirectory under `patches/`. Patches are compiled into a `.mpp` (Morphe Patch Package) file consumed by Morphe Manager.
 
 ## Build Commands
 
