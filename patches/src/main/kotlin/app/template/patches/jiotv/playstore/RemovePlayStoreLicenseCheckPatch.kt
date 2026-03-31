@@ -86,6 +86,23 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
             .toMutable()
             .addInstructions(0, "return-void")
 
+        // Block initializeLicenseCheck() - this is called by LicenseContentProvider
+        // and can trigger the licensing service connection even after processResponse
+        // is patched. This prevents the entire license check flow from starting.
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "initializeLicenseCheck" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        // Force local installer check to always return true - this bypasses the check
+        // that fails when app is installed from unknown source (non-Play Store).
+        // The method returns false for non-Play Store installs, triggering the full
+        // licensing check which shows the Play Store intent.
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "performLocalInstallerCheck" }
+            .toMutable()
+            .addInstructions(0, "const/4 v0, 0x1\nreturn v0")
+
         // Disable app-side Play Store redirect helpers.
         classDefBy("Lcom/jio/jioplay/tv/utils/CommonUtils;")
             .methods.first { it.name == "checkIsUpdateAvailable" }
