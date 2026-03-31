@@ -1,3 +1,11 @@
+# [1.4.0](https://github.com/rabilrbl/fluffy-patches/compare/v1.3.0...v1.4.0) (2026-03-31)
+
+
+### Features
+
+* **patches:** enhance license check patch to block service connections and spoof InstallReferrerClient ([9d4baef](https://github.com/rabilrbl/fluffy-patches/commit/9d4baef8f1c5a373d77d4e64c002e801e4f0d722))
+* **patches:** refine license check bypass and enhance root detection patch safety ([f2addff](https://github.com/rabilrbl/fluffy-patches/commit/f2addffdbc09110e75ff603ad545ffbdb9adfd00))
+
 # [1.3.0](https://github.com/rabilrbl/fluffy-patches/compare/v1.2.0...v1.3.0) (2026-03-31)
 
 
