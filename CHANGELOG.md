@@ -1,3 +1,11 @@
+# [1.5.0-dev.5](https://github.com/rabilrbl/fluffy-patches/compare/v1.5.0-dev.4...v1.5.0-dev.5) (2026-03-31)
+
+
+### Features
+
+* **patches:** simplify emulator detection patch by removing redundant checks and ensuring proceedApplication is always called ([6e19636](https://github.com/rabilrbl/fluffy-patches/commit/6e19636f2d45fba7e6826bf555c6a5bc1bc7e1aa))
+* **patches:** update disablePairipManifestPatch to remove LicenseContentProvider and change application class to bypass pairip ([c1990a9](https://github.com/rabilrbl/fluffy-patches/commit/c1990a93f33f9a0e32263e8171339b0e15991015))
+
 # [1.5.0-dev.4](https://github.com/rabilrbl/fluffy-patches/compare/v1.5.0-dev.3...v1.5.0-dev.4) (2026-03-31)
 
 

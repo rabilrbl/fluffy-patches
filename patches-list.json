@@ -1,9 +1,9 @@
 {
-  "version": "1.5.0-dev.4",
+  "version": "1.5.0-dev.5",
   "patches": [
     {
       "name": "Disable pairip license check (manifest)",
-      "description": "Globally disables the pairip LicenseContentProvider in AndroidManifest so Android never initializes it, preventing all Play Store license checks.",
+      "description": "Globally disables the pairip LicenseContentProvider in AndroidManifest and changes application class to bypass pairip entirely.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
