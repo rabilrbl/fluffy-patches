@@ -3,7 +3,7 @@ package app.rabil.patches.jiotv.sslpinning
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
-import app.template.patches.shared.Constants.COMPATIBILITY_EXAMPLE
+import app.template.patches.shared.Constants.COMPATIBILITY_JIOTV_MOBILE
 
 @Suppress("unused")
 val removeCertificatePinningPatch = bytecodePatch(
@@ -13,7 +13,7 @@ val removeCertificatePinningPatch = bytecodePatch(
         "(FirebaseConfig.isSslPining()). This patch disables the pinning toggle and also patches " +
         "the OkHttp3 CertificatePinner.check() method to prevent pin validation failures.",
 ) {
-    compatibleWith(COMPATIBILITY_EXAMPLE)
+    compatibleWith(COMPATIBILITY_JIOTV_MOBILE)
 
     execute {
         // --- FirebaseConfig.isSslPining() → always return false ---

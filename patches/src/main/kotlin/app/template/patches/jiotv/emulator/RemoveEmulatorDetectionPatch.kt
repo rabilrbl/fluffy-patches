@@ -3,7 +3,7 @@ package app.rabil.patches.jiotv.emulator
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
-import app.template.patches.shared.Constants.COMPATIBILITY_EXAMPLE
+import app.template.patches.shared.Constants.COMPATIBILITY_JIOTV_MOBILE
 
 @Suppress("unused")
 val removeEmulatorDetectionPatch = bytecodePatch(
@@ -12,7 +12,7 @@ val removeEmulatorDetectionPatch = bytecodePatch(
         "Bypasses Build.FINGERPRINT/MODEL/BRAND/HARDWARE checks, BlueStacks folder detection, " +
         "Fire TV detection, and Android TV (leanback) feature checks.",
 ) {
-    compatibleWith(COMPATIBILITY_EXAMPLE)
+    compatibleWith(COMPATIBILITY_JIOTV_MOBILE)
 
     execute {
         // --- PermissionActivity.isRunningOnEmulator() → always return false ---

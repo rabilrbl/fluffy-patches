@@ -3,7 +3,7 @@ package app.rabil.patches.jiotv.root
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
-import app.template.patches.shared.Constants.COMPATIBILITY_EXAMPLE
+import app.template.patches.shared.Constants.COMPATIBILITY_JIOTV_MOBILE
 
 @Suppress("unused")
 val removeRootDetectionPatch = bytecodePatch(
@@ -12,7 +12,7 @@ val removeRootDetectionPatch = bytecodePatch(
         "checks Build.TAGS for 'test-keys', /system/app/Superuser.apk, and /system/xbin/su. " +
         "Also neutralizes SecurityUtils validation and the Xposed framework detection dialog.",
 ) {
-    compatibleWith(COMPATIBILITY_EXAMPLE)
+    compatibleWith(COMPATIBILITY_JIOTV_MOBILE)
 
     execute {
         // --- CommonUtils.isRooted() → always return false ---

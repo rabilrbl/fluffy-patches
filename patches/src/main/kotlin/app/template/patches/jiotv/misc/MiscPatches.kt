@@ -4,7 +4,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
-import app.template.patches.shared.Constants.COMPATIBILITY_EXAMPLE
+import app.template.patches.shared.Constants.COMPATIBILITY_JIOTV_MOBILE
 import org.w3c.dom.Element
 
 @Suppress("unused")
@@ -14,7 +14,7 @@ val enableCleartextTrafficPatch = resourcePatch(
         "security config to allow cleartext HTTP traffic and user-installed CA certificates. " +
         "This enables MITM proxy tools like mitmproxy, Charles, and HTTP Toolkit to intercept traffic.",
 ) {
-    compatibleWith(COMPATIBILITY_EXAMPLE)
+    compatibleWith(COMPATIBILITY_JIOTV_MOBILE)
 
     execute {
         // Patch AndroidManifest.xml: set usesCleartextTraffic=true
@@ -62,7 +62,7 @@ val enableDebuggingPatch = bytecodePatch(
         "in that method is: if (!SecurityUtils.isDebug && (!isSupportedDevice || ...)) " +
         "so setting isDebug=true skips the entire security gate.",
 ) {
-    compatibleWith(COMPATIBILITY_EXAMPLE)
+    compatibleWith(COMPATIBILITY_JIOTV_MOBILE)
 
     // Include root and emulator patches for defense-in-depth (they also
     // patch the individual checks that D() calls, as a redundant layer).
