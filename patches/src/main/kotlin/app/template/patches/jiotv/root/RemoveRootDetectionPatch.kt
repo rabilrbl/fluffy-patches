@@ -33,20 +33,6 @@ val removeRootDetectionPatch = bytecodePatch(
                 """,
             )
 
-        // --- SecurityUtils.isValidBuild() → always return true ---
-        // Currently returns true already, but patching for safety
-        // in case a future update changes the behavior.
-        classDefBy("Lcom/jio/jioplay/tv/utils/SecurityUtils;")
-            .methods.first { it.name == "isValidBuild" }
-            .toMutable()
-            .addInstructions(
-                0,
-                """
-                    const/4 v0, 0x1
-                    return v0
-                """,
-            )
-
         // --- SecurityUtils.isValidVersionName() → always return true ---
         // Validates version name format by parsing it as a Long.
         // Could fail on modified builds with non-numeric version names.
