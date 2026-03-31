@@ -16,16 +16,6 @@ val removeEmulatorDetectionPatch = bytecodePatch(
 
     execute {
         // --- PermissionActivity.isRunningOnEmulator() → always return false ---
-        // Checks:
-        //   Build.FINGERPRINT starts with "generic" or "unknown"
-        //   Build.MODEL contains "google_sdk", "Emulator", "Android SDK built for x86"
-        //   Build.MANUFACTURER contains "Genymotion"
-        //   Build.BRAND + DEVICE start with "generic"
-        //   Build.PRODUCT equals "google_sdk" or contains "vbox86p"
-        //   Build.DEVICE contains "vbox86p"
-        //   Build.HARDWARE contains "vbox86"
-        // Also in onCreate: checks for /sdcard/windows/BstSharedFolder (BlueStacks)
-        // and android.software.leanback system feature (Android TV).
         classDefBy("Lcom/jio/media/tv/ui/permission_onboarding/PermissionActivity;")
             .methods.first { it.name == "isRunningOnEmulator" }
             .toMutable()
@@ -38,9 +28,6 @@ val removeEmulatorDetectionPatch = bytecodePatch(
             )
 
         // --- PermissionActivity.isSupportedDevice() → always return true ---
-        // Checks for amazon.hardware.fire_tv system feature and
-        // Build.MODEL containing "AFT" (Amazon Fire TV stick/cube).
-        // Returning true ensures the app runs on Fire TV and all device types.
         classDefBy("Lcom/jio/media/tv/ui/permission_onboarding/PermissionActivity;")
             .methods.first { it.name == "isSupportedDevice" }
             .toMutable()
@@ -49,6 +36,39 @@ val removeEmulatorDetectionPatch = bytecodePatch(
                 """
                     const/4 v0, 0x1
                     return v0
+                """,
+            )
+
+        // --- Force proceedApplication to be called in onCreate ---
+        // The original onCreate has a complex condition that checks:
+        //   isSupportedDevice && isValidBuild && isValidVersionName && !isRooted && 
+        //   !BlueStacks && !isEmulator && !leanbackFeature
+        //
+        // Since the leanback check uses getPackageManager().hasSystemFeature() which is a
+        // system call that returns different values based on device type, we patch the 
+        // onCreate method to ALWAYS proceed to proceedApplication() regardless of checks.
+        //
+        // This patch replaces the condition check logic:
+        // Original: if (allChecksPass) { proceedApplication(); } else { showErrorDialog(); }
+        // Patched: Always call proceedApplication()
+        classDefBy("Lcom/jio/media/tv/ui/permission_onboarding/PermissionActivity;")
+            .methods.first { it.name == "onCreate" }
+            .toMutable()
+            .addInstructions(
+                0,
+                """
+                    # Save bundle to p1 for super call
+                    move-object p1, p1
+                    
+                    # Call super.onCreate(savedInstanceState)
+                    invoke-super {p0, p1}, Lcom/jio/jioplay/tv/base/BaseActivity;->onCreate(Landroid/os/Bundle;)V
+                    
+                    # Skip all checks - directly call proceedApplication() 
+                    # This bypasses: isSupportedDevice, isValidBuild, isValidVersionName, 
+                    # isRooted, BlueStacks folder, isEmulator, and leanback feature checks
+                    invoke-virtual {p0}, Lcom/jio/media/tv/ui/permission_onboarding/PermissionActivity;->proceedApplication()V
+                    
+                    return-void
                 """,
             )
     }
