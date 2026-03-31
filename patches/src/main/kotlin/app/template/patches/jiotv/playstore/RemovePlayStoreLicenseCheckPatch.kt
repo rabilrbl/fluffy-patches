@@ -38,14 +38,40 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
             .toMutable()
             .addInstructions(0, "return-void")
 
+        // --- Block service connection and response processing ---
+        // Defense-in-depth: even if initializeLicenseCheck() somehow runs, the
+        // actual Play Store connection and response handling are also blocked.
+        // processResponse() is where the paywall PendingIntent is fired when
+        // the service returns NOT_LICENSED (code 2) — this is the critical block.
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "connectToLicensingService" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "processResponse" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "handleError" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
         // --- Neuter LicenseActivity as the final UI safety net ---
-        // If LicenseActivity is somehow started despite the above blocks, onStart()
-        // being neutered prevents the paywall PendingIntent from ever being fired
-        // and the app from being killed via System.exit().
+        // If LicenseActivity is somehow started despite the above blocks, finish()
+        // immediately dismisses it before onStart() can fire the paywall PendingIntent
+        // or show the error dialog. closeApp() is also neutered to prevent System.exit().
         classDefBy("Lcom/pairip/licensecheck/LicenseActivity;")
             .methods.first { it.name == "onStart" }
             .toMutable()
-            .addInstructions(0, "return-void")
+            .addInstructions(
+                0,
+                """
+                    invoke-virtual {p0}, Landroid/app/Activity;->finish()V
+                    return-void
+                """,
+            )
 
         classDefBy("Lcom/pairip/licensecheck/LicenseActivity;")
             .methods.first { it.name == "closeApp" }
@@ -102,5 +128,32 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
             .methods.first { it.name == "takeToPlayStore" }
             .toMutable()
             .addInstructions(0, "return-void")
+
+        // --- Spoof InstallReferrerClient as ready and from Play Store ---
+        // isReady() returning true prevents callers from re-initiating a connection.
+        // startConnection() immediately fires the success callback (code 0 = OK) so
+        // any analytics flow that reads the install referrer proceeds without blocking.
+        classDefBy("Lcom/android/installreferrer/api/b;")
+            .methods.first { it.name == "isReady" }
+            .toMutable()
+            .addInstructions(
+                0,
+                """
+                    const/4 v0, 0x1
+                    return v0
+                """,
+            )
+
+        classDefBy("Lcom/android/installreferrer/api/b;")
+            .methods.first { it.name == "startConnection" }
+            .toMutable()
+            .addInstructions(
+                0,
+                """
+                    const/4 v0, 0x0
+                    invoke-interface {p1, v0}, Lcom/android/installreferrer/api/InstallReferrerStateListener;->onInstallReferrerSetupFinished(I)V
+                    return-void
+                """,
+            )
     }
 }
