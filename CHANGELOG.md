@@ -1,3 +1,10 @@
+# [1.5.0-dev.3](https://github.com/rabilrbl/fluffy-patches/compare/v1.5.0-dev.2...v1.5.0-dev.3) (2026-03-31)
+
+
+### Features
+
+* **patches:** enhance license check patch to remove LicenseContentProvider and block licensing service methods ([0913818](https://github.com/rabilrbl/fluffy-patches/commit/091381894b3518d0a7254cd2d4503ab82a1a0bd3))
+
 # [1.5.0-dev.2](https://github.com/rabilrbl/fluffy-patches/compare/v1.5.0-dev.1...v1.5.0-dev.2) (2026-03-31)
 
 
