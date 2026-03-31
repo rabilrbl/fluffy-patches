@@ -1,3 +1,11 @@
+# [1.3.0](https://github.com/rabilrbl/fluffy-patches/compare/v1.2.0...v1.3.0) (2026-03-31)
+
+
+### Features
+
+* **patches:** update compatibility constant to JioTV Mobile across patches ([cb8fd0a](https://github.com/rabilrbl/fluffy-patches/commit/cb8fd0aa1a98f34061f09f6277d2d208d98b7f3e))
+* **playstore:** enhance license check patch to prevent loading of pairipcore library ([c9cb65d](https://github.com/rabilrbl/fluffy-patches/commit/c9cb65ddaeea6fe521acc0bc911241e5088f4bc0))
+
 # [1.2.0](https://github.com/rabilrbl/fluffy-patches/compare/v1.1.0...v1.2.0) (2026-03-30)
 
 

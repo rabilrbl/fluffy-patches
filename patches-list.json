@@ -1,24 +1,11 @@
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "patches": [
     {
       "name": "Enable cleartext traffic",
       "description": "Sets usesCleartextTraffic to true in AndroidManifest and patches the network security config to allow cleartext HTTP traffic and user-installed CA certificates. This enables MITM proxy tools like mitmproxy, Charles, and HTTP Toolkit to intercept traffic.",
       "use": true,
       "dependencies": [],
-      "compatiblePackages": {
-        "com.jio.jioplay.tv": null
-      },
-      "options": []
-    },
-    {
-      "name": "Enable debugging",
-      "description": "Sets SecurityUtils.isDebug to true, which bypasses all security checks in PermissionActivity.D() (root, emulator, build validation). The very first check in that method is: if (!SecurityUtils.isDebug && (!isSupportedDevice || ...)) so setting isDebug=true skips the entire security gate.",
-      "use": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
       "compatiblePackages": {
         "com.jio.jioplay.tv": null
       },
