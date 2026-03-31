@@ -1,9 +1,6 @@
 package app.rabil.patches.jiotv.misc
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.template.patches.shared.Constants.COMPATIBILITY_JIOTV_MOBILE
 import org.w3c.dom.Element
 
@@ -50,49 +47,6 @@ val enableCleartextTrafficPatch = resourcePatch(
             trustAnchors.appendChild(userCerts)
             baseConfig.appendChild(trustAnchors)
             root.appendChild(baseConfig)
-        }
-    }
-}
-
-@Suppress("unused")
-val enableDebuggingPatch = bytecodePatch(
-    name = "Enable debugging",
-    description = "Sets SecurityUtils.isDebug to true, which bypasses all security checks " +
-        "in PermissionActivity.D() (root, emulator, build validation). The very first check " +
-        "in that method is: if (!SecurityUtils.isDebug && (!isSupportedDevice || ...)) " +
-        "so setting isDebug=true skips the entire security gate.",
-) {
-    compatibleWith(COMPATIBILITY_JIOTV_MOBILE)
-
-    // Include root and emulator patches for defense-in-depth (they also
-    // patch the individual checks that D() calls, as a redundant layer).
-    dependsOn(
-        app.rabil.patches.jiotv.root.removeRootDetectionPatch,
-        app.rabil.patches.jiotv.emulator.removeEmulatorDetectionPatch,
-    )
-
-    execute {
-        // --- Set SecurityUtils.isDebug = true ---
-        // SecurityUtils has a static boolean field: public static boolean isDebug = false;
-        // In PermissionActivity.D(), the first condition is:
-        //   if (!SecurityUtils.isDebug && (!isSupportedDevice || !isValidBuild() ||
-        //       !isValidVersionName() || CommonUtils.isRooted()))
-        // When isDebug is true, this entire block is skipped, meaning the app proceeds
-        // directly to permission handling regardless of device state.
-        //
-        // We patch the class initializer (<clinit>) to set isDebug = true at class load time.
-        val securityUtilsClass = classDefBy("Lcom/jio/jioplay/tv/utils/SecurityUtils;")
-
-        // If there's a static initializer, prepend our instruction
-        val clinit = securityUtilsClass.methods.firstOrNull { it.name == "<clinit>" }
-        if (clinit != null) {
-            clinit.toMutable().addInstructions(
-                0,
-                """
-                    const/4 v0, 0x1
-                    sput-boolean v0, Lcom/jio/jioplay/tv/utils/SecurityUtils;->isDebug:Z
-                """,
-            )
         }
     }
 }

@@ -117,6 +117,19 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
             .toMutable()
             .addInstructions(0, "return-void")
 
+        // --- Prevent pairipcore native library from loading ---
+        // VMRunner.<clinit> calls System.loadLibrary("pairipcore"), which loads the
+        // native integrity-check library. This happens the moment VMRunner is first
+        // referenced — which occurs in Application.attachBaseContext() via
+        // VMRunner.setContext(), before any other pairip Java-side code runs.
+        // The native JNI_OnLoad() can perform its own APK signature check and fire
+        // a Play Store Activity intent at the JNI level, bypassing all Java patches.
+        // Patching <clinit> to return-void prevents the library from ever loading.
+        classDefBy("Lcom/pairip/VMRunner;")
+            .methods.first { it.name == "<clinit>" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
         // --- Bypass StartupLauncher.launch() ---
         // Loads encrypted VM bytecode (file "mVBwD2didVTgj5k7") from assets/ and
         // executes it via native libpairipcore.so through VMRunner.invoke().
