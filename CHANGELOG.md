@@ -1,3 +1,10 @@
+# [1.5.0-dev.2](https://github.com/rabilrbl/fluffy-patches/compare/v1.5.0-dev.1...v1.5.0-dev.2) (2026-03-31)
+
+
+### Features
+
+* **patches:** enhance license check patch to block LicenseClient methods and bypass local installer check ([62c7d99](https://github.com/rabilrbl/fluffy-patches/commit/62c7d9903b5d0c407808eba423095c0c2819038a))
+
 # [1.5.0-dev.1](https://github.com/rabilrbl/fluffy-patches/compare/v1.4.0...v1.5.0-dev.1) (2026-03-31)
 
 
