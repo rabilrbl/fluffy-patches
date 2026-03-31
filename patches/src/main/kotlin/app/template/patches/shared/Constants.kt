@@ -5,7 +5,7 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 
 object Constants {
-    val COMPATIBILITY_EXAMPLE = Compatibility(
+    val COMPATIBILITY_JIOTV_MOBILE = Compatibility(
         name = "JioTV Mobile",
         packageName = "com.jio.jioplay.tv",
         apkFileType = ApkFileType.APK,

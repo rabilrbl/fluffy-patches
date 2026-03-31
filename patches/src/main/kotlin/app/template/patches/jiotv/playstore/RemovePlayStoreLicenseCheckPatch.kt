@@ -3,7 +3,7 @@ package app.rabil.patches.jiotv.playstore
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
-import app.template.patches.shared.Constants.COMPATIBILITY_EXAMPLE
+import app.template.patches.shared.Constants.COMPATIBILITY_JIOTV_MOBILE
 
 @Suppress("unused")
 val removePlayStoreLicenseCheckPatch = bytecodePatch(
@@ -11,7 +11,7 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
     description = "Removes Play Store/license enforcement (pairip + app-side updater redirects). " +
         "Bypasses LicenseClient, SignatureCheck, StartupLauncher, and CommonUtils store/update gates.",
 ) {
-    compatibleWith(COMPATIBILITY_EXAMPLE)
+    compatibleWith(COMPATIBILITY_JIOTV_MOBILE)
 
     execute {
         // --- Bypass LicenseClient.initializeLicenseCheck() ---
