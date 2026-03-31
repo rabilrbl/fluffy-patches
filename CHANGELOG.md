@@ -1,3 +1,10 @@
+# [1.5.0-dev.1](https://github.com/rabilrbl/fluffy-patches/compare/v1.4.0...v1.5.0-dev.1) (2026-03-31)
+
+
+### Features
+
+* **patches:** implement global manifest-level disable of pairip license checks ([b50fc67](https://github.com/rabilrbl/fluffy-patches/commit/b50fc674a2e90b22c0b420f490fbbe4dc731fd9f))
+
 # [1.4.0](https://github.com/rabilrbl/fluffy-patches/compare/v1.3.0...v1.4.0) (2026-03-31)
 
 
