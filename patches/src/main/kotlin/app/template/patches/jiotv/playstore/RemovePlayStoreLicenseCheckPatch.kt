@@ -12,16 +12,20 @@ import org.w3c.dom.Element
 // checks. Setting android:enabled="false" in the manifest is the cleanest global
 // disable — Android never calls its onCreate(), so the entire check flow never
 // starts regardless of app version or code changes.
+//
+// Also changes the application class from com.pairip.application.Application to
+// com.jio.jioplay.tv.JioTVApplication to completely bypass the pairip library.
 @Suppress("unused")
 val disablePairipManifestPatch = resourcePatch(
     name = "Disable pairip license check (manifest)",
     description = "Globally disables the pairip LicenseContentProvider in AndroidManifest " +
-        "so Android never initializes it, preventing all Play Store license checks.",
+        "and changes application class to bypass pairip entirely.",
 ) {
     compatibleWith(COMPATIBILITY_JIOTV_MOBILE)
 
     execute {
         document("AndroidManifest.xml").use { document ->
+            // Remove LicenseContentProvider
             val providers = document.getElementsByTagName("provider")
             val toRemove = mutableListOf<Element>()
             for (i in 0 until providers.length) {
@@ -34,6 +38,10 @@ val disablePairipManifestPatch = resourcePatch(
             toRemove.forEach { provider ->
                 provider.parentNode?.removeChild(provider)
             }
+
+            // Change application class to bypass pairip entirely
+            val application = document.getElementsByTagName("application").item(0) as Element
+            application.setAttribute("android:name", "com.jio.jioplay.tv.JioTVApplication")
         }
     }
 }
