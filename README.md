@@ -1,76 +1,60 @@
-# 👋🧩 Morphe Patches template
+# Fluffy Patches
 
-Template repository for Morphe Patches.
+A [Morphe Patches](https://morpheapp.github.io) repository with patches for Android apps.
 
-&nbsp;
-## ❓ About
+Click here to add these patches to Morphe: https://morphe.software/add-source?github=rabilrbl/fluffy-patches
 
-This is a template to create a new Morphe Patches repository.  
-The repository can have multiple patches, and patches from other repositories can be used together.
+Or manually add as a patch source in Morphe: https://github.com/rabilrbl/fluffy-patches
 
-For an example repository, see [Morphe Patches](https://github.com/MorpheApp/morphe-patches).
+## Supported Apps
 
-Morphe Patches template is based off the prior work of [ReVanced](https://github.com/ReVanced/revanced-patches-template).
-All modifications made by Morphe, along with their dates, can be found in the Git history.
+### JioTV Mobile (`com.jio.jioplay.tv`)
 
+| Patch | Description |
+|-------|-------------|
+| Remove Play Store license check | Bypasses pairip licensing enforcement and app-side update redirects |
+| Remove root detection | Disables root checks and custom security validation |
+| Remove emulator detection | Bypasses device/emulator detection and Fire TV compatibility blocks |
+| Remove certificate pinning | Disables OkHttp3 SSL certificate pinning for MITM proxy support |
+| Enable cleartext traffic | Allows HTTP traffic and trusts user-installed CA certificates |
+| Enable debugging | Sets the internal debug flag to bypass all security gates (includes root + emulator patches) |
 
-## 🚀 Get started
+## Usage
 
-To start using this template, follow these steps:
+1. Download the latest `.mpp` file from [Releases](../../releases).
+2. Open Morphe Manager and import the patch package.
+3. Select the target APK and apply the desired patches.
 
-1. [Create a new repository using this template](https://github.com/new?template_name=morphe-patches-template&template_owner=MorpheApp)
-2. Set up the [build.gradle.kts](patches/build.gradle.kts) file (Specifically, the [group of the project](patches/build.gradle.kts#L1),
-and the [About](patches/build.gradle.kts#L5-L11))
-3. Set up the [README.md](README.md) file[^1] (e.g, title, description, license, summary of the patches
-that are included in the repository), the [issue templates](.github/ISSUE_TEMPLATE)[^2]  and the [contribution guidelines](CONTRIBUTING.md)[^3]
-4. Choose a name for your patches project. Keep in mind you must use a unique name that does not imply or suggest authorship by the Morphe open source project.
-   See the [NOTICE](NOTICE) for details.
-5. (Optional): Add `patches-bundle.png` to the project if you want a custom icon to show in
-   Morphe Manager instead of your GitHub profile avatar.
+## Building from Source
 
-🎉 You are now ready to start creating patches!
+Requires JDK 17.
 
-## 🧑‍💻 Usage
+```bash
+./gradlew :patches:buildAndroid
+```
 
-To develop and release Morphe Patches using this template, some things need to be considered:
+Output: `patches/build/libs/patches-<version>.mpp`
 
-- Development starts in feature branches. Once a feature branch is ready, it is squashed and merged into the `dev` branch
-- The `dev` branch is merged into the `main` branch once it is ready for release
-- Semantic versioning is used to version Morphe Patches.
-- [Semantic commit](https://kapeli.com/cheat_sheets/Semantic_Commits.docset/Contents/Resources/Documents/index) messages are used for commits
-- Commits on the `dev` branch and `main` branch are automatically released
-via the [release.yml](.github/workflows/release.yml) workflow, which is also responsible for generating the changelog
-and updating the version of Morphe Patches. It is triggered by pushing to the `dev` or `main` branch.
-The workflow uses the `publish` task to publish the release of Morphe Patches
-- The `buildAndroid` task is used to build Morphe Patches so that it can be used on Android.
-The `publish` task depends on the `buildAndroid` task, so it will be run automatically when publishing a release.
+## Contributing
 
-## 📚 Everything else
+### Adding a Patch for an Existing App
 
-Optionally you can include a button/link in this readme that users can click to add your 
-patches to Morphe (update the links below after creating your new patches repo):
+1. Create a `.kt` file under `patches/src/main/kotlin/app/template/patches/<appname>/`.
+2. Define a `bytecodePatch` or `resourcePatch` with `compatibleWith(<APP_CONSTANT>)`.
+3. Annotate the top-level `val` with `@Suppress("unused")`.
 
-#### How to use these patches
+### Adding a New App
 
-Click here to add these patches to Morphe: https://morphe.software/add-source?github=xyz-user/xyz-patches
+1. Add a `Compatibility(...)` entry in `shared/Constants.kt` with the app's package name, APK type, and icon color.
+2. Create a subdirectory under `patches/<appname>/` for the patches.
+3. Reference the new constant in each patch's `compatibleWith(...)` call.
 
-Or manually add this repository url as a patch source in Morphe: https://github.com/xyz-user/xyz-patches
+### Workflow
 
-### 📙 Contributing
+- Development happens on `dev`; open PRs targeting `dev`.
+- `main` is the release branch — do not push directly.
+- Releases are automated via semantic-release; use conventional commits (`feat:`, `fix:`, `chore:`, `refactor:`).
 
-Thank you for considering contributing to Morphe Patches template.  
-You can find the contribution guidelines [here](CONTRIBUTING.md).
+## License
 
-### 🛠️ Building
-
-To build Morphe Patches template,
-you can follow the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation).
-
-## 📜 License
-
-Morphe Patches are licensed under the [GNU General Public License v3.0](LICENSE), with additional conditions under GPLv3 Section 7:
-
-- **Name Restriction (7c):** The name **"Morphe"** may not be used for derivative works.  
-  Derivatives must adopt a distinct identity unrelated to "Morphe."
-
-See the [LICENSE](LICENSE) file for the full GPLv3 terms and the [NOTICE](NOTICE) file for full conditions of GPLv3 Section 7
+[GPLv3](LICENSE) with Section 7 restriction: the name "Morphe" may not be used in derivative works. See [NOTICE](NOTICE) for full conditions.
