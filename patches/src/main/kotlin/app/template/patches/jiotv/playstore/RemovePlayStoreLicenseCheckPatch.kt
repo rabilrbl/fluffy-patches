@@ -14,88 +14,11 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_JIOTV_MOBILE)
 
     execute {
-        // --- Bypass LicenseClient.initializeLicenseCheck() ---
-        // Main entry point for pairip's Play Store license verification.
-        // Connects to com.android.vending licensing service and validates the purchase.
-        // Making it return-void immediately prevents all license checks.
-        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
-            .methods.first { it.name == "initializeLicenseCheck" }
-            .toMutable()
-            .addInstructions(0, "return-void")
-
-        // --- Bypass connectToLicensingService() ---
-        // Prevents binding to com.android.vending licensing service.
-        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
-            .methods.first { it.name == "connectToLicensingService" }
-            .toMutable()
-            .addInstructions(0, "return-void")
-
-        // --- Bypass performLocalInstallerCheck() → always return true ---
-        // Checks getInstallSourceInfo() for "com.android.vending" as the installer.
-        // For sideloaded APKs this fails. We make it always return true.
-        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
-            .methods.first { it.name == "performLocalInstallerCheck" }
-            .toMutable()
-            .addInstructions(
-                0,
-                """
-                    const/4 v0, 0x1
-                    return v0
-                """,
-            )
-
-        // --- Neuter LicenseActivity.onStart() ---
-        // Shows error dialogs and paywall intents when license check fails.
-        // Preventing it from executing ensures no blocking UI is shown.
-        classDefBy("Lcom/pairip/licensecheck/LicenseActivity;")
-            .methods.first { it.name == "onStart" }
-            .toMutable()
-            .addInstructions(0, "return-void")
-
-        // --- Hard-disable popup rendering paths in LicenseActivity ---
-        // Some builds can still route into these private UI methods.
-        classDefBy("Lcom/pairip/licensecheck/LicenseActivity;")
-            .methods.first { it.name == "showPaywallAndCloseApp" }
-            .toMutable()
-            .addInstructions(0, "return-void")
-
-        classDefBy("Lcom/pairip/licensecheck/LicenseActivity;")
-            .methods.first { it.name == "showErrorDialog" }
-            .toMutable()
-            .addInstructions(0, "return-void")
-
-        // Prevent forced process termination if LicenseActivity is ever launched.
-        classDefBy("Lcom/pairip/licensecheck/LicenseActivity;")
-            .methods.first { it.name == "closeApp" }
-            .toMutable()
-            .addInstructions(0, "return-void")
-
-        // --- Block popup launchers in LicenseClient ---
-        // These two methods are responsible for opening blocking UI.
-        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
-            .methods.first { it.name == "startErrorDialogActivity" }
-            .toMutable()
-            .addInstructions(0, "return-void")
-
-        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
-            .methods.first { it.name == "startPaywallActivity" }
-            .toMutable()
-            .addInstructions(0, "return-void")
-
-        // --- Fail-safe on response/error handlers ---
-        // If the service still answers with NOT_LICENSED, suppress downstream handling.
-        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
-            .methods.first { it.name == "processResponse" }
-            .toMutable()
-            .addInstructions(0, "return-void")
-
-        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
-            .methods.first { it.name == "handleError" }
-            .toMutable()
-            .addInstructions(0, "return-void")
-
         // --- Disable content provider bootstrap ---
-        // LicenseContentProvider.onCreate() eagerly triggers license init on app startup.
+        // LicenseContentProvider.onCreate() is the sole Java-side entry point that
+        // triggers license checking. It calls LicenseClient.initializeLicenseCheck()
+        // which binds to com.android.vending and initiates the full check flow.
+        // This is the primary Java-layer block.
         classDefBy("Lcom/pairip/licensecheck/LicenseContentProvider;")
             .methods.first { it.name == "onCreate" }
             .toMutable()
@@ -106,6 +29,28 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
                     return v0
                 """,
             )
+
+        // --- Bypass LicenseClient.initializeLicenseCheck() ---
+        // Defense-in-depth: stops the license check even if something other than
+        // LicenseContentProvider manages to instantiate a LicenseClient and call this.
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "initializeLicenseCheck" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        // --- Neuter LicenseActivity as the final UI safety net ---
+        // If LicenseActivity is somehow started despite the above blocks, onStart()
+        // being neutered prevents the paywall PendingIntent from ever being fired
+        // and the app from being killed via System.exit().
+        classDefBy("Lcom/pairip/licensecheck/LicenseActivity;")
+            .methods.first { it.name == "onStart" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        classDefBy("Lcom/pairip/licensecheck/LicenseActivity;")
+            .methods.first { it.name == "closeApp" }
+            .toMutable()
+            .addInstructions(0, "return-void")
 
         // --- Bypass SignatureCheck.verifyIntegrity() ---
         // Verifies APK signature hash against hardcoded SHA-256 values:
