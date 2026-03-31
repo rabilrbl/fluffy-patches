@@ -23,12 +23,16 @@ val disablePairipManifestPatch = resourcePatch(
     execute {
         document("AndroidManifest.xml").use { document ->
             val providers = document.getElementsByTagName("provider")
+            val toRemove = mutableListOf<Element>()
             for (i in 0 until providers.length) {
                 val provider = providers.item(i) as Element
                 if (provider.getAttribute("android:name")
                         .contains("LicenseContentProvider")) {
-                    provider.setAttribute("android:enabled", "false")
+                    toRemove.add(provider)
                 }
+            }
+            toRemove.forEach { provider ->
+                provider.parentNode?.removeChild(provider)
             }
         }
     }
@@ -100,6 +104,30 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
         // licensing check which shows the Play Store intent.
         classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
             .methods.first { it.name == "performLocalInstallerCheck" }
+            .toMutable()
+            .addInstructions(0, "const/4 v0, 0x1\nreturn v0")
+
+        // Block connectToLicensingService - prevents binding to Play Store licensing service
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "connectToLicensingService" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        // Block startPaywallActivity - prevents the Play Store intent from being launched
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "startPaywallActivity" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        // Block startErrorDialogActivity
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "startErrorDialogActivity" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        // Block LicenseContentProvider.onCreate to prevent it from initializing LicenseClient
+        classDefBy("Lcom/pairip/licensecheck/LicenseContentProvider;")
+            .methods.first { it.name == "onCreate" }
             .toMutable()
             .addInstructions(0, "const/4 v0, 0x1\nreturn v0")
 
