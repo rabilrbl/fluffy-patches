@@ -1,3 +1,10 @@
+# [1.5.0-dev.4](https://github.com/rabilrbl/fluffy-patches/compare/v1.5.0-dev.3...v1.5.0-dev.4) (2026-03-31)
+
+
+### Features
+
+* **patches:** enhance Play Store license check patch to block additional methods and prevent initialization ([259dd9d](https://github.com/rabilrbl/fluffy-patches/commit/259dd9d6c3ceacab1b059e9d024df6aab4a3be74))
+
 # [1.5.0-dev.3](https://github.com/rabilrbl/fluffy-patches/compare/v1.5.0-dev.2...v1.5.0-dev.3) (2026-03-31)
 
 
