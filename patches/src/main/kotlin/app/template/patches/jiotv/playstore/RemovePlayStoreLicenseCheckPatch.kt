@@ -125,11 +125,37 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
             .toMutable()
             .addInstructions(0, "return-void")
 
+        // Block handleError - this can also trigger error dialog
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "handleError" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
         // Block LicenseContentProvider.onCreate to prevent it from initializing LicenseClient
         classDefBy("Lcom/pairip/licensecheck/LicenseContentProvider;")
             .methods.first { it.name == "onCreate" }
             .toMutable()
             .addInstructions(0, "const/4 v0, 0x1\nreturn v0")
+
+        // Block pairip Application.attachBaseContext - this is the actual entry point
+        // that calls VMRunner.setContext and SignatureCheck.verifyIntegrity
+        // Just skip those calls and go directly to super
+        classDefBy("Lcom/pairip/application/Application;")
+            .methods.first { it.name == "attachBaseContext" }
+            .toMutable()
+            .addInstructions(
+                0,
+                """
+                    invoke-super {p0, p1}, Lcom/jio/jioplay/tv/JioTVApplication;->attachBaseContext(Landroid/content/Context;)V
+                    return-void
+                """,
+            )
+
+        // Also patch VMRunner.setContext to prevent any context from being set
+        classDefBy("Lcom/pairip/VMRunner;")
+            .methods.first { it.name == "setContext" }
+            .toMutable()
+            .addInstructions(0, "return-void")
 
         // Disable app-side Play Store redirect helpers.
         classDefBy("Lcom/jio/jioplay/tv/utils/CommonUtils;")
