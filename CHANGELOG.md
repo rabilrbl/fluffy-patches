@@ -1,3 +1,10 @@
+# [1.0.0-dev.6](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.5...v1.0.0-dev.6) (2026-04-03)
+
+
+### Bug Fixes
+
+* bypass app update checks by modifying CommonUtils and AppUpdateHelper methods ([4c43c6d](https://github.com/rabilrbl/fluffy-patches/commit/4c43c6de1bb56cb789c4fb33a23feb4f278c7624))
+
 # [1.0.0-dev.5](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.4...v1.0.0-dev.5) (2026-04-03)
 
 
