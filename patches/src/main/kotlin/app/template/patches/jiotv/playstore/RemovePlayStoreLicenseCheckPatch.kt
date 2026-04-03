@@ -90,5 +90,20 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
             .directMethods
             .first { it.name == "takeToPlayStore" }
             .addInstructions(0, "return-void")
+
+        mutableClassDefBy("Lcom/jio/jioplay/tv/utils/AppUpdateHelper;")
+            .virtualMethods
+            .first { it.name == "checkUpdate" }
+            .addInstructions(0, "return-void")
+
+        mutableClassDefBy("Lcom/jio/jioplay/tv/utils/AppUpdateHelper;")
+            .virtualMethods
+            .first { it.name == "checkUpdatefordiag" }
+            .addInstructions(0, "return-void")
+
+        mutableClassDefBy("Lcom/jio/jioplay/tv/utils/AppUpdateHelper;")
+            .directMethods
+            .first { it.name == "a" }
+            .addInstructions(0, "return-void")
     }
 }
