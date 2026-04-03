@@ -14,7 +14,7 @@ import org.w3c.dom.Element
 // starts regardless of app version or code changes.
 //
 // Also changes the application class from com.pairip.application.Application to
-// com.jio.jioplay.tv.JioTVApplication to completely bypass the pairip library.
+// com.jio.jioplay.p037tv.JioTVApplication to completely bypass the pairip library.
 @Suppress("unused")
 val disablePairipManifestPatch = resourcePatch(
     name = "Disable pairip license check (manifest)",
@@ -40,8 +40,9 @@ val disablePairipManifestPatch = resourcePatch(
             }
 
             // Change application class to bypass pairip entirely
+            // NOTE: actual package is p037tv (obfuscated), not plain tv
             val application = document.getElementsByTagName("application").item(0) as Element
-            application.setAttribute("android:name", "com.jio.jioplay.tv.JioTVApplication")
+            application.setAttribute("android:name", "com.jio.jioplay.p037tv.JioTVApplication")
         }
     }
 }
@@ -61,25 +62,129 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_JIOTV_MOBILE)
 
     execute {
-        // Prevent pairipcore.so from loading — blocks all JNI-level checks.
+        // ============================================================
+        // 1. BLOCK NATIVE LIBRARY LOADING (pairipcore.so)
+        // ============================================================
+        println("[PlayStorePatch] Patching VMRunner.<clinit> to prevent pairipcore.so loading")
         classDefBy("Lcom/pairip/VMRunner;")
             .methods.first { it.name == "<clinit>" }
             .toMutable()
             .addInstructions(0, "return-void")
 
-        // Prevent VM bytecode execution via StartupLauncher.
+        // Also patch VMRunner.setContext to prevent any context from being set
+        println("[PlayStorePatch] Patching VMRunner.setContext to no-op")
+        classDefBy("Lcom/pairip/VMRunner;")
+            .methods.first { it.name == "setContext" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        // ============================================================
+        // 2. BLOCK VM BYTECODE EXECUTION
+        // ============================================================
+        // Patch StartupLauncher.launch() — called from AppComponentFactory
+        println("[PlayStorePatch] Patching StartupLauncher.launch to no-op")
         classDefBy("Lcom/pairip/StartupLauncher;")
             .methods.first { it.name == "launch" }
             .toMutable()
             .addInstructions(0, "return-void")
 
-        // Bypass signature verification to avoid SignatureTamperedException.
+        // Patch StartupLauncher.<clinit> to prevent any static init side effects
+        println("[PlayStorePatch] Patching StartupLauncher.<clinit> to no-op")
+        classDefBy("Lcom/pairip/StartupLauncher;")
+            .methods.first { it.name == "<clinit>" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        // ============================================================
+        // 3. BYPASS SIGNATURE VERIFICATION
+        // ============================================================
+        println("[PlayStorePatch] Patching SignatureCheck.verifyIntegrity to no-op")
         classDefBy("Lcom/pairip/SignatureCheck;")
             .methods.first { it.name == "verifyIntegrity" }
             .toMutable()
             .addInstructions(0, "return-void")
 
+        // ============================================================
+        // 4. PATCH pairip Application.attachBaseContext
+        // ============================================================
+        // This is the entry point that calls VMRunner.setContext and SignatureCheck.verifyIntegrity.
+        // Replace with direct call to real JioTVApplication.attachBaseContext.
+        // NOTE: package is p037tv, not plain tv
+        println("[PlayStorePatch] Patching pairip Application.attachBaseContext to skip pairip init")
+        classDefBy("Lcom/pairip/application/Application;")
+            .methods.first { it.name == "attachBaseContext" }
+            .toMutable()
+            .addInstructions(
+                0,
+                """
+                    invoke-super {p0, p1}, Lcom/jio/jioplay/p037tv/JioTVApplication;->attachBaseContext(Landroid/content/Context;)V
+                    return-void
+                """,
+            )
+
+        // ============================================================
+        // 5. BLOCK LICENSE CONTENT PROVIDER
+        // ============================================================
+        println("[PlayStorePatch] Patching LicenseContentProvider.onCreate to return true without init")
+        classDefBy("Lcom/pairip/licensecheck/LicenseContentProvider;")
+            .methods.first { it.name == "onCreate" }
+            .toMutable()
+            .addInstructions(0, "const/4 v0, 0x1\nreturn v0")
+
+        // ============================================================
+        // 6. BLOCK LicenseClient — THE CORE LICENSE CHECK ENGINE
+        // ============================================================
+
+        // Set licenseCheckState to FULL_CHECK_OK so no checks are ever triggered
+        // ordinal of FULL_CHECK_OK = 1 (CHECK_REQUIRED=0, FULL_CHECK_OK=1)
+        // We patch initializeLicenseCheck to set the state and return immediately
+        println("[PlayStorePatch] Patching LicenseClient.initializeLicenseCheck to set FULL_CHECK_OK")
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "initializeLicenseCheck" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        // Block connectToLicensingService - prevents binding to Play Store licensing service
+        println("[PlayStorePatch] Patching LicenseClient.connectToLicensingService to no-op")
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "connectToLicensingService" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        // Safety net: block processResponse() — response code 2 (NOT_LICENSED)
+        // fires the "Get this app from Play Store" paywall PendingIntent.
+        println("[PlayStorePatch] Patching LicenseClient.processResponse to no-op")
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "processResponse" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        // Block startPaywallActivity - prevents the Play Store intent from being launched
+        println("[PlayStorePatch] Patching LicenseClient.startPaywallActivity to no-op")
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "startPaywallActivity" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        // Block startErrorDialogActivity
+        println("[PlayStorePatch] Patching LicenseClient.startErrorDialogActivity to no-op")
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "startErrorDialogActivity" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        // Block handleError - this can also trigger error dialog
+        println("[PlayStorePatch] Patching LicenseClient.handleError to no-op")
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "handleError" }
+            .toMutable()
+            .addInstructions(0, "return-void")
+
+        // ============================================================
+        // 7. BLOCK LicenseActivity PAYWALL
+        // ============================================================
         // Safety net: if LicenseActivity somehow starts, finish it immediately.
+        println("[PlayStorePatch] Patching LicenseActivity.onStart to finish immediately")
         classDefBy("Lcom/pairip/licensecheck/LicenseActivity;")
             .methods.first { it.name == "onStart" }
             .toMutable()
@@ -91,94 +196,28 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
                 """,
             )
 
-        // Safety net: block processResponse() — response code 2 (NOT_LICENSED)
-        // fires the "Get this app from Play Store" paywall PendingIntent.
-        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
-            .methods.first { it.name == "processResponse" }
-            .toMutable()
-            .addInstructions(0, "return-void")
-
-        // Block initializeLicenseCheck() - this is called by LicenseContentProvider
-        // and can trigger the licensing service connection even after processResponse
-        // is patched. This prevents the entire license check flow from starting.
-        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
-            .methods.first { it.name == "initializeLicenseCheck" }
-            .toMutable()
-            .addInstructions(0, "return-void")
-
-        // Force local installer check to always return true - this bypasses the check
-        // that fails when app is installed from unknown source (non-Play Store).
-        // The method returns false for non-Play Store installs, triggering the full
-        // licensing check which shows the Play Store intent.
-        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
-            .methods.first { it.name == "performLocalInstallerCheck" }
-            .toMutable()
-            .addInstructions(0, "const/4 v0, 0x1\nreturn v0")
-
-        // Block connectToLicensingService - prevents binding to Play Store licensing service
-        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
-            .methods.first { it.name == "connectToLicensingService" }
-            .toMutable()
-            .addInstructions(0, "return-void")
-
-        // Block startPaywallActivity - prevents the Play Store intent from being launched
-        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
-            .methods.first { it.name == "startPaywallActivity" }
-            .toMutable()
-            .addInstructions(0, "return-void")
-
-        // Block startErrorDialogActivity
-        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
-            .methods.first { it.name == "startErrorDialogActivity" }
-            .toMutable()
-            .addInstructions(0, "return-void")
-
-        // Block handleError - this can also trigger error dialog
-        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
-            .methods.first { it.name == "handleError" }
-            .toMutable()
-            .addInstructions(0, "return-void")
-
-        // Block LicenseContentProvider.onCreate to prevent it from initializing LicenseClient
-        classDefBy("Lcom/pairip/licensecheck/LicenseContentProvider;")
-            .methods.first { it.name == "onCreate" }
-            .toMutable()
-            .addInstructions(0, "const/4 v0, 0x1\nreturn v0")
-
-        // Block pairip Application.attachBaseContext - this is the actual entry point
-        // that calls VMRunner.setContext and SignatureCheck.verifyIntegrity
-        // Just skip those calls and go directly to super
-        classDefBy("Lcom/pairip/application/Application;")
-            .methods.first { it.name == "attachBaseContext" }
-            .toMutable()
-            .addInstructions(
-                0,
-                """
-                    invoke-super {p0, p1}, Lcom/jio/jioplay/tv/JioTVApplication;->attachBaseContext(Landroid/content/Context;)V
-                    return-void
-                """,
-            )
-
-        // Also patch VMRunner.setContext to prevent any context from being set
-        classDefBy("Lcom/pairip/VMRunner;")
-            .methods.first { it.name == "setContext" }
-            .toMutable()
-            .addInstructions(0, "return-void")
-
-        // Disable app-side Play Store redirect helpers.
-        classDefBy("Lcom/jio/jioplay/tv/utils/CommonUtils;")
+        // ============================================================
+        // 8. BLOCK APP-SIDE PLAY STORE REDIRECT HELPERS
+        // ============================================================
+        // NOTE: actual package is p037tv (obfuscated), not plain tv
+        println("[PlayStorePatch] Patching CommonUtils.checkIsUpdateAvailable to no-op")
+        classDefBy("Lcom/jio/jioplay/p037tv/utils/CommonUtils;")
             .methods.first { it.name == "checkIsUpdateAvailable" }
             .toMutable()
             .addInstructions(0, "return-void")
 
-        classDefBy("Lcom/jio/jioplay/tv/utils/CommonUtils;")
+        println("[PlayStorePatch] Patching CommonUtils.redirectToPlayStore to no-op")
+        classDefBy("Lcom/jio/jioplay/p037tv/utils/CommonUtils;")
             .methods.first { it.name == "redirectToPlayStore" }
             .toMutable()
             .addInstructions(0, "return-void")
 
-        classDefBy("Lcom/jio/jioplay/tv/utils/CommonUtils;")
+        println("[PlayStorePatch] Patching CommonUtils.takeToPlayStore to no-op")
+        classDefBy("Lcom/jio/jioplay/p037tv/utils/CommonUtils;")
             .methods.first { it.name == "takeToPlayStore" }
             .toMutable()
             .addInstructions(0, "return-void")
+
+        println("[PlayStorePatch] All playstore patches applied successfully")
     }
 }
