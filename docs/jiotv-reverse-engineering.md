@@ -165,8 +165,34 @@ The pairip library is a **native DRM solution** that:
 - Shows paywall/error dialogs via `LicenseActivity`
 
 **Bypass strategy**:
-1. **Manifest**: Remove `LicenseContentProvider` and change application class from `com.pairip.application.Application` to `com.jio.jioplay.tv.JioTVApplication`
-2. **Bytecode**: Neutralize all pairip Java entry points with `return-void`
+1. **Manifest**: Remove `LicenseContentProvider` only (do NOT change application class — the pairip Application is needed for VM initialization)
+2. **Bytecode**: Bypass signature check and license-related methods. **Do NOT neutralize** `VMRunner.<clinit>`, `setContext`, or `StartupLauncher.launch` — the app's actual code is encrypted in `assets/` and executed by the native VM.
+
+### pairip VM Execution and the Splash Screen Crash
+
+**Critical**: The app's actual Java code is **encrypted** inside the `assets/` directory. The pairip native library (`libpairipcore.so`) contains a custom VM that decrypts and executes this bytecode at runtime.
+
+**Startup flow**:
+```
+Android Framework
+  └── com.pairip.application.Application.attachBaseContext()
+        ├── VMRunner.setContext(context)
+        ├── SignatureCheck.verifyIntegrity(context)    ← signature check
+        └── super.attachBaseContext() → MultiDex.install()
+  └── StartupLauncher.launch()
+        └── VMRunner.invoke("mVBwD2didVTgj5k7", null)
+              ├── VmDecryptor.decrypt()                ← decrypts bytecode from assets/
+              └── executeVM(bytecode, args)            ← native call to libpairipcore.so
+  └── com.jio.jioplay.tv.JioTVApplication.onCreate()   ← actual app initialization
+```
+
+**Crash cause**: Neutralizing `VMRunner.<clinit>`, `setContext`, or `StartupLauncher.launch` prevents the VM from ever running. The app has no code to execute → immediate crash on splash screen.
+
+**Correct approach**: Only patch:
+- `SignatureCheck.verifyIntegrity` — bypass APK signature verification
+- `LicenseClient` methods — disable license checking, paywall, error dialogs
+- `LicenseActivity.onStart` — auto-finish any paywall that somehow appears
+- Play Store redirect helpers
 
 ### Play Store Redirect Helpers
 
@@ -246,3 +272,4 @@ The original `network_security_config.xml` has domain-specific configs. To enabl
 5. **Test incrementally** - Binary search to isolate failures
 6. **Use morphe-cli for testing** - The official CLI is the definitive test environment
 7. **Clean build before testing** - Stale `.mpp` files cause confusing errors
+8. **Never neutralize the pairip VM** - The app's code is encrypted in `assets/` and executed by the native VM. Neutralizing `VMRunner` or `StartupLauncher` causes an immediate splash screen crash. Only patch signature check and license-related methods.

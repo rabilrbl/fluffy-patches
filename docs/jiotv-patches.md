@@ -9,29 +9,25 @@ Patches for **JioTV** (`com.jio.jioplay.tv`) v7.1.7 (404).
 ### 1. Disable pairip license check (manifest)
 - **File**: `playstore/RemovePlayStoreLicenseCheckPatch.kt`
 - **Type**: Resource patch
-- **What**: Removes `LicenseContentProvider` from manifest, changes application class to bypass pairip initialization
+- **What**: Removes `LicenseContentProvider` from manifest to prevent auto-initialization of license checking
 
 ### 2. Remove Play Store license check
 - **File**: `playstore/RemovePlayStoreLicenseCheckPatch.kt`
 - **Type**: Bytecode patch
-- **Depends on**: Disable pairip license check (manifest)
-- **What**: Neutralizes 16 pairip and Play Store redirect methods:
-  - `VMRunner.<clinit>` - Prevents native library loading
-  - `VMRunner.setContext` - No-ops context setting
-  - `StartupLauncher.launch` - Prevents VM bytecode execution
-  - `SignatureCheck.verifyIntegrity` - Bypasses signature verification
-  - `Application.attachBaseContext` - Redirects to real JioTVApplication
-  - `LicenseContentProvider.onCreate` - Returns true without initializing LicenseClient
-  - `LicenseClient.initializeLicenseCheck` - No-op
+- **What**: Bypasses signature verification, license checking, paywall, and Play Store redirects:
+  - `SignatureCheck.verifyIntegrity` - Bypasses APK signature verification
+  - `LicenseClient.initializeLicenseCheck` - No-op (virtual method)
   - `LicenseClient.connectToLicensingService` - No-op
   - `LicenseClient.processResponse` - No-op
   - `LicenseClient.startPaywallActivity` - No-op
   - `LicenseClient.startErrorDialogActivity` - No-op
   - `LicenseClient.handleError` - No-op
-  - `LicenseActivity.onStart` - Immediately finishes activity
+  - `LicenseActivity.onStart` - Immediately finishes activity (virtual method)
   - `CommonUtils.checkIsUpdateAvailable` - No-op
   - `CommonUtils.redirectToPlayStore` - No-op
   - `CommonUtils.takeToPlayStore` - No-op
+
+**Note**: The pairip VM (`VMRunner`, `StartupLauncher`) is left intact. The app's actual code is encrypted in `assets/` and executed by the native VM — neutralizing it causes an immediate splash screen crash.
 
 ### 3. Remove emulator detection
 - **File**: `emulator/RemoveEmulatorDetectionPatch.kt`
@@ -68,12 +64,7 @@ Patches for **JioTV** (`com.jio.jioplay.tv`) v7.1.7 (404).
 
 | Class | Method | Type |
 |-------|--------|------|
-| `Lcom/pairip/VMRunner;` | `<clinit>` | direct |
-| `Lcom/pairip/VMRunner;` | `setContext` | direct |
-| `Lcom/pairip/StartupLauncher;` | `launch` | direct |
 | `Lcom/pairip/SignatureCheck;` | `verifyIntegrity` | direct |
-| `Lcom/pairip/application/Application;` | `attachBaseContext` | **virtual** |
-| `Lcom/pairip/licensecheck/LicenseContentProvider;` | `onCreate` | **virtual** |
 | `Lcom/pairip/licensecheck/LicenseClient;` | `initializeLicenseCheck` | **virtual** |
 | `Lcom/pairip/licensecheck/LicenseClient;` | `connectToLicensingService` | direct |
 | `Lcom/pairip/licensecheck/LicenseClient;` | `processResponse` | direct |
