@@ -11,19 +11,19 @@ val removeCertificatePinningPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_JIOTV_MOBILE)
 
     execute {
-        mutableClassDefBy("Lcom/jio/jioplay/tv/p037tv/data/firebase/FirebaseConfig;")
-            .directMethods
+        mutableClassDefBy("Lcom/jio/jioplay/tv/data/firebase/FirebaseConfig;")
+            .virtualMethods
             .first { it.name == "isSslPining" }
             .addInstructions(0, "const/4 v0, 0x0\nreturn v0")
 
         mutableClassDefBy("Lokhttp3/CertificatePinner;")
-            .directMethods
+            .virtualMethods
             .first { it.name == "check\$okhttp" }
             .addInstructions(0, "return-void")
 
         runCatching {
             mutableClassDefBy("Lcom/squareup/okhttp/CertificatePinner;")
-                .directMethods
+                .virtualMethods
                 .first { it.name == "check" }
                 .addInstructions(0, "return-void")
         }

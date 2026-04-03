@@ -16,12 +16,12 @@ val removeRootDetectionPatch = bytecodePatch(
             .first { it.name == "isRooted" }
             .addInstructions(0, "const/4 v0, 0x0\nreturn v0")
 
-        mutableClassDefBy("Lcom/jio/jioplay/tv/p037tv/utils/SecurityUtils;")
+        mutableClassDefBy("Lcom/jio/jioplay/tv/utils/SecurityUtils;")
             .directMethods
             .first { it.name == "isValidVersionName" }
             .addInstructions(0, "const/4 v0, 0x1\nreturn v0")
 
-        mutableClassDefBy("Lcom/jio/jioplay/tv/p037tv/utils/CommonUtils;")
+        mutableClassDefBy("Lcom/jio/jioplay/tv/utils/CommonUtils;")
             .directMethods
             .first { it.name == "showXposedFrameworkDetectionDialog" }
             .addInstructions(0, "return-void")

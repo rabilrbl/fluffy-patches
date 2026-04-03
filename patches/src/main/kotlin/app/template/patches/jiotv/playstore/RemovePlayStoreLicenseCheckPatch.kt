@@ -62,17 +62,17 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
             .addInstructions(0, "return-void")
 
         mutableClassDefBy("Lcom/pairip/application/Application;")
-            .directMethods
+            .virtualMethods
             .first { it.name == "attachBaseContext" }
             .addInstructions(0, "invoke-super {p0, p1}, Lcom/jio/jioplay/tv/JioTVApplication;->attachBaseContext(Landroid/content/Context;)V\nreturn-void")
 
         mutableClassDefBy("Lcom/pairip/licensecheck/LicenseContentProvider;")
-            .directMethods
+            .virtualMethods
             .first { it.name == "onCreate" }
             .addInstructions(0, "const/4 v0, 0x1\nreturn v0")
 
         mutableClassDefBy("Lcom/pairip/licensecheck/LicenseClient;")
-            .directMethods
+            .virtualMethods
             .first { it.name == "initializeLicenseCheck" }
             .addInstructions(0, "return-void")
 
@@ -102,21 +102,21 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
             .addInstructions(0, "return-void")
 
         mutableClassDefBy("Lcom/pairip/licensecheck/LicenseActivity;")
-            .directMethods
+            .virtualMethods
             .first { it.name == "onStart" }
             .addInstructions(0, "invoke-super {p0}, Landroid/app/Activity;->onStart()V\ninvoke-virtual {p0}, Lcom/pairip/licensecheck/LicenseActivity;->finish()V\nreturn-void")
 
-        mutableClassDefBy("Lcom/jio/jioplay/tv/p037tv/utils/CommonUtils;")
+        mutableClassDefBy("Lcom/jio/jioplay/tv/utils/CommonUtils;")
             .directMethods
             .first { it.name == "checkIsUpdateAvailable" }
             .addInstructions(0, "return-void")
 
-        mutableClassDefBy("Lcom/jio/jioplay/tv/p037tv/utils/CommonUtils;")
+        mutableClassDefBy("Lcom/jio/jioplay/tv/utils/CommonUtils;")
             .directMethods
             .first { it.name == "redirectToPlayStore" }
             .addInstructions(0, "return-void")
 
-        mutableClassDefBy("Lcom/jio/jioplay/tv/p037tv/utils/CommonUtils;")
+        mutableClassDefBy("Lcom/jio/jioplay/tv/utils/CommonUtils;")
             .directMethods
             .first { it.name == "takeToPlayStore" }
             .addInstructions(0, "return-void")

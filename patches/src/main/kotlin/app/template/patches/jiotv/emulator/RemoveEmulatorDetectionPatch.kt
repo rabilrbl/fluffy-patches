@@ -11,19 +11,19 @@ val removeEmulatorDetectionPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_JIOTV_MOBILE)
 
     execute {
-        mutableClassDefBy("Lcom/jio/media/p062tv/p063ui/permission_onboarding/PermissionActivity;")
-            .directMethods
+        mutableClassDefBy("Lcom/jio/media/tv/ui/permission_onboarding/PermissionActivity;")
+            .virtualMethods
             .first { it.name == "isRunningOnEmulator" }
             .addInstructions(0, "const/4 v0, 0x0\nreturn v0")
 
-        mutableClassDefBy("Lcom/jio/media/p062tv/p063ui/permission_onboarding/PermissionActivity;")
-            .directMethods
+        mutableClassDefBy("Lcom/jio/media/tv/ui/permission_onboarding/PermissionActivity;")
+            .virtualMethods
             .first { it.name == "isSupportedDevice" }
             .addInstructions(0, "const/4 v0, 0x1\nreturn v0")
 
-        mutableClassDefBy("Lcom/jio/media/p062tv/p063ui/permission_onboarding/PermissionActivity;")
-            .directMethods
+        mutableClassDefBy("Lcom/jio/media/tv/ui/permission_onboarding/PermissionActivity;")
+            .virtualMethods
             .first { it.name == "onCreate" }
-            .addInstructions(0, "invoke-super {p0}, Landroidx/appcompat/app/AppCompatActivity;->onCreate(Landroid/os/Bundle;)V\ninvoke-virtual {p0}, Lcom/jio/media/p062tv/p063ui/permission_onboarding/PermissionActivity;->proceedApplication()V\nreturn-void")
+            .addInstructions(0, "invoke-super {p0}, Landroidx/appcompat/app/AppCompatActivity;->onCreate(Landroid/os/Bundle;)V\ninvoke-virtual {p0}, Lcom/jio/media/tv/ui/permission_onboarding/PermissionActivity;->proceedApplication()V\nreturn-void")
     }
 }
