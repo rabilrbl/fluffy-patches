@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-dev.1",
+  "version": "1.0.0-dev.2",
   "patches": [
     {
       "name": "Disable pairip license check (manifest)",
@@ -25,7 +25,9 @@
       "name": "Remove Play Store license check",
       "description": "Neutralizes pairip native library loading, signature verification, VM bytecode execution, LicenseActivity paywall, and Play Store redirect helpers.",
       "use": true,
-      "dependencies": [],
+      "dependencies": [
+        "ResourcePatch"
+      ],
       "compatiblePackages": {
         "com.jio.jioplay.tv": null
       },
@@ -33,7 +35,7 @@
     },
     {
       "name": "Remove certificate pinning",
-      "description": "Removes SSL/TLS certificate pinning for tv.media.jio.com. The app uses OkHttp3 CertificatePinner with SHA-256 pins controlled by Firebase Remote Config (FirebaseConfig.isSslPining()). This patch disables the pinning toggle and also patches the OkHttp3 CertificatePinner.check() method to prevent pin validation failures.",
+      "description": "Removes SSL/TLS certificate pinning for tv.media.jio.com. The app uses OkHttp3 CertificatePinner with SHA-256 pins controlled by Firebase Remote Config. This patch disables the pinning toggle and also patches the OkHttp3 CertificatePinner.check() method.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {

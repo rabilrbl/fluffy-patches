@@ -1,3 +1,10 @@
+# [1.0.0-dev.2](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2026-04-03)
+
+
+### Bug Fixes
+
+* rebuild all JioTV patches from scratch using JADX analysis ([b7bc14c](https://github.com/rabilrbl/fluffy-patches/commit/b7bc14ca28406890b93127d1641e27ae335ae7e0))
+
 # 1.0.0-dev.1 (2026-04-03)
 
 
