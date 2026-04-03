@@ -10,6 +10,9 @@ Or manually add as a patch source in Morphe: https://github.com/rabilrbl/fluffy-
 
 ### JioTV Mobile (`com.jio.jioplay.tv`)
 
+> [!WARNING]
+> Patches are currently in development and may not work on all devices or APK versions.
+
 | Patch | Description |
 |-------|-------------|
 | Disable pairip license check (manifest) | Removes the pairip `LicenseContentProvider` from AndroidManifest to prevent auto-initialization of license checking |
