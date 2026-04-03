@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-dev.7",
+  "version": "1.0.0-dev.8",
   "patches": [
     {
       "name": "Disable pairip license check (manifest)",
