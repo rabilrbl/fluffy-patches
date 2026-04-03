@@ -103,7 +103,36 @@ if-eqz v0, :cond_561
 :goto_561  # ← continuation point
 ```
 
-**Planned fix**: Replace line 18673 (`if-eqz v0, :cond_555`) with `goto :goto_561` to skip the entire block.
+**Planned fix**: Patch `HomeActivity.onCreate()` directly to skip the entire update block (lines 18669-18795 in smali). This is the only way to guarantee the update code never runs, regardless of dex file duplication.
+
+### HomeActivity.onCreate() Update Block (Lines 18669-18795)
+
+```smali
+# Line 18669: getCheckAppUpadteData()
+invoke-static {}, Lcom/jio/jioplay/tv/utils/CommonUtils;->getCheckAppUpadteData()Lcom/jio/jioplay/tv/data/network/response/CheckAppUpadteData;
+move-result-object v0
+if-eqz v0, :cond_555
+# ... mandatory dialog (JioDialog) ...
+# ... non-mandatory: AppUpdateHelper.checkUpdate() ...
+:cond_555
+sget-boolean v0, Lcom/jio/jioplay/tv/data/AppDataManager;->inu:Z
+if-eqz v0, :cond_561
+# ... AppUpdateHelper.checkUpdate() ...
+:cond_561
+:goto_561  # ← continuation point
+```
+
+## Iteration 7: Injecting Update Data Clear at HomeActivity.onCreate Start
+
+**Approach**: Since `CommonUtils` exists in 8 dex files and `AppUpdateHelper` in 3, patching individual method copies won't work. Instead, inject code at the **start** of `HomeActivity.onCreate()` to call `setCheckAppUpadteData(null)`, clearing the cached data before the update check runs. Also no-op `HomeActivity.onResume()` to prevent `resumeUpdate()` from running.
+
+**Implementation**:
+- `HomeActivity.onCreate()` — Prepend: `const/4 v0, 0x0` + `invoke-static {v0}, CommonUtils.setCheckAppUpadteData(null)`
+- `HomeActivity.onResume()` — Replace with: `super.onResume()` + `return-void`
+
+**Rationale**: `HomeActivity` is defined in only ONE dex file, so patching it directly is guaranteed to work. Clearing the cached data at the start of `onCreate()` ensures the update check sees `null` regardless of which `CommonUtils` copy is called.
+
+**Status**: Awaiting user testing.
 
 ## Key Lessons
 
