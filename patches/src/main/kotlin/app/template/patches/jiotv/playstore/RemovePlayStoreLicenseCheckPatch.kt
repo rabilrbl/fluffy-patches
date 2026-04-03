@@ -7,15 +7,12 @@ import app.template.patches.shared.Constants.COMPATIBILITY_JIOTV_MOBILE
 
 val disablePairipManifestPatch = resourcePatch(
     name = "Disable pairip license check (manifest)",
-    description = "Globally disables the pairip LicenseContentProvider in AndroidManifest and changes application class to bypass pairip entirely.",
+    description = "Removes the pairip LicenseContentProvider from AndroidManifest to prevent auto-initialization of license checking.",
 ) {
     compatibleWith(COMPATIBILITY_JIOTV_MOBILE)
 
     execute {
         document("AndroidManifest.xml").use { doc ->
-            val appElement = doc.getElementsByTagName("application").item(0) as org.w3c.dom.Element
-            appElement.setAttribute("android:name", "com.jio.jioplay.tv.JioTVApplication")
-
             val providers = doc.getElementsByTagName("provider")
             val toRemove = mutableListOf<org.w3c.dom.Element>()
             for (i in 0 until providers.length) {
@@ -34,42 +31,15 @@ val disablePairipManifestPatch = resourcePatch(
 
 val removePlayStoreLicenseCheckPatch = bytecodePatch(
     name = "Remove Play Store license check",
-    description = "Neutralizes pairip native library loading, signature verification, VM bytecode execution, LicenseActivity paywall, and Play Store redirect helpers.",
+    description = "Bypasses pairip APK signature verification, license checking, paywall, and Play Store redirect helpers. The VM execution itself is left intact since the app's code is encrypted in assets/.",
 ) {
     compatibleWith(COMPATIBILITY_JIOTV_MOBILE)
 
-    dependsOn(disablePairipManifestPatch)
-
     execute {
-        mutableClassDefBy("Lcom/pairip/VMRunner;")
-            .directMethods
-            .first { it.name == "<clinit>" }
-            .addInstructions(0, "return-void")
-
-        mutableClassDefBy("Lcom/pairip/VMRunner;")
-            .directMethods
-            .first { it.name == "setContext" }
-            .addInstructions(0, "return-void")
-
-        mutableClassDefBy("Lcom/pairip/StartupLauncher;")
-            .directMethods
-            .first { it.name == "launch" }
-            .addInstructions(0, "return-void")
-
         mutableClassDefBy("Lcom/pairip/SignatureCheck;")
             .directMethods
             .first { it.name == "verifyIntegrity" }
             .addInstructions(0, "return-void")
-
-        mutableClassDefBy("Lcom/pairip/application/Application;")
-            .virtualMethods
-            .first { it.name == "attachBaseContext" }
-            .addInstructions(0, "invoke-super {p0, p1}, Lcom/jio/jioplay/tv/JioTVApplication;->attachBaseContext(Landroid/content/Context;)V\nreturn-void")
-
-        mutableClassDefBy("Lcom/pairip/licensecheck/LicenseContentProvider;")
-            .virtualMethods
-            .first { it.name == "onCreate" }
-            .addInstructions(0, "const/4 v0, 0x1\nreturn v0")
 
         mutableClassDefBy("Lcom/pairip/licensecheck/LicenseClient;")
             .virtualMethods
