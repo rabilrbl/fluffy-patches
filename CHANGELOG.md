@@ -1,3 +1,10 @@
+# [1.0.0-dev.4](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2026-04-03)
+
+
+### Bug Fixes
+
+* stop neutralizing pairip VM execution to prevent splash crash ([a3b4752](https://github.com/rabilrbl/fluffy-patches/commit/a3b4752ef82e79e229ccaed1084d7a364a989fa6))
+
 # [1.0.0-dev.3](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2026-04-03)
 
 
