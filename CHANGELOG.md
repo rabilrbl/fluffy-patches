@@ -1,3 +1,10 @@
+# [1.0.0-dev.5](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.4...v1.0.0-dev.5) (2026-04-03)
+
+
+### Bug Fixes
+
+* bypass AppUpdateHelper methods to prevent update checks ([1790d4b](https://github.com/rabilrbl/fluffy-patches/commit/1790d4bef48bcddd19539b7bf1460061f126193b))
+
 # [1.0.0-dev.4](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2026-04-03)
 
 
