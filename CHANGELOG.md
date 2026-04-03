@@ -1,3 +1,10 @@
+# [1.0.0-dev.3](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2026-04-03)
+
+
+### Bug Fixes
+
+* correct smali class names and method types for JioTV patches ([d9bef48](https://github.com/rabilrbl/fluffy-patches/commit/d9bef48cbd13c3f839ebae35e9144f9f1acc3cba))
+
 # [1.0.0-dev.2](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2026-04-03)
 
 
