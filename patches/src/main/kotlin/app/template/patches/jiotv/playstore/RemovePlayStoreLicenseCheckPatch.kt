@@ -121,11 +121,14 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
             .first { it.name == "<init>" }
             .addInstructions(0, "return-void")
 
-        runCatching {
-            mutableClassDefBy("Lcom/google/android/play/core/appupdate/AppUpdateManagerFactory;")
-                .directMethods
-                .first { it.name == "create" }
-                .addInstructions(0, "const/4 v0, 0x0\nreturn v0")
-        }
+        mutableClassDefBy("Lcom/jio/jioplay/tv/activities/HomeActivity;")
+            .virtualMethods
+            .first { it.name == "onCreate" }
+            .addInstructions(0, "const/4 v0, 0x0\ninvoke-static {v0}, Lcom/jio/jioplay/tv/utils/CommonUtils;->setCheckAppUpadteData(Lcom/jio/jioplay/tv/data/network/response/CheckAppUpadteData;)V")
+
+        mutableClassDefBy("Lcom/jio/jioplay/tv/activities/HomeActivity;")
+            .virtualMethods
+            .first { it.name == "onResume" }
+            .addInstructions(0, "invoke-super {p0}, Landroidx/appcompat/app/AppCompatActivity;->onResume()V\nreturn-void")
     }
 }
