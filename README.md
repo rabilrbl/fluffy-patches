@@ -10,6 +10,9 @@ Or manually add as a patch source in Morphe: https://github.com/rabilrbl/fluffy-
 
 ### JioTV Mobile (`com.jio.jioplay.tv`)
 
+> [!WARNING]
+> Patches are currently in development and do not work yet.
+
 | Patch | Description |
 |-------|-------------|
 | Remove Play Store license check | Bypasses pairip licensing enforcement and app-side update redirects |
