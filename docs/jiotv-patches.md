@@ -14,18 +14,27 @@ Patches for **JioTV** (`com.jio.jioplay.tv`) v7.1.7 (404).
 ### 2. Remove Play Store license check
 - **File**: `playstore/RemovePlayStoreLicenseCheckPatch.kt`
 - **Type**: Bytecode patch
-- **What**: Bypasses signature verification, license checking, paywall, and Play Store redirects:
-  - `SignatureCheck.verifyIntegrity` - Bypasses APK signature verification
-  - `LicenseClient.initializeLicenseCheck` - No-op (virtual method)
-  - `LicenseClient.connectToLicensingService` - No-op
-  - `LicenseClient.processResponse` - No-op
-  - `LicenseClient.startPaywallActivity` - No-op
-  - `LicenseClient.startErrorDialogActivity` - No-op
-  - `LicenseClient.handleError` - No-op
-  - `LicenseActivity.onStart` - Immediately finishes activity (virtual method)
-  - `CommonUtils.checkIsUpdateAvailable` - No-op
-  - `CommonUtils.redirectToPlayStore` - No-op
-  - `CommonUtils.takeToPlayStore` - No-op
+- **What**: Bypasses three distinct Play Store redirect mechanisms:
+
+#### pairip DRM bypass
+- `SignatureCheck.verifyIntegrity` - Bypasses APK signature verification
+- `LicenseClient.initializeLicenseCheck` - No-op (virtual method)
+- `LicenseClient.connectToLicensingService` - No-op
+- `LicenseClient.processResponse` - No-op
+- `LicenseClient.startPaywallActivity` - No-op
+- `LicenseClient.startErrorDialogActivity` - No-op
+- `LicenseClient.handleError` - No-op
+- `LicenseActivity.onStart` - Immediately finishes activity (virtual method)
+
+#### Server-driven update check bypass
+- `CommonUtils.checkIsUpdateAvailable` - No-op (prevents API call)
+- `CommonUtils.redirectToPlayStore` - No-op
+- `CommonUtils.takeToPlayStore` - No-op
+
+#### Google Play Core in-app update bypass
+- `AppUpdateHelper.checkUpdate` - No-op (virtual method)
+- `AppUpdateHelper.checkUpdatefordiag` - No-op (virtual method)
+- `AppUpdateHelper.a` - No-op (static method, blocks `startUpdateFlowForResult`)
 
 **Note**: The pairip VM (`VMRunner`, `StartupLauncher`) is left intact. The app's actual code is encrypted in `assets/` and executed by the native VM — neutralizing it causes an immediate splash screen crash.
 
@@ -75,6 +84,9 @@ Patches for **JioTV** (`com.jio.jioplay.tv`) v7.1.7 (404).
 | `Lcom/jio/jioplay/tv/utils/CommonUtils;` | `checkIsUpdateAvailable` | direct |
 | `Lcom/jio/jioplay/tv/utils/CommonUtils;` | `redirectToPlayStore` | direct |
 | `Lcom/jio/jioplay/tv/utils/CommonUtils;` | `takeToPlayStore` | direct |
+| `Lcom/jio/jioplay/tv/utils/AppUpdateHelper;` | `checkUpdate` | **virtual** |
+| `Lcom/jio/jioplay/tv/utils/AppUpdateHelper;` | `checkUpdatefordiag` | **virtual** |
+| `Lcom/jio/jioplay/tv/utils/AppUpdateHelper;` | `a` | direct (static) |
 | `Lcom/jio/media/tv/ui/permission_onboarding/PermissionActivity;` | `isRunningOnEmulator` | **virtual** |
 | `Lcom/jio/media/tv/ui/permission_onboarding/PermissionActivity;` | `isSupportedDevice` | **virtual** |
 | `Lcom/jio/media/tv/ui/permission_onboarding/PermissionActivity;` | `onCreate` | **virtual** |
