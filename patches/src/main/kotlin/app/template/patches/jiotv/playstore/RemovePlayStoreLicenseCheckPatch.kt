@@ -40,9 +40,8 @@ val disablePairipManifestPatch = resourcePatch(
             }
 
             // Change application class to bypass pairip entirely
-            // NOTE: actual package is p037tv (obfuscated), not plain tv
             val application = document.getElementsByTagName("application").item(0) as Element
-            application.setAttribute("android:name", "com.jio.jioplay.p037tv.JioTVApplication")
+            application.setAttribute("android:name", "com.jio.jioplay.tv.JioTVApplication")
         }
     }
 }
@@ -109,7 +108,6 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
         // ============================================================
         // This is the entry point that calls VMRunner.setContext and SignatureCheck.verifyIntegrity.
         // Replace with direct call to real JioTVApplication.attachBaseContext.
-        // NOTE: package is p037tv, not plain tv
         println("[PlayStorePatch] Patching pairip Application.attachBaseContext to skip pairip init")
         classDefBy("Lcom/pairip/application/Application;")
             .methods.first { it.name == "attachBaseContext" }
@@ -117,7 +115,7 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
             .addInstructions(
                 0,
                 """
-                    invoke-super {p0, p1}, Lcom/jio/jioplay/p037tv/JioTVApplication;->attachBaseContext(Landroid/content/Context;)V
+                    invoke-super {p0, p1}, Lcom/jio/jioplay/tv/JioTVApplication;->attachBaseContext(Landroid/content/Context;)V
                     return-void
                 """,
             )
@@ -200,20 +198,20 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
         // 8. BLOCK APP-SIDE PLAY STORE REDIRECT HELPERS
         // ============================================================
         // NOTE: actual package is p037tv (obfuscated), not plain tv
-        println("[PlayStorePatch] Patching CommonUtils.checkIsUpdateAvailable to no-op")
-        classDefBy("Lcom/jio/jioplay/p037tv/utils/CommonUtils;")
+        println("[PlayStorePatch] tv CommonUtils.checkIsUpdateAvailable to no-op")
+        classDefBy("Lcom/jio/jioplay/tv/utils/CommonUtils;")
             .methods.first { it.name == "checkIsUpdateAvailable" }
             .toMutable()
             .addInstructions(0, "return-void")
 
         println("[PlayStorePatch] Patching CommonUtils.redirectToPlayStore to no-op")
-        classDefBy("Lcom/jio/jioplay/p037tv/utils/CommonUtils;")
+        classDefBy("Lcom/jio/jioplay/tv/utils/CommonUtils;")
             .methods.first { it.name == "redirectToPlayStore" }
             .toMutable()
             .addInstructions(0, "return-void")
 
         println("[PlayStorePatch] Patching CommonUtils.takeToPlayStore to no-op")
-        classDefBy("Lcom/jio/jioplay/p037tv/utils/CommonUtils;")
+        classDefBy("Lcom/jio/jioplay/tv/utils/CommonUtils;")
             .methods.first { it.name == "takeToPlayStore" }
             .toMutable()
             .addInstructions(0, "return-void")
