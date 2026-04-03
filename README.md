@@ -10,17 +10,14 @@ Or manually add as a patch source in Morphe: https://github.com/rabilrbl/fluffy-
 
 ### JioTV Mobile (`com.jio.jioplay.tv`)
 
-> [!WARNING]
-> Patches are currently in development and do not work yet.
-
 | Patch | Description |
 |-------|-------------|
-| Remove Play Store license check | Bypasses pairip licensing enforcement and app-side update redirects |
-| Remove root detection | Disables root checks and custom security validation |
-| Remove emulator detection | Bypasses device/emulator detection and Fire TV compatibility blocks |
-| Remove certificate pinning | Disables OkHttp3 SSL certificate pinning for MITM proxy support |
-| Enable cleartext traffic | Allows HTTP traffic and trusts user-installed CA certificates |
-| Enable debugging | Sets the internal debug flag to bypass all security gates (includes root + emulator patches) |
+| Disable pairip license check (manifest) | Removes the pairip `LicenseContentProvider` from AndroidManifest to prevent auto-initialization of license checking |
+| Remove Play Store license check | Bypasses pairip DRM (signature check, paywall, error dialogs), server-driven update checks (`getCheckAppUpadteData` returns null), Google Play Core in-app updates (`AppUpdateHelper` no-ops), and Play Store redirect helpers |
+| Remove root detection | Disables Firebase `isRooted()` check, `SecurityUtils.isValidVersionName()`, and Xposed framework detection dialog |
+| Remove emulator detection | Bypasses `isRunningOnEmulator()`, `isSupportedDevice()`, and skips all detection logic in `PermissionActivity.onCreate()` |
+| Remove certificate pinning | Disables Firebase-controlled `isSslPining()` toggle and neutralizes OkHttp3 `CertificatePinner.check()` |
+| Enable cleartext traffic | Sets `usesCleartextTraffic=true` in manifest and rewrites `network_security_config.xml` to trust user CAs |
 
 ## Usage
 
