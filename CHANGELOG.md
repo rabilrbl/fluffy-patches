@@ -1,3 +1,10 @@
+# [1.5.0-dev.6](https://github.com/rabilrbl/fluffy-patches/compare/v1.5.0-dev.5...v1.5.0-dev.6) (2026-04-03)
+
+
+### Features
+
+* **patches:** correct application class package in disablePairipManifestPatch and enhance Play Store license check patch with detailed comments ([04e7cac](https://github.com/rabilrbl/fluffy-patches/commit/04e7cac3c869a7eebe6c3ac1dc1e69d8f29c326d))
+
 # [1.5.0-dev.5](https://github.com/rabilrbl/fluffy-patches/compare/v1.5.0-dev.4...v1.5.0-dev.5) (2026-03-31)
 
 
