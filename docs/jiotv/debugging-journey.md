@@ -68,6 +68,43 @@ com.pairip.application.Application.attachBaseContext()
 | Google Play Core | `HomeActivity.onCreate()/onResume()` | Standard Play Store update dialog | Patch AppUpdateHelper methods |
 | Server-driven update | `PermissionActivity.onCreate()` → API | Custom JioDialog with Update/Exit | `getCheckAppUpadteData()` returns null |
 
+## Iteration 6: Play Store Sideloading Dialog Persists
+
+**Error**: "Get this app from Play" dialog still appears with "Get App" button that opens Play Store.
+
+**Dialog Description**: Standard Google Play dialog with official logo, "Get App" blue button. Dismissing it returns to Play Home. Re-opening app shows same dialog. App doesn't work.
+
+**Root Cause**: The morphe-patcher **deduplicates classes by type** — only ONE copy is stored and patched. `AppUpdateHelper` exists in multiple dex files (3, 4, 9) after morphe-cli redistributes classes. The patch only hits one copy. `HomeActivity` in another dex file calls the unpatched copy.
+
+**Additional finding**: `AppUpdateManagerFactory.create()` is in the Play Core library itself, not in JioTV's dex files. Our patch can't find it because it's in a separate library dex file.
+
+**Attempted fixes that didn't work**:
+- `AppUpdateHelper.checkUpdate()` → no-op (only patches one dex copy)
+- `AppUpdateHelper.<init>` → no-op (only patches one dex copy)
+- `AppUpdateManagerFactory.create()` → return null (class not in JioTV dex files)
+- `CommonUtils.getCheckAppUpadteData()` → return null (should work but dialog still appears)
+
+**Next approach**: Patch `HomeActivity.onCreate()` directly to skip the entire update block (lines 18669-18795 in smali). This is the only way to guarantee the update code never runs, regardless of dex file duplication.
+
+### HomeActivity.onCreate() Update Block (Lines 18669-18795)
+
+```smali
+# Line 18669: getCheckAppUpadteData()
+invoke-static {}, Lcom/jio/jioplay/tv/utils/CommonUtils;->getCheckAppUpadteData()Lcom/jio/jioplay/tv/data/network/response/CheckAppUpadteData;
+move-result-object v0
+if-eqz v0, :cond_555
+# ... mandatory dialog (JioDialog) ...
+# ... non-mandatory: AppUpdateHelper.checkUpdate() ...
+:cond_555
+sget-boolean v0, Lcom/jio/jioplay/tv/data/AppDataManager;->inu:Z
+if-eqz v0, :cond_561
+# ... AppUpdateHelper.checkUpdate() ...
+:cond_561
+:goto_561  # ← continuation point
+```
+
+**Planned fix**: Replace line 18673 (`if-eqz v0, :cond_555`) with `goto :goto_561` to skip the entire block.
+
 ## Key Lessons
 
 1. **Never trust JADX deobfuscated names** — Always verify via `jadx_get_smali_of_class`
