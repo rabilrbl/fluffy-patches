@@ -1,3 +1,10 @@
+# [1.5.0-dev.7](https://github.com/rabilrbl/fluffy-patches/compare/v1.5.0-dev.6...v1.5.0-dev.7) (2026-04-03)
+
+
+### Features
+
+* **patches:** update application class package in RemovePlayStoreLicenseCheckPatch to bypass pairip ([09393ac](https://github.com/rabilrbl/fluffy-patches/commit/09393acdca85a9abffd62a489fa125f7ec01a810))
+
 # [1.5.0-dev.6](https://github.com/rabilrbl/fluffy-patches/compare/v1.5.0-dev.5...v1.5.0-dev.6) (2026-04-03)
 
 
