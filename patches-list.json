@@ -1,6 +1,16 @@
 {
-  "version": "1.4.0",
+  "version": "1.5.0-dev.7",
   "patches": [
+    {
+      "name": "Disable pairip license check (manifest)",
+      "description": "Globally disables the pairip LicenseContentProvider in AndroidManifest and changes application class to bypass pairip entirely.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.jio.jioplay.tv": null
+      },
+      "options": []
+    },
     {
       "name": "Enable cleartext traffic",
       "description": "Sets usesCleartextTraffic to true in AndroidManifest and patches the network security config to allow cleartext HTTP traffic and user-installed CA certificates. This enables MITM proxy tools like mitmproxy, Charles, and HTTP Toolkit to intercept traffic.",
@@ -13,7 +23,7 @@
     },
     {
       "name": "Remove Play Store license check",
-      "description": "Removes Play Store/license enforcement (pairip + app-side updater redirects). Bypasses LicenseClient, SignatureCheck, StartupLauncher, and CommonUtils store/update gates.",
+      "description": "Neutralizes pairip native library loading, signature verification, VM bytecode execution, LicenseActivity paywall, and Play Store redirect helpers.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
