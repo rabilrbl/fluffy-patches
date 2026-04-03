@@ -1,3 +1,10 @@
+# [1.0.0-dev.7](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.6...v1.0.0-dev.7) (2026-04-03)
+
+
+### Bug Fixes
+
+* add AppUpdateHelper constructor no-op and AppUpdateManagerFactory.create null return ([e795f5f](https://github.com/rabilrbl/fluffy-patches/commit/e795f5fda0ac45b86d5716c0b43cffa363f95234))
+
 # [1.0.0-dev.6](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.5...v1.0.0-dev.6) (2026-04-03)
 
 

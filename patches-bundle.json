@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-04-03T19:05:24",
-  "description": "# [1.0.0-dev.6](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.5...v1.0.0-dev.6) (2026-04-03)\n\n\n### Bug Fixes\n\n* bypass app update checks by modifying CommonUtils and AppUpdateHelper methods ([4c43c6d](https://github.com/rabilrbl/fluffy-patches/commit/4c43c6de1bb56cb789c4fb33a23feb4f278c7624))",
-  "download_url": "https://github.com/rabilrbl/fluffy-patches/releases/download/v1.0.0-dev.6/patches-1.0.0-dev.6.mpp",
-  "signature_download_url": "https://github.com/rabilrbl/fluffy-patches/releases/download/v1.0.0-dev.6/patches-1.0.0-dev.6.mpp.asc",
-  "version": "1.0.0-dev.6"
+  "created_at": "2026-04-03T19:15:59",
+  "description": "# [1.0.0-dev.7](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.6...v1.0.0-dev.7) (2026-04-03)\n\n\n### Bug Fixes\n\n* add AppUpdateHelper constructor no-op and AppUpdateManagerFactory.create null return ([e795f5f](https://github.com/rabilrbl/fluffy-patches/commit/e795f5fda0ac45b86d5716c0b43cffa363f95234))",
+  "download_url": "https://github.com/rabilrbl/fluffy-patches/releases/download/v1.0.0-dev.7/patches-1.0.0-dev.7.mpp",
+  "signature_download_url": "https://github.com/rabilrbl/fluffy-patches/releases/download/v1.0.0-dev.7/patches-1.0.0-dev.7.mpp.asc",
+  "version": "1.0.0-dev.7"
 }
