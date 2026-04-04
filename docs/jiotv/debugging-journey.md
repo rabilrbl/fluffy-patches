@@ -103,25 +103,6 @@ if-eqz v0, :cond_561
 :goto_561  # ← continuation point
 ```
 
-**Planned fix**: Patch `HomeActivity.onCreate()` directly to skip the entire update block (lines 18669-18795 in smali). This is the only way to guarantee the update code never runs, regardless of dex file duplication.
-
-### HomeActivity.onCreate() Update Block (Lines 18669-18795)
-
-```smali
-# Line 18669: getCheckAppUpadteData()
-invoke-static {}, Lcom/jio/jioplay/tv/utils/CommonUtils;->getCheckAppUpadteData()Lcom/jio/jioplay/tv/data/network/response/CheckAppUpadteData;
-move-result-object v0
-if-eqz v0, :cond_555
-# ... mandatory dialog (JioDialog) ...
-# ... non-mandatory: AppUpdateHelper.checkUpdate() ...
-:cond_555
-sget-boolean v0, Lcom/jio/jioplay/tv/data/AppDataManager;->inu:Z
-if-eqz v0, :cond_561
-# ... AppUpdateHelper.checkUpdate() ...
-:cond_561
-:goto_561  # ← continuation point
-```
-
 ## Iteration 7: Injecting Update Data Clear at HomeActivity.onCreate Start
 
 **Approach**: Since `CommonUtils` exists in 8 dex files and `AppUpdateHelper` in 3, patching individual method copies won't work. Instead, inject code at the **start** of `HomeActivity.onCreate()` to call `setCheckAppUpadteData(null)`, clearing the cached data before the update check runs. Also no-op `HomeActivity.onResume()` to prevent `resumeUpdate()` from running.
@@ -174,7 +155,159 @@ const/4 v0, 0x0
 sput-boolean v0, AppDataManager->inu:Z                           # clear inu flag
 ```
 
-**Status**: Awaiting user testing.
+**Status**: Dialog still appears — see iteration 9.
+
+## Iteration 9: Nuclear Play Core Library Block
+
+**Error**: Play Store dialog STILL appears despite all app-level patches being verified correct in the dex.
+
+**Verification performed**: Extracted and inspected every patched dex file:
+- `HomeActivity.onCreate()` injection (setCheckAppUpadteData(null) + inu=false) — **verified at offset 0001-0005** ✓
+- `HomeActivity.onResume()` (super.onResume + return-void) — **verified at offset 0000-0003** ✓
+- `AppUpdateHelper.checkUpdate()` (return-void) — **verified at offset 0000** in classes9.dex ✓
+- `AppUpdateHelper` exists in only ONE dex (classes9.dex) ✓
+- `HomeActivity` exists in only ONE dex (classes9.dex) ✓
+- All pairip patches (SignatureCheck, LicenseClient, LicenseActivity) — **all verified** ✓
+- `LicenseContentProvider` removed from manifest ✓
+
+**Conclusion**: Every known code path is patched and verified in the binary. The dialog must be triggered by a mechanism we haven't traced — possibly an unidentified code path, a Play Core library auto-trigger, or a system-level detection.
+
+**Nuclear approach**: Block the update dialog at the **Play Core library level** itself. `zzg` is the internal class that implements `AppUpdateManager`. It exists in a single dex (`classes2.dex`). Patching it blocks ALL update flows regardless of what app code triggers them.
+
+**Implementation**:
+1. `zzg.startUpdateFlowForResult()` (all 5 overloads) → `return false` — prevents the Play Store intent from being launched
+2. `zzg.startUpdateFlow()` → `return null` — prevents the `PlayCoreDialogWrapperActivity` path
+3. Remove `PlayCoreDialogWrapperActivity` from AndroidManifest — blocks the wrapper activity
+
+**Status**: Dialog still appears — see iteration 10.
+
+## Iteration 10: pairipfix-Style Approach + Native VM Discovery
+
+**Error**: Play Store "Get this app from Play" dialog STILL appears despite nuclear Play Core library block.
+
+**Logcat Analysis**: Captured full startup log via ADB. Key findings:
+
+```
+# Native VM crash ~40-60ms after startup
+04-04 XX:XX:XX.XXX E/libc++abi: terminating due to length_error in vector
+04-04 XX:XX:XX.XXX F/libc    : Fatal signal 6 (SIGABRT), code -1 (SI_QUEUE)
+```
+
+The native VM (`libpairipcore.so`) **directly launches Play Store** via JNI:
+```
+# VM creates an Intent and calls startActivity() through JNI
+Intent { act=android.intent.action.VIEW dat=http://play.google.com/store/license/paywall?id=com.jio.jioplay.tv }
+```
+
+This bypasses ALL Java-level patches because the native code calls `Context.startActivity()` directly through JNI, not through any Java method we can patch.
+
+**pairipfix analysis**: Studied https://github.com/ahmedmani/pairipfix — an LSPosed/Xposed module that:
+1. Hooks `LicenseClient.processResponse()` to force `responseCode = 0` (LICENSED)
+2. Hooks `ResponseValidator.validateResponse()` → DO_NOTHING
+3. Does **NOT** modify the APK — hooks at runtime, so native VM integrity checks pass
+4. Does **NOT** handle the native VM crash — recommends BetterKnownInstalled for that
+
+**BetterKnownInstalled analysis**: Studied https://github.com/Pixel-Props/BetterKnownInstalled — a Magisk module that:
+1. Modifies `/data/system/packages.xml` at boot
+2. Sets `installer=com.android.vending`, `installInitiator=com.android.vending`, `installerUid`, `packageSource=2`
+3. Makes sideloaded apps appear as Play Store installs to the system
+4. Requires root (Magisk/KernelSU)
+
+**Attempted pairipfix-style bytecode approach**:
+1. Changed `SignatureCheck.verifyIntegrity()` from `return-void` to setting expected signature fields to our APK's cert hash (`MpWsyp43Cdc9I5z/G6d8/6/a7cistsJdgxKXDrrT8z4=`)
+2. Changed `LicenseClient.processResponse()` from `return-void` to `const/4 p1, 0x0` (force LICENSED)
+3. Added `LicenseResponseHelper.validateResponse()` → `return-void` (no-op JWS validation)
+
+**Result**: Still crashes. The native VM performs **dex file integrity verification** at the native level (CRC32/structural hash). Any dex modification triggers `length_error in vector` → SIGABRT, regardless of what Java methods are patched.
+
+### Root Cause: Native-Level Integrity Checks
+
+The pairip native VM (`libpairipcore.so`) performs 100+ security checks including:
+- Dex file CRC32/structural hash verification
+- APK signature validation (redundant with Java-level `SignatureCheck`)
+- Anti-debugging checks
+- Environment detection
+
+When ANY dex file is modified (which morphe-cli always does), the native VM detects it and:
+1. Launches Play Store paywall URL directly via JNI `startActivity()`
+2. Crashes with `SIGABRT` (`length_error in vector` — C++ `std::vector` bounds error in `-fno-exceptions` mode → `std::terminate()`)
+
+### Fundamental Limitation
+
+**Dex-level patching (APK modification) CANNOT bypass pairip's native VM integrity checks.**
+
+Known working solutions all require root or runtime hooking:
+- **pairipfix** (LSPosed): Runtime hooks, no APK modification
+- **BetterKnownInstalled** (Magisk): Fakes Play Store installer at system level
+- **Reverse-engineering `libpairipcore.so`**: Possible but extremely complex (obfuscated native code)
+
+### Package ID Change Research
+
+Investigated whether changing the package ID or app name could help. Answer: **No**.
+- The native VM would detect the package name change
+- The app's encrypted code in `assets/` references the original package name
+- pairip's paywall URL includes the package ID: `play.google.com/store/license/paywall?id=com.jio.jioplay.tv`
+
+### Correct Startup Flow (Revised)
+
+The startup flow is earlier than previously documented:
+
+```
+MultiDexApplication.<clinit>()              ← STATIC INITIALIZER (before attachBaseContext!)
+  └── StartupLauncher.launch()
+        └── VMRunner.invoke("mVBwD2didVTgj5k7", null)
+              └── executeVM() → libpairipcore.so
+                    ├── Integrity checks (dex CRC, signatures, etc.)
+                    ├── If FAIL → startActivity(paywall URL) via JNI + SIGABRT
+                    └── If PASS → decrypt and execute app bytecode
+
+com.pairip.application.Application.attachBaseContext()
+  ├── VMRunner.setContext(context)
+  ├── SignatureCheck.verifyIntegrity(context)     ← Java-level check (redundant)
+  └── super.attachBaseContext() → MultiDex.install()
+
+com.jio.jioplay.tv.JioTVApplication.onCreate()   ← actual app code
+```
+
+The native VM runs in `<clinit>()` — **before** any instance methods like `attachBaseContext()`. This means the native integrity check happens before we can intercept anything at the Java level.
+
+### InitContextProvider
+
+`com.pairip.InitContextProvider` creates a `Context` via reflection on `ActivityThread` and sets up an `Instrumentation` instance. This allows the native VM to call `startActivity()` even before `Application.onCreate()` runs, which is how it launches the Play Store paywall URL.
+
+### SignatureCheck Field Values
+
+| Field | Original Value |
+|-------|---------------|
+| `expectedSignature` | `VkwE0TgslZMpxvR+ldSXr9FRIQ5NlCaBT+tvpXr3rTA=` |
+| `ALLOWLISTED_SIG` | `Vn3kj4pUblROi2S+QfRRL9nhsaO2uoHQg6+dpEtxdTE=` |
+| Our APK cert hash | `MpWsyp43Cdc9I5z/G6d8/6/a7cistsJdgxKXDrrT8z4=` |
+
+## Testing Workflow
+
+Testing uses ADB for direct install and logcat capture:
+
+```bash
+# Build
+GITHUB_ACTOR=$(gh api user --jq '.login') GITHUB_TOKEN=$(gh auth token) ANDROID_HOME=~/Android/Sdk ./gradlew :patches:buildAndroid
+
+# Patch
+java -jar /tmp/morphe-cli-1.6.3-all.jar patch \
+  -p patches/build/libs/patches-1.0.0-dev.8.mpp \
+  -o /tmp/JioTV_patched.apk \
+  "/home/rabil/Documents/JioTV_v7.1.7(404)_antisplit.apk"
+
+# Install
+adb install -r /tmp/JioTV_patched.apk
+
+# Launch
+adb shell monkey -p com.jio.jioplay.tv -c android.intent.category.LAUNCHER 1
+
+# Logcat (filter by PID)
+adb logcat -v time | grep <PID>
+```
+
+**Note**: The launcher activity is `com.jio.jioplay.tv.AppLogo` (activity-alias targeting `PermissionActivity`). Direct `am start` with `SplashActivity` fails — use `monkey` command instead.
 
 ## Key Lessons
 
@@ -192,3 +325,10 @@ sput-boolean v0, AppDataManager->inu:Z                           # clear inu fla
 12. **Static cached data** — Even if you prevent the API call, cached data in static fields can still trigger dialogs
 13. **Never no-op constructors with return-void** — Dalvik requires `<init>` to call `super.<init>()` before returning; skipping it causes VerifyError, which can invalidate the entire class in that dex
 14. **Trace ALL branches at the call site** — Clearing one condition variable isn't enough if an independent flag (`AppDataManager.inu`) provides an alternative path to the same target method
+15. **When app-level patches fail, patch the library** — If patching app code doesn't stop a dialog, go lower: patch the library class that actually shows it (`zzg` for Play Core). Library classes typically exist in a single dex, making patches reliable
+16. **Always verify patches in the binary** — Use `dexdump -d` on the patched APK to confirm injected instructions are present at the expected offsets
+17. **Native VM integrity checks defeat dex-level patching** — pairip's `libpairipcore.so` verifies dex file CRC32/structural hashes at the native level. Any dex modification triggers SIGABRT, regardless of Java-level patches
+18. **Native code can call startActivity via JNI** — The native VM uses `InitContextProvider` to get a Context, then launches Play Store paywall directly through JNI, bypassing all Java hooks
+19. **Runtime hooking (LSPosed) != APK modification (Morphe)** — pairipfix works because it hooks at runtime without modifying the APK. Morphe patches modify dex files, which native integrity checks detect
+20. **Static initializers run before attachBaseContext** — `MultiDexApplication.<clinit>()` calls `StartupLauncher.launch()` → native VM runs before any instance method can intercept it
+21. **Changing package ID won't bypass pairip** — Native VM detects it, encrypted app code references original package, paywall URL embeds package ID

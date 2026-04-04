@@ -107,6 +107,63 @@ HomeActivity.onCreate()
 - `CommonUtils.redirectToPlayStore` → `return-void`
 - `CommonUtils.takeToPlayStore` → `return-void`
 
+## 4. Play Core Library (Nuclear Block)
+
+**UI**: Any dialog shown by the Google Play Core update library
+
+### Internal Class
+`com.google.android.play.core.appupdate.zzg` — the actual `AppUpdateManager` implementation. Exists in a single dex (`classes2.dex`), making patches reliable.
+
+### Flow
+All update dialogs ultimately go through `zzg`:
+```
+zzg.startUpdateFlowForResult() → startIntentSenderForResult() → Play Store dialog
+zzg.startUpdateFlow() → PlayCoreDialogWrapperActivity → Play Store dialog
+```
+
+### Bypass
+- `zzg.startUpdateFlowForResult()` (all overloads) → `return false`
+- `zzg.startUpdateFlow()` → `return null`
+- Remove `PlayCoreDialogWrapperActivity` from AndroidManifest
+
+## 5. Native VM Direct Paywall (JNI)
+
+**UI**: Play Store's own "Get this app from Play" page (not an in-app dialog — the actual Play Store app)
+
+**Screenshot**: `docs/jiotv/Play-store-license-check-failed.jpg`
+
+### Trigger
+The pairip native VM (`libpairipcore.so`) performs dex integrity checks during static initialization. When verification fails, it directly launches Play Store via JNI.
+
+### Flow
+```
+MultiDexApplication.<clinit>()
+  └── StartupLauncher.launch()
+        └── VMRunner.invoke() → executeVM() (native)
+              └── libpairipcore.so integrity check
+                    ├── Verify dex CRC32/structural hashes
+                    ├── On FAIL:
+                    │     ├── InitContextProvider → get Context via ActivityThread reflection
+                    │     ├── Context.startActivity(Intent(ACTION_VIEW, "http://play.google.com/store/license/paywall?id=com.jio.jioplay.tv"))
+                    │     └── SIGABRT (length_error in vector → std::terminate)
+                    └── On PASS: decrypt and execute app bytecode
+```
+
+### Key Details
+- Uses `InitContextProvider` to create a Context via reflection on `ActivityThread` **before** `Application.onCreate()` runs
+- Calls `startActivity()` directly through JNI, bypassing ALL Java-level patches
+- The paywall URL is `http://play.google.com/store/license/paywall?id=com.jio.jioplay.tv`
+- Crash is C++ `std::vector` length error in `-fno-exceptions` mode → `std::terminate()` → SIGABRT
+- Happens ~40-60ms after app startup
+
+### Bypass
+**Cannot be bypassed with dex-level patching.** Any dex modification changes CRC32/structural hashes, which the native VM detects.
+
+Known working approaches (all require root or runtime hooking):
+- **pairipfix** (LSPosed module): Hooks at runtime without modifying the APK
+- **BetterKnownInstalled** (Magisk module): Fakes Play Store installer at system level
+- **Reverse-engineering `libpairipcore.so`**: Possible but extremely complex
+
 ## Other Redirect Paths (Not Patched)
 
 | Path | Class | Trigger | Description |
