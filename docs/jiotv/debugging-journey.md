@@ -132,6 +132,48 @@ if-eqz v0, :cond_561
 
 **Rationale**: `HomeActivity` is defined in only ONE dex file, so patching it directly is guaranteed to work. Clearing the cached data at the start of `onCreate()` ensures the update check sees `null` regardless of which `CommonUtils` copy is called.
 
+**Status**: Dialog still appears — see iteration 8.
+
+## Iteration 8: AppDataManager.inu Bypass + Constructor Patch Fix
+
+**Error**: Play Store "Get this app" dialog still appears despite clearing cached update data.
+
+**Root Cause**: `HomeActivity.onCreate()` has **two independent paths** to `AppUpdateHelper.checkUpdate()`:
+
+```smali
+# Path A: server-driven update data (lines 18668-18778)
+invoke-static {}, CommonUtils->getCheckAppUpadteData()
+move-result-object v0
+if-eqz v0, :cond_555          # ← iteration 7 handles this (data cleared to null)
+  # ... mandatory dialog or checkUpdate() ...
+
+# Path B: inu flag (lines 18781-18791)
+:cond_555
+sget-boolean v0, AppDataManager->inu:Z
+if-eqz v0, :cond_561          # ← NOT handled by iteration 7!
+  new AppUpdateHelper(this).checkUpdate()   # ← TRIGGERS PLAY STORE DIALOG
+
+:cond_561  # continuation
+```
+
+Iteration 7's `setCheckAppUpadteData(null)` clears data → Path A skips to `:cond_555`. But then Path B checks `AppDataManager.inu` (in-app update flag). When `inu == true`, it creates `new AppUpdateHelper` and calls `checkUpdate()` regardless.
+
+Since `AppUpdateHelper` exists in multiple dex files and only one copy is patched, the runtime-loaded copy runs **unpatched** `checkUpdate()` → `getAppUpdateInfo()` → `startUpdateFlowForResult()` → Play Store dialog.
+
+**Additional issue**: The `AppUpdateHelper.<init>` → `return-void` patch was causing a Dalvik verifier violation (returns without calling `super()`/`Object.<init>()`). This likely made the patched dex copy of `AppUpdateHelper` fail verification, forcing the classloader to use an unpatched copy — effectively disabling ALL `AppUpdateHelper` method patches.
+
+**Fix**:
+1. Add `sput-boolean v0, AppDataManager->inu:Z` (v0=0) to the `HomeActivity.onCreate()` injection, clearing the `inu` flag before the check
+2. Remove the broken `AppUpdateHelper.<init>` → `return-void` patch
+
+**HomeActivity.onCreate() injection now**:
+```smali
+const/4 v0, 0x0
+invoke-static {v0}, CommonUtils->setCheckAppUpadteData(null)V   # clear update data
+const/4 v0, 0x0
+sput-boolean v0, AppDataManager->inu:Z                           # clear inu flag
+```
+
 **Status**: Awaiting user testing.
 
 ## Key Lessons
@@ -148,3 +190,5 @@ if-eqz v0, :cond_561
 10. **R8 obfuscation creates single-letter method names** — `a()`, `b()`, `c()` may be critical
 11. **Multiple dex file copies** — Morphe-cli may redistribute classes; patch at the call site level when possible
 12. **Static cached data** — Even if you prevent the API call, cached data in static fields can still trigger dialogs
+13. **Never no-op constructors with return-void** — Dalvik requires `<init>` to call `super.<init>()` before returning; skipping it causes VerifyError, which can invalidate the entire class in that dex
+14. **Trace ALL branches at the call site** — Clearing one condition variable isn't enough if an independent flag (`AppDataManager.inu`) provides an alternative path to the same target method
