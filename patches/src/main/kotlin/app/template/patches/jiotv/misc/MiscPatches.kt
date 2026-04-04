@@ -13,6 +13,13 @@ val miscPatches = resourcePatch(
         document("AndroidManifest.xml").use { doc ->
             val appElement = doc.getElementsByTagName("application").item(0) as org.w3c.dom.Element
             appElement.setAttribute("android:usesCleartextTraffic", "true")
+            // SafaSafari approach: swap application class from pairip's wrapper to the real
+            // JioTVApplication. This bypasses pairip's attachBaseContext (VM setup) entirely.
+            // Combined with CRC32 restoration, the native VM never triggers.
+            val currentName = appElement.getAttribute("android:name")
+            if (currentName == "com.pairip.application.Application") {
+                appElement.setAttribute("android:name", "com.jio.jioplay.tv.JioTVApplication")
+            }
         }
 
         document("res/xml/network_security_config.xml").use { doc ->
@@ -30,10 +37,23 @@ val miscPatches = resourcePatch(
 
             val baseConfig = doc.createElement("base-config")
             baseConfig.setAttribute("cleartextTrafficPermitted", "true")
+            val baseTrustAnchors = doc.createElement("trust-anchors")
+            val baseCertsSystem = doc.createElement("certificates")
+            baseCertsSystem.setAttribute("src", "system")
+            baseTrustAnchors.appendChild(baseCertsSystem)
+            val baseCertsUser = doc.createElement("certificates")
+            baseCertsUser.setAttribute("src", "user")
+            baseTrustAnchors.appendChild(baseCertsUser)
+            baseConfig.appendChild(baseTrustAnchors)
             root.appendChild(baseConfig)
 
             val domainConfig = doc.createElement("domain-config")
             domainConfig.setAttribute("cleartextTrafficPermitted", "true")
+
+            val domain = doc.createElement("domain")
+            domain.setAttribute("includeSubdomains", "true")
+            domain.appendChild(doc.createTextNode("tv.media.jio.com"))
+            domainConfig.appendChild(domain)
 
             val trustAnchors = doc.createElement("trust-anchors")
             val certsSystem = doc.createElement("certificates")

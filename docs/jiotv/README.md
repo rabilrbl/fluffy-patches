@@ -15,6 +15,8 @@ Patches for **JioTV** (`com.jio.jioplay.tv`) v7.1.7 (404), an anti-split APK.
 | [Debugging Journey](debugging-journey.md) | Iterative debugging log with failures and fixes |
 | [Emulator & Root Detection](emulator-root-detection.md) | Detection mechanisms and bypasses |
 | [SSL Pinning](ssl-pinning.md) | Certificate pinning analysis and bypass |
+| [External PairIP Research](external-pairip-research.md) | Consolidated findings from external sources (GitHub, forums, blogs) |
+| [Native Bypass Attempts](native-bypass-attempts.md) | All attempts to bypass libpairipcore.so native integrity checks |
 
 ## Quick Start
 
@@ -46,3 +48,22 @@ java -jar morphe-cli-1.6.3-all.jar patch \
 | Remove root detection | root | Bytecode | Bypasses root/Xposed detection checks |
 | Remove certificate pinning | sslpinning | Bytecode | Disables Firebase-controlled SSL pinning and OkHttp CertificatePinner |
 | Enable cleartext traffic | misc | Resource | Sets `usesCleartextTraffic=true` and rewrites network security config |
+
+## Current Status
+
+**BLOCKED**: Native VM integrity checks in `libpairipcore.so` prevent any dex-level patching from working. See [Native Bypass Attempts](native-bypass-attempts.md) for details.
+
+### Known Working Solutions (Require Root)
+- **pairipfix** (LSPosed module): Runtime hooks, no APK modification
+- **BetterKnownInstalled** (Magisk module): Fakes Play Store installer at system level
+
+### Non-Root Approaches (All Failed So Far)
+- CRC32 restoration (SafaSafari method) — structural hash verification beyond CRC32
+- Stub native library replacement — breaks Firebase initialization
+- Resource-only patches — morphe-cli always recompiles dex files
+- Apktool rebuild — also recompiles dex files
+
+### Next Approaches to Try
+- Manual binary XML modification (no dex recompilation)
+- Native library patching (reverse engineer libpairipcore.so)
+- Frida runtime hooking to understand VM behavior

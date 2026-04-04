@@ -332,3 +332,92 @@ adb logcat -v time | grep <PID>
 19. **Runtime hooking (LSPosed) != APK modification (Morphe)** — pairipfix works because it hooks at runtime without modifying the APK. Morphe patches modify dex files, which native integrity checks detect
 20. **Static initializers run before attachBaseContext** — `MultiDexApplication.<clinit>()` calls `StartupLauncher.launch()` → native VM runs before any instance method can intercept it
 21. **Changing package ID won't bypass pairip** — Native VM detects it, encrypted app code references original package, paywall URL embeds package ID
+
+## Iteration 11: CRC32 Restoration (SafaSafari Method)
+
+**Approach**: After morphe-cli patches dex files, restore original CRC32 values in the ZIP central directory using SafaSafari's `crc32_patcher.py`. The native VM reads CRC32 from ZIP metadata, so it should see original hashes.
+
+**Implementation**:
+1. Build patched APK with morphe-cli
+2. Run `crc32_patcher.py patched.apk original.apk` — restores all 9 dex CRC32 values to originals
+3. Re-sign APK (CRC32 patcher strips v2/v3 signatures)
+4. Install and test
+
+**Result**: Still crashes with `length_error in vector` → SIGABRT in `libpairipcore.so`.
+
+**Why it failed**: The native VM does **structural hash verification** beyond ZIP CRC32. It computes its own hash of actual dex content at runtime, comparing against expected values stored in encrypted VM bytecode. The ZIP CRC32 is irrelevant to the actual verification.
+
+**Key finding**: All 9 dex CRC32 values were successfully restored, confirming the patcher works. But the native VM performs deeper verification.
+
+## Iteration 12: Stub Native Library Replacement
+
+**Approach**: Replace `libpairipcore.so` with a stub library that exports the same JNI symbols (`executeVM`) but returns null. The app's Java code is NOT encrypted — only the VM bytecode is.
+
+**Implementation**:
+1. Compiled stub `.so` with NDK r27 (aarch64-linux-android21-clang)
+2. Stub exports `JNI_OnLoad`, `JNI_OnUnload`, and `Java_com_pairip_VMRunner_executeVM`
+3. Replaced native library in patched APK
+4. Re-signed and installed
+
+**Result**: **Native VM crash eliminated** — no more `libpairipcore.so` SIGABRT! But new crash in Firebase initialization:
+```
+java.lang.NullPointerException: Attempt to invoke virtual method 'int java.lang.String.length()' on a null object reference
+    at com.google.firebase.internal.DataCollectionConfigStorage.<init>
+    at com.google.firebase.FirebaseApp.lambda$new$0
+    at com.google.firebase.crashlytics.FirebaseCrashlytics.init
+```
+
+**Why it failed**: The VM bytecode (executed by `executeVM`) likely initializes Firebase configuration or returns data that Firebase needs. Returning `null` breaks this initialization chain.
+
+**Key insight**: The stub approach proves that:
+1. The native VM is the ONLY thing preventing the app from launching
+2. The app's Java code is fully functional and NOT encrypted
+3. We need the VM to run successfully, not be disabled
+
+## Iteration 13: Resource-Only Patches (No Dex Modifications)
+
+**Approach**: Only modify resources (AndroidManifest.xml, network_security_config.xml) without touching any dex files. Disabled ALL bytecode patches. The native VM should see unmodified dex files and pass.
+
+**Implementation**:
+- Changed manifest application class to `com.jio.jioplay.tv.JioTVApplication`
+- Removed pairip components from manifest
+- Fixed network security config (added required `<domain>` child element)
+- Disabled all bytecode patches (emulator, root, sslpinning, license check)
+
+**Result**: Morphe-cli **always recompiles dex files** during patching, even with zero bytecode patches. Dex sizes changed dramatically (e.g., classes.dex: 11.2MB → 8.2MB), and classes were redistributed (9 → 12 dex files). Native VM still crashes.
+
+**Key finding**: **Morphe-cli cannot produce an APK with unmodified dex files.** The patching process inherently recompiles all dex files.
+
+## Iteration 14: Apktool Build
+
+**Approach**: Use apktool to decode and rebuild the APK, modifying only resources. Apktool might preserve original dex files.
+
+**Result**: Apktool also recompiles dex files from smali, even when "smali has not changed." Different smali versions produce different dex output.
+
+## Iteration 15: Manual Binary XML Modification (In Progress)
+
+**Approach**: Modify the APK's binary AndroidManifest.xml directly using a binary XML editor or manual byte manipulation, then repack with original dex files (no recompilation).
+
+**Status**: Exploring binary XML parsing and modification tools.
+
+## External Research Summary
+
+Key findings from external sources (see `external-pairip-research.md`):
+
+- **Solaree/pairipcore**: Native library has 100+ security checks, self-decrypts at runtime, uses runtime function fixup
+- **SafaSafari/bypass_libpairipcore**: CRC32 restoration approach (failed for JioTV)
+- **Snailsoft/Sbenny**: Uses `libpairipcorex.so` replacement library + APKEditor pipeline
+- **ahmedmani/pairipfix**: LSPosed runtime hooks (requires root)
+- **BetterKnownInstalled**: Magisk module faking Play Store installer (requires root)
+- **Kitsuri-Studios/unpaircore**: Fake libpairipcore.so written in C for research
+- **qyzhaojinxi/bypass_pairipcore**: Frida-based runtime hooking
+
+## Updated Key Lessons
+
+22. **CRC32 restoration is insufficient** — Native VM does structural hash verification beyond ZIP CRC32
+23. **Stub native library eliminates VM crash** — But breaks Firebase initialization that depends on VM results
+24. **Morphe-cli always recompiles dex** — Even with zero bytecode patches, dex files are modified
+25. **Apktool also recompiles dex** — Smali-to-dex compilation produces different output
+26. **The app's Java code is NOT encrypted** — Only the VM bytecode in assets/ is encrypted
+27. **We need the VM to succeed, not be disabled** — The VM likely initializes Firebase config
+28. **External tools use native library replacement** — `libpairipcorex.so` is a bypassed version, not a stub
