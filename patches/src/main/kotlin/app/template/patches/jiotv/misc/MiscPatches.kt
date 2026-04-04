@@ -65,16 +65,27 @@ val miscPatches = resourcePatch(
     }
 }
 
-val disableFirebaseInitPatch = bytecodePatch(
+val disableFirebaseInitPatch = resourcePatch(
     name = "Disable FirebaseInitProvider",
-    description = "No-ops FirebaseInitProvider.onCreate() to prevent crash when VM config data is missing.",
+    description = "Removes FirebaseInitProvider from AndroidManifest.xml to prevent crash when VM config data is missing.",
 ) {
     compatibleWith(COMPATIBILITY_JIOTV_MOBILE)
 
     execute {
-        classDefBy("Lcom/google/firebase/provider/FirebaseInitProvider;")
-            .methods.first { it.name == "onCreate" }
-            .toMutable()
-            .addInstructions(0, "const/4 v0, 0x0\nreturn v0")
+        document("AndroidManifest.xml").use { doc ->
+            val application = doc.getElementsByTagName("application").item(0) as org.w3c.dom.Element
+            val providers = application.getElementsByTagName("provider")
+            val toRemove = mutableListOf<org.w3c.dom.Node>()
+            for (i in 0 until providers.length) {
+                val provider = providers.item(i) as org.w3c.dom.Element
+                val name = provider.getAttribute("android:name")
+                if (name.contains("FirebaseInitProvider")) {
+                    toRemove.add(provider)
+                }
+            }
+            for (node in toRemove) {
+                application.removeChild(node)
+            }
+        }
     }
 }
