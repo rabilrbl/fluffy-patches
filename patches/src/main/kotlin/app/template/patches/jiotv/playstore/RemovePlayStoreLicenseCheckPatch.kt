@@ -1,102 +1,71 @@
 package app.template.patches.jiotv.playstore
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.template.patches.shared.Constants.COMPATIBILITY_JIOTV_MOBILE
 
 val disablePairipManifestPatch = resourcePatch(
     name = "Disable pairip license check (manifest)",
-    description = "Removes pairip components and changes application class to bypass pairip initialization.",
+    description = "Removes the pairip LicenseContentProvider from AndroidManifest to prevent auto-initialization of license checking.",
 ) {
     compatibleWith(COMPATIBILITY_JIOTV_MOBILE)
 
     execute {
         document("AndroidManifest.xml").use { doc ->
-            val appElement = doc.getElementsByTagName("application").item(0) as org.w3c.dom.Element
-            
-            // Change application class from pairip's wrapper to the real JioTVApplication
-            val currentName = appElement.getAttribute("android:name")
-            if (currentName == "com.pairip.application.Application") {
-                appElement.setAttribute("android:name", "com.jio.jioplay.tv.JioTVApplication")
-            }
-            
-            // Remove pairip components
-            val removeNames = setOf(
-                "com.pairip.licensecheck.LicenseContentProvider",
-                "com.pairip.licensecheck.LicenseActivity",
-                "com.google.android.play.core.common.PlayCoreDialogWrapperActivity",
-            )
-            for (tag in listOf("provider", "activity")) {
-                val elements = doc.getElementsByTagName(tag)
-                val toRemove = mutableListOf<org.w3c.dom.Element>()
-                for (i in 0 until elements.length) {
-                    val el = elements.item(i) as org.w3c.dom.Element
-                    if (el.getAttribute("android:name") in removeNames) {
-                        toRemove.add(el)
-                    }
-                }
-                for (el in toRemove) {
-                    el.parentNode.removeChild(el)
+            val providers = doc.getElementsByTagName("provider")
+            val toRemove = mutableListOf<org.w3c.dom.Element>()
+            for (i in 0 until providers.length) {
+                val provider = providers.item(i) as org.w3c.dom.Element
+                val name = provider.getAttribute("android:name")
+                if (name == "com.pairip.licensecheck.LicenseContentProvider") {
+                    toRemove.add(provider)
                 }
             }
-            
-            // Remove pairip permission
-            val usesPermissions = doc.getElementsByTagName("uses-permission")
-            val permsToRemove = mutableListOf<org.w3c.dom.Element>()
-            for (i in 0 until usesPermissions.length) {
-                val el = usesPermissions.item(i) as org.w3c.dom.Element
-                val name = el.getAttribute("android:name")
-                if (name == "com.android.vending.CHECK_LICENSE") {
-                    permsToRemove.add(el)
-                }
-            }
-            for (el in permsToRemove) {
+            for (el in toRemove) {
                 el.parentNode.removeChild(el)
             }
         }
+    }
+}
 
-        document("res/xml/network_security_config.xml").use { doc ->
-            val root = doc.documentElement
+val removePlayStoreLicenseCheckPatch = bytecodePatch(
+    name = "Remove Play Store license check",
+    description = "Removes the Play Store installation and license verification check (pairip).",
+) {
+    compatibleWith(COMPATIBILITY_JIOTV_MOBILE)
 
-            val existingChildren = mutableListOf<org.w3c.dom.Node>()
-            var child = root.firstChild
-            while (child != null) {
-                existingChildren.add(child)
-                child = child.nextSibling
-            }
-            for (node in existingChildren) {
-                root.removeChild(node)
-            }
+    execute {
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "initializeLicenseCheck" }
+            .toMutable()
+            .addInstructions(0, "return-void")
 
-            val baseConfig = doc.createElement("base-config")
-            baseConfig.setAttribute("cleartextTrafficPermitted", "true")
-            val baseTrustAnchors = doc.createElement("trust-anchors")
-            val baseCertsSystem = doc.createElement("certificates")
-            baseCertsSystem.setAttribute("src", "system")
-            baseTrustAnchors.appendChild(baseCertsSystem)
-            val baseCertsUser = doc.createElement("certificates")
-            baseCertsUser.setAttribute("src", "user")
-            baseTrustAnchors.appendChild(baseCertsUser)
-            baseConfig.appendChild(baseTrustAnchors)
-            root.appendChild(baseConfig)
+        classDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+            .methods.first { it.name == "performLocalInstallerCheck" }
+            .toMutable()
+            .addInstructions(
+                0,
+                """
+                    const/4 v0, 0x1
+                    return v0
+                """,
+            )
 
-            val domainConfig = doc.createElement("domain-config")
-            domainConfig.setAttribute("cleartextTrafficPermitted", "true")
+        classDefBy("Lcom/pairip/licensecheck/LicenseActivity;")
+            .methods.first { it.name == "onStart" }
+            .toMutable()
+            .addInstructions(0, "return-void")
 
-            val domain = doc.createElement("domain")
-            domain.setAttribute("includeSubdomains", "true")
-            domain.appendChild(doc.createTextNode("tv.media.jio.com"))
-            domainConfig.appendChild(domain)
+        classDefBy("Lcom/pairip/SignatureCheck;")
+            .methods.first { it.name == "verifyIntegrity" }
+            .toMutable()
+            .addInstructions(0, "return-void")
 
-            val trustAnchors = doc.createElement("trust-anchors")
-            val certsSystem = doc.createElement("certificates")
-            certsSystem.setAttribute("src", "system")
-            trustAnchors.appendChild(certsSystem)
-            val certsUser = doc.createElement("certificates")
-            certsUser.setAttribute("src", "user")
-            trustAnchors.appendChild(certsUser)
-
-            domainConfig.appendChild(trustAnchors)
-            root.appendChild(domainConfig)
-        }
+        classDefBy("Lcom/pairip/StartupLauncher;")
+            .methods.first { it.name == "launch" }
+            .toMutable()
+            .addInstructions(0, "return-void")
     }
 }

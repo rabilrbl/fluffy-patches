@@ -394,13 +394,93 @@ java.lang.NullPointerException: Attempt to invoke virtual method 'int java.lang.
 
 **Result**: Apktool also recompiles dex files from smali, even when "smali has not changed." Different smali versions produce different dex output.
 
-## Iteration 15: Manual Binary XML Modification (In Progress)
+## Iteration 15: APKM Bundle Analysis
 
-**Approach**: Modify the APK's binary AndroidManifest.xml directly using a binary XML editor or manual byte manipulation, then repack with original dex files (no recompilation).
+**Approach**: Downloaded original APKM bundle from APKMirror (v7.1.7-404) to get clean Play Store APK.
 
-**Status**: Exploring binary XML parsing and modification tools.
+**Key Discovery**: The APKM bundle splits pairip across files:
+- `base.apk` (73MB) — main APK with NO `libpairipcore.so`
+- `split_config.arm64_v8a.apk` — contains `lib/arm64-v8a/libpairipcore.so`
+- Other splits for different architectures and DPI
 
-## External Research Summary
+The base.apk has a **valid Play Store signature** — pairip is only in the architecture splits.
+
+**Result**: Installing APKM splits together works — app launches and shows `LicenseActivity`. The original Play Store APK with valid signature passes native VM checks.
+
+## Iteration 16: APKM base.apk + Stub Split
+
+**Approach**: Use base.apk (valid signature) with a stub `libpairipcore.so` in the arm64 split.
+
+**Result**: The APKM base.apk is a split APK (has `isSplitRequired=true`) and can't install standalone. Merging with split APKs requires the original signature.
+
+## Iteration 17: Antisplit APK + Binary Manifest Patch
+
+**Approach**: Use the antisplit APK (standalone, installable) and directly patch the binary XML manifest to change the application class from `com.pairip.application.Application` to `com.jio.jioplay.tv.JioTVApplication`.
+
+**Challenge**: The replacement string is 2 bytes longer than the original (70 vs 68 bytes UTF-16). Binary XML patching requires shifting all bytes after the insertion point, which corrupts the file structure.
+
+**Result**: Direct binary patching corrupted the manifest. APK installation failed with "Corrupt XML binary file."
+
+## Iteration 18: Apktool Rebuild + Original Dex Files
+
+**Approach**: Use apktool to decode, modify manifest, rebuild, then replace ALL dex files with originals from the antisplit APK.
+
+**Result**: Still crashes with `ExceptionInInitializerError` in Kotlin reflection (`ClassReference.<clinit>`). The issue: apktool recompiles `resources.arsc` with different resource IDs, and the original dex files reference the old IDs. Dex files and resources are tightly coupled.
+
+## Iteration 19: Apktool Rebuild + Original Dex + Original resources.arsc
+
+**Approach**: Same as iteration 18, but also replace `resources.arsc` with the original.
+
+**Result**: Still crashes with `ExceptionInInitializerError` in Kotlin reflection. The apktool-compiled manifest references resources by ID from the NEW resources.arsc, but the original resources.arsc has different IDs. The manifest and resources.arsc must match.
+
+## Iteration 20: Morphe Patches + Stub Native Library
+
+**Approach**: Combine morphe patches (all bytecode + resource patches) with stub `libpairipcore.so` replacement. The morphe patches handle all Java-level bypasses, and the stub prevents the native VM from crashing.
+
+**Implementation**:
+1. Build morphe patches (emulator, root, sslpinning, license check, cleartext traffic)
+2. Run morphe-cli to patch APK
+3. Replace `libpairipcore.so` with stub
+4. Re-sign and install
+
+**Result**: Native VM crash eliminated, but Firebase crashes:
+```
+Unable to get provider com.google.firebase.provider.FirebaseInitProvider:
+java.lang.NullPointerException: Attempt to invoke virtual method 'int java.lang.String.length()'
+    at com.google.firebase.internal.DataCollectionConfigStorage.<init>
+```
+
+**Why**: The VM bytecode initializes Firebase config data. Without it, `FirebaseInitProvider.onCreate()` reads null config and crashes.
+
+## Iteration 21: Morphe Patches + Stub + FirebaseInitProvider No-op
+
+**Approach**: Add a bytecode patch to no-op `FirebaseInitProvider.onCreate()`.
+
+**First attempt**: Used `return-void` — but `onCreate()` returns `boolean`, not `void`. This is invalid Dalvik.
+
+**Second attempt**: Used `const/4 v0, 0x0\nreturn v0` — correct for boolean return.
+
+**Result**: Still crashes with same Firebase NPE. The `dexdump` output confirmed the patch was applied to `FirebaseInitProvider.onCreate()`, but the crash still happens at `SourceFile:12`. This means:
+1. The patch might be hitting the wrong dex copy (morphe redistributes classes)
+2. Or the crash happens in `attachInfo()` before `onCreate()` is called
+3. Or the FirebaseInitProvider class exists in multiple dex files and only one is patched
+
+**Current Status**: BLOCKED on Firebase initialization. The app's Java code is fully functional (not encrypted), but Firebase requires config data that the VM bytecode normally provides.
+
+## Current Blocker Summary
+
+The fundamental problem: **FirebaseInitProvider crashes without VM config data**, and we can't reliably patch it because:
+1. Morphe redistributes classes across dex files (FirebaseInitProvider found in classes3.dex AND classes5.dex)
+2. The `attachInfo()` method calls `onCreate()` and may have its own null checks
+3. Firebase has multiple initialization paths that all depend on VM-provided config
+
+## Remaining Approaches
+
+1. **Patch FirebaseInitProvider.attachInfo()** instead of onCreate() — intercept before it calls onCreate
+2. **Remove FirebaseInitProvider from manifest** via morphe resource patch (but morphe recompiles manifests)
+3. **Use APKEditor + libpairipcorex.so** — Snailsoft's approach of replacing the native library with a bypassed version
+4. **Runtime hooking** — Frida/LSPosed to hook FirebaseInitProvider at runtime
+5. **Patch all Firebase registrar classes** — No-op CrashlyticsRegistrar, AnalyticsConnectorRegistrar, etc.
 
 Key findings from external sources (see `external-pairip-research.md`):
 
