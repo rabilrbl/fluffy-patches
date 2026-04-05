@@ -24,6 +24,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Build output: `patches/build/libs/patches-{version}.mpp`
 
+## Testing
+
+- All patch updates must be tested on an APK using the Morphe CLI before committing.
+- Use `adb` commands to install and verify the patched APK on a device/emulator when available.
+- Any scripts added to `scripts/` must also be tested against a real APK and verified via ADB.
+
 ## Architecture
 
 ### Module Layout
@@ -64,7 +70,24 @@ Patches can declare `dependsOn(otherPatch)` to compose behaviors.
 
 1. Add a `Compatibility(...)` constant in `shared/Constants.kt` with the app's package name, APK type, and icon color.
 2. Create `patches/<appname>/` with patch files grouped by category.
-3. Reference the new constant in each patch's `compatibleWith(...)` call.
+3. Create `docs/<appname>/` and document initial APK analysis.
+4. Reference the new constant in each patch's `compatibleWith(...)` call.
+5. Run `./gradlew :patches:generatePatchesList` to regenerate metadata.
+
+## Documentation
+
+All knowledge, findings, and debugging notes must be documented under `docs/<appname>/` with category-based folders and files. Examples:
+
+- `docs/jiotv/ssl-pinning.md` — SSL pinning analysis
+- `docs/jiotv/emulator-root-detection.md` — Detection mechanisms researched
+- `docs/jiotv/debugging-journey.md` — Step-by-step debugging notes
+
+Create new markdown files as you discover:
+- How a detection mechanism works (classes, methods, strings)
+- Failed patch attempts and why they failed
+- Smali patterns and Dalvik instruction findings
+- APK structure observations
+- Any useful context for future contributors
 
 ### Patch Metadata
 
