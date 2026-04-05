@@ -1,4 +1,75 @@
 {
-  "version": "",
-  "patches": []
+  "version": "1.0.0-dev.11",
+  "patches": [
+    {
+      "name": "Disable FirebaseInitProvider",
+      "description": "Removes FirebaseInitProvider from AndroidManifest.xml to prevent crash when VM config data is missing.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.jio.jioplay.tv": null
+      },
+      "options": []
+    },
+    {
+      "name": "Disable pairip license check (manifest)",
+      "description": "Removes the pairip LicenseContentProvider from AndroidManifest to prevent auto-initialization of license checking.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.jio.jioplay.tv": null
+      },
+      "options": []
+    },
+    {
+      "name": "Enable cleartext traffic",
+      "description": "Sets usesCleartextTraffic to true in AndroidManifest and patches the network security config to allow cleartext HTTP traffic and user-installed CA certificates.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.jio.jioplay.tv": null
+      },
+      "options": []
+    },
+    {
+      "name": "Remove Play Store license check",
+      "description": "Removes the Play Store installation and license verification check (pairip).",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.jio.jioplay.tv": null
+      },
+      "options": []
+    },
+    {
+      "name": "Remove certificate pinning",
+      "description": "Removes SSL/TLS certificate pinning for tv.media.jio.com.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.jio.jioplay.tv": null
+      },
+      "options": []
+    },
+    {
+      "name": "Remove emulator detection",
+      "description": "Removes emulator and unsupported device detection checks in PermissionActivity.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.jio.jioplay.tv": null
+      },
+      "options": []
+    },
+    {
+      "name": "Remove root detection",
+      "description": "Removes root detection checks. Bypasses Firebase CommonUtils.isRooted() and Xposed framework detection.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.jio.jioplay.tv": null
+      },
+      "options": []
+    }
+  ]
 }

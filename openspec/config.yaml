@@ -1,0 +1,61 @@
+schema: spec-driven
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+# Add your tech stack, conventions, style guides, domain knowledge, etc.
+context: |
+  **fluffy-patches** is a Morphe Patches repository for Android apps.
+  Patches are compiled into `.mpp` files consumed by Morphe Manager.
+  
+  Tech stack: Kotlin, Gradle, Morphe Patcher framework
+  Build: `./gradlew :patches:buildAndroid`, `./gradlew :patches:generatePatchesList`
+  Code style: IntelliJ IDEA, 4-space indent, wildcard imports allowed, trailing commas required
+  Naming: PascalCase + `Patch` suffix for files, camelCase + `Patch` suffix for vals, SCREAMING_SNAKE_CASE for constants
+  All patch vals must have `@Suppress("unused")` (loaded via reflection)
+  
+  Required environment variables:
+  - ANDROID_HOME: Path to Android SDK (required for buildAndroid task)
+  - GITHUB_ACTOR: GitHub username for accessing Morphe's private Maven registry
+  - GITHUB_TOKEN: GitHub PAT with read:packages scope
+  
+  Testing: No automated tests. All patches must be tested on an APK using Morphe CLI before committing.
+  Use ADB to verify patched APKs on devices/emulators when available.
+  
+  APK Analysis: Use JADX CLI to decompile APKs before writing patches.
+  - `jadx app.apk -d jadx_output --deobf` for full decompilation
+  - `find jadx_output/ -name "*.java" | xargs grep -l "ClassName"` to search classes
+  - `find jadx_output/ -name "*.java" | xargs grep -n "methodName("` to search methods
+  - Always verify class/method existence in the target APK before writing patches.
+  
+  Available Skills (loaded via `skill` tool):
+  - `morphe-patching`: Create/edit/debug Morphe patches (bytecodePatch, resourcePatch, smali injection)
+  - `android-apk-analysis`: APK reverse engineering (JADX CLI, finding targets, security mechanisms)
+  - `revanced-to-morphe`: Convert ReVanced patches to Morphe format
+  
+  Documentation: All findings, debugging notes, and research go under `docs/<appname>/`
+  with category-based files (e.g., `docs/jiotv/ssl-pinning.md`).
+  
+  Releases: semantic-release on push to `main` (stable) or `dev` (pre-release).
+  Use conventional commits: `feat:`, `fix:`, `chore:`, `refactor:`.
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+rules:
+  proposal:
+    - Always include affected app name and APK version if known
+    - Identify which detection mechanisms or behaviors are being modified
+    - Note any risks or potential breakage on future APK updates
+  specs:
+    - Use Given/When/Then format for scenarios
+    - Reference actual class names and methods from the APK (smali format)
+    - Include both happy path and failure/edge case scenarios
+    - Document what the patch changes at the bytecode or resource level
+  design:
+    - Include smali class/method references for bytecode patches
+    - Document Dalvik instruction patterns when relevant
+    - Note alternative approaches that were considered and why they were rejected
+    - Reference any prior research in docs/<appname>/
+  tasks:
+    - Break tasks into chunks that can be tested independently
+    - Include a testing task for each patch (Morphe CLI + ADB verification)
+    - Document debugging steps when bypassing complex detection mechanisms

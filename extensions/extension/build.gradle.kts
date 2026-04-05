@@ -3,5 +3,5 @@ extension {
 }
 
 android {
-    namespace = "app.revanced.extension"
+    namespace = "app.template.extension"
 }
