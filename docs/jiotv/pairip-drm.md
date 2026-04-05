@@ -101,6 +101,14 @@ When integrity checks fail:
 3. Calls `Context.startActivity()` with `Intent(ACTION_VIEW, "http://play.google.com/store/license/paywall?id=com.jio.jioplay.tv")` — directly via JNI
 4. Crashes with `SIGABRT`: `length_error in vector` (C++ `std::vector` bounds error in `-fno-exceptions` mode → `std::terminate()`)
 
+**Log excerpt** (pairip v404):
+```
+nativeloader: Load libpairipcorex.so ... ok
+nativeloader: Load libpairipcore.so ... ok
+libc++: length_error was thrown in -fno-exceptions mode with message "vector"
+Process ... exited due to signal 31
+```
+
 ### Why Dex-Level Patching Cannot Work
 Any dex modification (which morphe-cli always does) changes CRC32/structural hashes. The native VM detects this at the native level, before any Java code runs. This is the **fundamental limitation** of APK-modification-based patching for pairip-protected apps.
 

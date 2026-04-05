@@ -14,10 +14,12 @@ Patches for **JioTV** (`com.jio.jioplay.tv`) v7.1.7 (404), an anti-split APK.
 | [Patch Reference](patch-reference.md) | Complete method type reference, class mappings, patch details |
 | [Debugging Journey](debugging-journey.md) | Iterative debugging log with 21 iterations of failures and fixes |
 | [Session 2026-04-04 Continued](session-2026-04-04-continued.md) | Continued session: Firebase manifest removal, ClassReference crash, APK repackaging workflow |
+| [Session 2026-04-05](session-2026-04-05.md) | APKEditor approach, libpairipcorex.so testing, ARM64 device testing |
 | [Emulator & Root Detection](emulator-root-detection.md) | Detection mechanisms and bypasses |
 | [SSL Pinning](ssl-pinning.md) | Certificate pinning analysis and bypass |
 | [External PairIP Research](external-pairip-research.md) | Consolidated findings from external sources |
 | [Native Bypass Attempts](native-bypass-attempts.md) | All attempts to bypass libpairipcore.so |
+| [Frida & unpaircore Attempts](frida-unpaircore-attempts.md) | Frida hooking and gamepwnage framework testing |
 | [APKM Bundle Analysis](apkm-bundle-analysis.md) | APKM bundle structure and split APK findings |
 
 ## Quick Start
@@ -54,34 +56,33 @@ java -jar morphe-cli-1.6.3-all.jar patch \
 
 ## Current Status
 
-**BLOCKED**: Morphe's dex redistribution corrupts Kotlin class references, causing `ClassReference.<clinit>` NPE crashes. See [Session 2026-04-04 Continued](session-2026-04-04-continued.md) for details.
+**PARTIAL PROGRESS on x86_64 AVD**: Smali patches work but Kotlin metadata initialization blocked. See [session-2026-04-05.md](session-2026-04-05.md) for latest details.
 
-### What Works
-- Stub native library (`libpairipcore.so`, 6472 bytes ARM64 ELF) eliminates native VM crash
-- FirebaseInitProvider can be removed from AndroidManifest.xml via resource patch
-- All morphe patches compile and apply successfully
-- APK can be properly aligned, signed, and installed
+### What Works (x86_64 AVD)
+- ✅ APKEditor workflow modifies APK without dex redistribution
+- ✅ VMRunner.smali - Removed native library loading
+- ✅ VMRunner.executeVM - Stub returning null
+- ✅ SignatureCheck.verifyIntegrity - Returns void
+- ✅ FirebaseInitProvider.onCreate - Returns false
+- ✅ IklIsnnNWteL - 49 strings initialized to ""
+- ✅ No native SIGSEGV crash
 
-### What Doesn't Work
-- Morphe's dex redistribution corrupts Kotlin `ClassReference.<clinit>` (null class name NPE)
-- Bytecode patches on Firebase classes are unreliable due to dex redistribution across 12+ dex files
-- Any approach involving morphe recompiling dex files breaks the APK
+### What's Blocked
+- ❌ `ExceptionInInitializerError` in `BaseActivity.onCreate` - Kotlin metadata not initialized
+- The native library patches Kotlin runtime metadata in a way that smali cannot reproduce
+
+### ARM64 Physical Device Status
+- Original library aborts with `length_error was thrown in -fno-exceptions mode with message "vector"`
+- Integrity check fails - likely SafetyNet/Play Integrity/device model detection
 
 ### Known Working Solutions (Require Root)
 - **pairipfix** (LSPosed module): Runtime hooks, no APK modification
 - **BetterKnownInstalled** (Magisk module): Fakes Play Store installer at system level
 
-### Non-Root Approaches (All Failed So Far)
-- CRC32 restoration — structural hash verification beyond CRC32
-- Stub native library — breaks Firebase initialization (when used alone)
-- Resource-only patches — morphe-cli always recompiles dex files
-- Apktool rebuild — also recompiles dex files
-- Manual binary XML — corrupts manifest structure
-- Morphe + stub — Firebase crashes despite bytecode patch
-- APKM base.apk + stub split — base.apk can't install standalone
-- Morphe with Firebase manifest removal — ClassReference.<clinit> NPE from dex redistribution
+### Next Steps
+1. Deep reverse-engineering of `libpairipcore.so` to understand Kotlin metadata patching
+2. Create mock x86_64 native library using Android NDK
+3. Cross-compile ARM64 mock library
 
-### Recommended Next Approaches
-- **APKEditor + libpairipcorex.so**: Direct APK modification without dex redistribution (Snailsoft approach)
-- **Frida/LSPosed**: Runtime hooking (requires root)
-- **baksmali/smali direct editing**: Modify dex files without redistribution
+### Working APK
+`/tmp/jiotv-patched4-aligned-debugSigned.apk` (test on x86_64 AVD)
