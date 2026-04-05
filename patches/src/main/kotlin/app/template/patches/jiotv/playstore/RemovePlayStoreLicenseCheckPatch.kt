@@ -6,6 +6,7 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.template.patches.shared.Constants.COMPATIBILITY_JIOTV_MOBILE
 
+@Suppress("unused")
 val disablePairipManifestPatch = resourcePatch(
     name = "Disable pairip license check (manifest)",
     description = "Removes the pairip LicenseContentProvider from AndroidManifest to prevent auto-initialization of license checking.",
@@ -30,6 +31,7 @@ val disablePairipManifestPatch = resourcePatch(
     }
 }
 
+@Suppress("unused")
 val removePlayStoreLicenseCheckPatch = bytecodePatch(
     name = "Remove Play Store license check",
     description = "Removes the Play Store installation and license verification check (pairip).",

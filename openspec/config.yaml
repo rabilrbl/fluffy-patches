@@ -13,6 +13,11 @@ context: |
   Naming: PascalCase + `Patch` suffix for files, camelCase + `Patch` suffix for vals, SCREAMING_SNAKE_CASE for constants
   All patch vals must have `@Suppress("unused")` (loaded via reflection)
   
+  Required environment variables:
+  - ANDROID_HOME: Path to Android SDK (required for buildAndroid task)
+  - GITHUB_ACTOR: GitHub username for accessing Morphe's private Maven registry
+  - GITHUB_TOKEN: GitHub PAT with read:packages scope
+  
   Testing: No automated tests. All patches must be tested on an APK using Morphe CLI before committing.
   Use ADB to verify patched APKs on devices/emulators when available.
   

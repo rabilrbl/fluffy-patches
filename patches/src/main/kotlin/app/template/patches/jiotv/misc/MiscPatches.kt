@@ -6,6 +6,7 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.template.patches.shared.Constants.COMPATIBILITY_JIOTV_MOBILE
 
+@Suppress("unused")
 val miscPatches = resourcePatch(
     name = "Enable cleartext traffic",
     description = "Sets usesCleartextTraffic to true in AndroidManifest and patches the network security config to allow cleartext HTTP traffic and user-installed CA certificates.",
@@ -65,6 +66,7 @@ val miscPatches = resourcePatch(
     }
 }
 
+@Suppress("unused")
 val disableFirebaseInitPatch = resourcePatch(
     name = "Disable FirebaseInitProvider",
     description = "Removes FirebaseInitProvider from AndroidManifest.xml to prevent crash when VM config data is missing.",

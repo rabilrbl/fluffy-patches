@@ -8,6 +8,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Build Commands
 
+### Required Environment Variables
+
+| Variable | Purpose |
+|----------|---------|
+| `ANDROID_HOME` | Path to Android SDK (required for `buildAndroid` task) |
+| `GITHUB_ACTOR` | GitHub username for accessing Morphe's private Maven registry |
+| `GITHUB_TOKEN` | GitHub personal access token with `read:packages` scope |
+
+### Commands
+
 ```bash
 # Build the patch package (.mpp file)
 ./gradlew :patches:buildAndroid
@@ -23,6 +33,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```
 
 Build output: `patches/build/libs/patches-{version}.mpp`
+
+### Verifying the Build
+
+```bash
+ANDROID_HOME="$HOME/Android/Sdk" GITHUB_ACTOR="$(gh api user --jq '.login')" GITHUB_TOKEN="$(gh auth token)" ./gradlew :patches:buildAndroid
+```
 
 ## Testing
 

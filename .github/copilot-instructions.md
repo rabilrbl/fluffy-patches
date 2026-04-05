@@ -6,6 +6,16 @@
 
 ## Build Commands
 
+### Required Environment Variables
+
+| Variable | Purpose |
+|----------|---------|
+| `ANDROID_HOME` | Path to Android SDK (required for `buildAndroid` task) |
+| `GITHUB_ACTOR` | GitHub username for accessing Morphe's private Maven registry |
+| `GITHUB_TOKEN` | GitHub personal access token with `read:packages` scope |
+
+### Commands
+
 ```bash
 # Build the patch package (.mpp file)
 ./gradlew :patches:buildAndroid
