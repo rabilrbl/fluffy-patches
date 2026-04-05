@@ -1,6 +1,6 @@
 ---
 name: openspec-apply-change
-description: Implement tasks from an OpenSpec change. Use when the user wants to start implementing, continue implementation, or work through tasks.
+description: Implement and test patches from an OpenSpec change. Use when the user wants to start implementing patches, continue implementation, or work through the iterative patch-test cycle.
 license: MIT
 compatibility: Requires openspec CLI.
 metadata:
@@ -9,7 +9,7 @@ metadata:
   generatedBy: "1.2.0"
 ---
 
-Implement tasks from an OpenSpec change.
+Implement patches from an OpenSpec change with iterative testing after each patch.
 
 **Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
@@ -29,8 +29,8 @@ Implement tasks from an OpenSpec change.
    openspec status --change "<name>" --json
    ```
    Parse the JSON to understand:
-   - `schemaName`: The workflow being used (e.g., "spec-driven")
-   - Which artifact contains the tasks (typically "tasks" for spec-driven, check status for others)
+   - `schemaName`: The workflow being used
+   - Which artifact contains the tasks (typically "tasks" for spec-driven)
 
 3. **Get apply instructions**
 
@@ -39,7 +39,7 @@ Implement tasks from an OpenSpec change.
    ```
 
    This returns:
-   - Context file paths (varies by schema - could be proposal/specs/design/tasks or spec/tests/implementation/docs)
+   - Context file paths
    - Progress (total, complete, remaining)
    - Task list with status
    - Dynamic instruction based on current state
@@ -52,9 +52,9 @@ Implement tasks from an OpenSpec change.
 4. **Read context files**
 
    Read the files listed in `contextFiles` from the apply instructions output.
-   The files depend on the schema being used:
-   - **spec-driven**: proposal, specs, design, tasks
-   - Other schemas: follow the contextFiles from CLI output
+   Pay special attention to:
+   - `design.md` — target classes, smali patterns, patch approach
+   - `docs/<appname>/` — prior research and debugging notes
 
 5. **Show current progress**
 
@@ -64,19 +64,47 @@ Implement tasks from an OpenSpec change.
    - Remaining tasks overview
    - Dynamic instruction from CLI
 
-6. **Implement tasks (loop until done or blocked)**
+6. **Implement patches with iterative testing (loop until done or blocked)**
 
-   For each pending task:
-   - Show which task is being worked on
-   - Make the code changes required
-   - Keep changes minimal and focused
-   - Mark task complete in the tasks file: `- [ ]` → `- [x]`
-   - Continue to next task
+   **IMPORTANT**: Unlike normal software engineering, APK patching requires testing AFTER each patch, not just at the end. The cycle is:
+
+   ```
+   Write patch → Build .mpp → Apply to APK → Test on device → Document result → Next patch
+   ```
+
+   For each task in the tasks file:
+
+   a. **Implement the patch code**
+      - Create/edit the patch file in `patches/src/main/kotlin/app/template/patches/<app>/<category>/`
+      - Follow the design.md for target classes and smali patterns
+      - Use the morphe-patching skill for guidance on syntax and conventions
+      - Keep the patch minimal and focused
+
+   b. **Build the patch package**
+      ```bash
+      ANDROID_HOME="$HOME/Android/Sdk" GITHUB_ACTOR="$(gh api user --jq '.login')" GITHUB_TOKEN="$(gh auth token)" ./gradlew :patches:buildAndroid
+      ```
+
+   c. **Test the patch**
+      - Apply the .mpp to the target APK using Morphe CLI
+      - Install the patched APK on a device/emulator via ADB
+      - Verify the expected behavior change
+      - Check for crashes, unexpected behavior, or side effects
+
+   d. **Document the result**
+      - If the patch works: mark task complete, note success in docs
+      - If the patch fails: document the failure, analyze why, iterate
+      - Update `docs/<appname>/` with findings
+
+   e. **Mark task complete**
+      - Update task checkbox in the tasks file: `- [ ]` → `- [x]`
+      - Continue to next task
 
    **Pause if:**
    - Task is unclear → ask for clarification
+   - Patch causes a crash → analyze logcat, find root cause, iterate
+   - Target class/method not found → re-analyze APK with JADX CLI
    - Implementation reveals a design issue → suggest updating artifacts
-   - Error or blocker encountered → report and wait for guidance
    - User interrupts
 
 7. **On completion or pause, show status**
@@ -93,12 +121,16 @@ Implement tasks from an OpenSpec change.
 ## Implementing: <change-name> (schema: <schema-name>)
 
 Working on task 3/7: <task description>
-[...implementation happening...]
-✓ Task complete
+[...writing patch code...]
+[...building .mpp...]
+[...testing on device...]
+✓ Patch works — root detection bypassed successfully
 
 Working on task 4/7: <task description>
-[...implementation happening...]
-✓ Task complete
+[...writing patch code...]
+[...building .mpp...]
+[...testing on device...]
+✗ Patch crashes on launch — analyzing logcat...
 ```
 
 **Output On Completion**
@@ -111,11 +143,11 @@ Working on task 4/7: <task description>
 **Progress:** 7/7 tasks complete ✓
 
 ### Completed This Session
-- [x] Task 1
-- [x] Task 2
+- [x] Task 1 — patch written, built, tested ✓
+- [x] Task 2 — patch written, built, tested ✓
 ...
 
-All tasks complete! Ready to archive this change.
+All patches tested and working! Ready to archive this change.
 ```
 
 **Output On Pause (Issue Encountered)**
@@ -128,29 +160,52 @@ All tasks complete! Ready to archive this change.
 **Progress:** 4/7 tasks complete
 
 ### Issue Encountered
-<description of the issue>
+<description: crash log, missing class, failed test, etc.>
 
 **Options:**
-1. <option 1>
-2. <option 2>
-3. Other approach
+1. Iterate on the patch (adjust target or smali)
+2. Re-analyze the APK with JADX CLI
+3. Update the design with a new approach
+4. Other approach
 
 What would you like to do?
 ```
 
 **Guardrails**
-- Keep going through tasks until done or blocked
-- Always read context files before starting (from the apply instructions output)
-- If task is ambiguous, pause and ask before implementing
-- If implementation reveals issues, pause and suggest artifact updates
-- Keep code changes minimal and scoped to each task
-- Update task checkbox immediately after completing each task
-- Pause on errors, blockers, or unclear requirements - don't guess
-- Use contextFiles from CLI output, don't assume specific file names
+- **Test after EVERY patch** — don't batch patches without testing in between
+- **Keep changes minimal** — only modify what's needed for the current task
+- **Document failures** — every failed patch attempt goes in `docs/<appname>/`
+- **Use JADX CLI to verify** — always confirm class/method existence before writing patches
+- **Pause on crashes** — don't guess at fixes; analyze logcat and understand the root cause
+- **Read context files before starting** — especially design.md and prior docs
+- **If task is ambiguous, pause and ask** — wrong patches can crash the app
+- **Update task checkbox immediately** after completing each task
+- **Use contextFiles from CLI output**, don't assume specific file names
+
+**Iterative Patch-Test Cycle**
+
+This skill enforces the patch-test-repeat cycle that APK patching requires:
+
+```
+  ┌─────────────┐     ┌──────────┐     ┌───────────┐     ┌────────────┐
+  │ Write Patch │────▶│ Build .mpp│────▶│ Apply &   │────▶│ Test on    │
+  │   Code      │     │           │     │ Install   │     │  Device    │
+  └─────────────┘     └──────────┘     └───────────┘     └─────┬──────┘
+       ▲                                                        │
+       │                          ┌──────────────┐              │
+       │                          │  Document &  │◀─────────────┘
+       │                          │   Iterate    │
+       └──────────────────────────┴──────────────┘
+              (if test fails)          │
+                                       ▼
+                                 (if test passes)
+                                 Mark task complete
+```
 
 **Fluid Workflow Integration**
 
 This skill supports the "actions on a change" model:
 
 - **Can be invoked anytime**: Before all artifacts are done (if tasks exist), after partial implementation, interleaved with other actions
-- **Allows artifact updates**: If implementation reveals design issues, suggest updating artifacts - not phase-locked, work fluidly
+- **Allows artifact updates**: If implementation reveals design issues, suggest updating artifacts — not phase-locked, work fluidly
+- **Testing is part of implementation**: A task isn't complete until the patch is tested on a real device/emulator

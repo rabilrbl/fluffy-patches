@@ -1,6 +1,6 @@
 ---
 name: openspec-archive-change
-description: Archive a completed change in the experimental workflow. Use when the user wants to finalize and archive a change after implementation is complete.
+description: Archive a completed patch change. Use when the user wants to finalize and archive a change after all patches are implemented and tested on devices.
 license: MIT
 compatibility: Requires openspec CLI.
 metadata:
@@ -9,7 +9,7 @@ metadata:
   generatedBy: "1.2.0"
 ---
 
-Archive a completed change in the experimental workflow.
+Archive a completed patch change in the experimental workflow.
 
 **Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
@@ -50,7 +50,19 @@ Archive a completed change in the experimental workflow.
 
    **If no tasks file exists:** Proceed without task-related warning.
 
-4. **Assess delta spec sync state**
+4. **Verify patches were tested**
+
+   Before archiving, confirm the patches were actually tested on a device:
+   - Check `docs/<appname>/` for testing notes
+   - Look for ADB verification evidence in task completions
+   - If no testing evidence found, warn the user
+
+   **If no testing evidence:**
+   - Display warning: "No device testing evidence found. Patches should be tested on a real APK before archiving."
+   - Use **AskUserQuestion tool** to confirm user wants to proceed anyway
+   - Proceed if user confirms
+
+5. **Assess delta spec sync state**
 
    Check for delta specs at `openspec/changes/<name>/specs/`. If none exist, proceed without sync prompt.
 
@@ -65,7 +77,7 @@ Archive a completed change in the experimental workflow.
 
    If user chooses sync, use Task tool (subagent_type: "general-purpose", prompt: "Use Skill tool to invoke openspec-sync-specs for change '<name>'. Delta spec analysis: <include the analyzed delta spec summary>"). Proceed to archive regardless of choice.
 
-5. **Perform the archive**
+6. **Perform the archive**
 
    Create the archive directory if it doesn't exist:
    ```bash
@@ -82,13 +94,14 @@ Archive a completed change in the experimental workflow.
    mv openspec/changes/<name> openspec/changes/archive/YYYY-MM-DD-<name>
    ```
 
-6. **Display summary**
+7. **Display summary**
 
    Show archive completion summary including:
    - Change name
    - Schema that was used
    - Archive location
    - Whether specs were synced (if applicable)
+   - Whether patches were tested (if verifiable)
    - Note about any warnings (incomplete artifacts/tasks)
 
 **Output On Success**
@@ -100,6 +113,7 @@ Archive a completed change in the experimental workflow.
 **Schema:** <schema-name>
 **Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
 **Specs:** ✓ Synced to main specs (or "No delta specs" or "Sync skipped")
+**Testing:** ✓ Verified on device (or "Testing not verified")
 
 All artifacts complete. All tasks complete.
 ```
@@ -107,8 +121,9 @@ All artifacts complete. All tasks complete.
 **Guardrails**
 - Always prompt for change selection if not provided
 - Use artifact graph (openspec status --json) for completion checking
-- Don't block archive on warnings - just inform and confirm
+- Don't block archive on warnings — just inform and confirm
 - Preserve .openspec.yaml when moving to archive (it moves with the directory)
 - Show clear summary of what happened
 - If sync is requested, use openspec-sync-specs approach (agent-driven)
 - If delta specs exist, always run the sync assessment and show the combined summary before prompting
+- **For patch changes, verify testing was done** — untested patches should not be archived without explicit confirmation

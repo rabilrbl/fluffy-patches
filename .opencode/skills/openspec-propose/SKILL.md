@@ -1,6 +1,6 @@
 ---
 name: openspec-propose
-description: Propose a new change with all artifacts generated in one step. Use when the user wants to quickly describe what they want to build and get a complete proposal with design, specs, and tasks ready for implementation.
+description: Propose a new patch change with all artifacts generated in one step. Use when the user wants to quickly describe what patch they want and get a complete proposal with design, specs, and tasks ready for implementation and testing.
 license: MIT
 compatibility: Requires openspec CLI.
 metadata:
@@ -9,29 +9,32 @@ metadata:
   generatedBy: "1.2.0"
 ---
 
-Propose a new change - create the change and generate all artifacts in one step.
+Propose a new patch change — create the change and generate all artifacts in one step, tailored for APK reverse engineering and patch development.
 
 I'll create a change with artifacts:
-- proposal.md (what & why)
-- design.md (how)
-- tasks.md (implementation steps)
+- proposal.md (what patch & why)
+- design.md (how — target classes, smali patterns, patch approach)
+- tasks.md (implementation and testing steps)
 
 When ready to implement, run /opsx-apply
 
 ---
 
-**Input**: The user's request should include a change name (kebab-case) OR a description of what they want to build.
+**Input**: The user's request should include a change name (kebab-case) OR a description of what patch they want to build.
 
 **Steps**
 
-1. **If no clear input provided, ask what they want to build**
+1. **If no clear input provided, ask what patch they want**
 
    Use the **AskUserQuestion tool** (open-ended, no preset options) to ask:
-   > "What change do you want to work on? Describe what you want to build or fix."
+   > "What patch do you want to create? Describe the app, version, and what behavior you want to change."
 
-   From their description, derive a kebab-case name (e.g., "add user authentication" → `add-user-auth`).
+   From their description, derive a kebab-case name (e.g., "bypass jiotv root detection" → `bypass-jiotv-root-detection`).
 
-   **IMPORTANT**: Do NOT proceed without understanding what the user wants to build.
+   **IMPORTANT**: Do NOT proceed without understanding:
+   - Which app and version
+   - What behavior needs to change
+   - What detection mechanism or feature gate is involved
 
 2. **Create the change directory**
    ```bash
@@ -92,19 +95,34 @@ After completing all artifacts, summarize:
 - What's ready: "All artifacts created! Ready for implementation."
 - Prompt: "Run `/opsx-apply` or ask me to implement to start working on the tasks."
 
-**Artifact Creation Guidelines**
+**Artifact Creation Guidelines for Patch Development**
 
-- Follow the `instruction` field from `openspec instructions` for each artifact type
-- The schema defines what each artifact should contain - follow it
-- Read dependency artifacts for context before creating new ones
-- Use `template` as the structure for your output file - fill in its sections
-- **IMPORTANT**: `context` and `rules` are constraints for YOU, not content for the file
-  - Do NOT copy `<context>`, `<rules>`, `<project_context>` blocks into the artifact
-  - These guide what you write, but should never appear in the output
+### proposal.md
+- Name the app and APK version being targeted
+- Describe what behavior is being modified (root detection, SSL pinning, feature gate, etc.)
+- Note any risks: could break on future versions, may have secondary checks
+- Reference any prior research in `docs/<appname>/`
+
+### design.md
+- Include actual class names and methods from the APK (both Java and smali format)
+- Map the detection/feature chain: entry point → check → enforcement
+- Specify the patch approach: bytecode injection, resource modification, class removal
+- Include smali patterns for the target methods
+- Note alternative approaches considered and why they were rejected
+- Document version sensitivity: which targets are likely to change between versions
+
+### tasks.md
+- Break into testable chunks — each patch should be independently testable
+- Include a testing task after EACH patch, not just at the end
+- Testing means: build .mpp → apply with Morphe CLI → verify on device/emulator via ADB
+- Document expected failure modes and debugging steps
+- Include a final integration test: all patches applied together
 
 **Guardrails**
 - Create ALL artifacts needed for implementation (as defined by schema's `apply.requires`)
 - Always read dependency artifacts before creating a new one
-- If context is critically unclear, ask the user - but prefer making reasonable decisions to keep momentum
+- If context is critically unclear, ask the user — but prefer making reasonable decisions to keep momentum
 - If a change with that name already exists, ask if user wants to continue it or create a new one
 - Verify each artifact file exists after writing before proceeding to next
+- **Always include testing tasks** — patches require device testing, there are no unit tests
+- **Document the APK version** being targeted — patches are version-specific

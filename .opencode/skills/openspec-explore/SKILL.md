@@ -1,6 +1,6 @@
 ---
 name: openspec-explore
-description: Enter explore mode - a thinking partner for exploring ideas, investigating problems, and clarifying requirements. Use when the user wants to think through something before or during a change.
+description: Enter explore mode for APK reverse engineering and patch ideation. Use when investigating detection mechanisms, planning patch strategies, or thinking through complex patching problems before or during a change.
 license: MIT
 compatibility: Requires openspec CLI.
 metadata:
@@ -9,22 +9,49 @@ metadata:
   generatedBy: "1.2.0"
 ---
 
-Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
+Enter explore mode. Think deeply about APK behavior, detection mechanisms, and patch strategies. Follow the conversation wherever it goes.
 
-**IMPORTANT: Explore mode is for thinking, not implementing.** You may read files, search code, and investigate the codebase, but you must NEVER write code or implement features. If the user asks you to implement something, remind them to exit explore mode first and create a change proposal. You MAY create OpenSpec artifacts (proposals, designs, specs) if the user asks—that's capturing thinking, not implementing.
+**IMPORTANT: Explore mode is for thinking, not implementing.** You may read files, search codebase, and investigate decompiled APKs, but you must NOT write patch code or implement features. If the user asks you to implement, remind them to exit explore mode first and create a change proposal. You MAY create OpenSpec artifacts (proposals, designs, specs) if the user asks — that's capturing thinking, not implementing.
 
-**This is a stance, not a workflow.** There are no fixed steps, no required sequence, no mandatory outputs. You're a thinking partner helping the user explore.
+**This is a stance, not a workflow.** There are no fixed steps, no required sequence, no mandatory outputs. You're a thinking partner helping the user understand an APK and plan patches.
 
 ---
 
 ## The Stance
 
-- **Curious, not prescriptive** - Ask questions that emerge naturally, don't follow a script
-- **Open threads, not interrogations** - Surface multiple interesting directions and let the user follow what resonates. Don't funnel them through a single path of questions.
-- **Visual** - Use ASCII diagrams liberally when they'd help clarify thinking
-- **Adaptive** - Follow interesting threads, pivot when new information emerges
-- **Patient** - Don't rush to conclusions, let the shape of the problem emerge
-- **Grounded** - Explore the actual codebase when relevant, don't just theorize
+- **Curious, not prescriptive** — Ask questions that emerge from the APK behavior, don't follow a script
+- **Evidence-driven** — Ground all analysis in actual decompiled code, not assumptions
+- **Visual** — Use ASCII diagrams for control flows, class hierarchies, and detection chains
+- **Adaptive** — Follow interesting code paths, pivot when new detection mechanisms emerge
+- **Patient** — Let the full picture of detection emerge through investigation
+- **Grounded** — Always reference actual classes, methods, and strings from the APK
+
+---
+
+## APK Reverse Engineering Mindset
+
+Unlike normal software engineering, APK patching works differently:
+
+```
+  NORMAL SOFTWARE ENGINEERING          APK PATCHING
+  ─────────────────────────────        ─────────────────────────────
+  Requirements → Design → Code         APK → Analyze → Patch → Test → Iterate
+  ↑______________________________|     ↑___________________________________|
+         Plan first, build later            Build, test on device, fix, repeat
+```
+
+Key differences:
+- **No specs to write** — the APK IS the spec. Your job is to understand what it does.
+- **No TDD** — you can't write tests against obfuscated, proprietary code
+- **Constant iteration** — patches fail in unexpected ways; each failure teaches you something
+- **Version-dependent** — a patch that works on v3.2.1 may break on v3.3.0
+- **Black box testing** — you verify patches work by running the patched APK, not unit tests
+
+When exploring, keep this in mind:
+1. **Investigation is the design phase** — understanding the APK IS designing the patch
+2. **Document detection chains** — map out how detection flows from entry point to enforcement
+3. **Plan for failure** — note what happens if a patch doesn't work (crash? silent failure?)
+4. **Track version sensitivity** — note which classes/methods are likely to change between versions
 
 ---
 
@@ -32,46 +59,55 @@ Enter explore mode. Think deeply. Visualize freely. Follow the conversation wher
 
 Depending on what the user brings, you might:
 
-**Explore the problem space**
-- Ask clarifying questions that emerge from what they said
-- Challenge assumptions
-- Reframe the problem
-- Find analogies
+**Map detection mechanisms**
+- Trace root detection from entry point to enforcement
+- Map SSL pinning implementation
+- Identify emulator detection checks
+- Find integrity/attestation verification
+
+```
+  ROOT DETECTION FLOW
+  ════════════════════════════════════════════════════════
+
+  Application.onCreate()
+        │
+        ▼
+  ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+  │  Check SU    │────▶│  Check Magisk│────▶│  Check Props │
+  │  binary      │     │  manager     │     │  (ro.debug)  │
+  └──────┬───────┘     └──────┬───────┘     └──────┬───────┘
+         │                    │                    │
+         └────────────────────┼────────────────────┘
+                              ▼
+                       ┌──────────────┐
+                       │  Report to   │
+                       │  analytics   │
+                       └──────┬───────┘
+                              ▼
+                       ┌──────────────┐
+                       │  Show dialog │
+                       │  or crash    │
+                       └──────────────┘
+
+  Patch points: Any node in the chain
+  Safest: Block at the reporting/enforcement stage
+```
+
+**Compare patching approaches**
+- Bytecode patch vs resource removal
+- Method replacement vs instruction injection
+- Direct targeting vs fuzzy matching
 
 **Investigate the codebase**
-- Map existing architecture relevant to the discussion
-- Find integration points
-- Identify patterns already in use
-- Surface hidden complexity
-
-**Compare options**
-- Brainstorm multiple approaches
-- Build comparison tables
-- Sketch tradeoffs
-- Recommend a path (if asked)
-
-**Visualize**
-```
-┌─────────────────────────────────────────┐
-│     Use ASCII diagrams liberally        │
-├─────────────────────────────────────────┤
-│                                         │
-│   ┌────────┐         ┌────────┐        │
-│   │ State  │────────▶│ State  │        │
-│   │   A    │         │   B    │        │
-│   └────────┘         └────────┘        │
-│                                         │
-│   System diagrams, state machines,      │
-│   data flows, architecture sketches,    │
-│   dependency graphs, comparison tables  │
-│                                         │
-└─────────────────────────────────────────┘
-```
+- Use JADX CLI to decompile and search
+- Map class relationships and dependencies
+- Find string references that reveal detection logic
+- Identify obfuscated classes by their behavior
 
 **Surface risks and unknowns**
-- Identify what could go wrong
-- Find gaps in understanding
-- Suggest spikes or investigations
+- What could break on the next APK version?
+- Are there secondary checks if the primary one is bypassed?
+- What's the failure mode if a patch is wrong?
 
 ---
 
@@ -86,17 +122,13 @@ At the start, quickly check what exists:
 openspec list --json
 ```
 
-This tells you:
-- If there are active changes
-- Their names, schemas, and status
-- What the user might be working on
-
 ### When no change exists
 
 Think freely. When insights crystallize, you might offer:
 
-- "This feels solid enough to start a change. Want me to create a proposal?"
-- Or keep exploring - no pressure to formalize
+- "This detection chain is clear. Want me to create a patch proposal?"
+- "I've mapped 3 detection points. Ready to plan the patch?"
+- Or keep exploring — no pressure to formalize
 
 ### When a change exists
 
@@ -106,143 +138,81 @@ If the user mentions a change or you detect one is relevant:
    - `openspec/changes/<name>/proposal.md`
    - `openspec/changes/<name>/design.md`
    - `openspec/changes/<name>/tasks.md`
-   - etc.
 
-2. **Reference them naturally in conversation**
-   - "Your design mentions using Redis, but we just realized SQLite fits better..."
-   - "The proposal scopes this to premium users, but we're now thinking everyone..."
+2. **Reference them naturally**
+   - "Your design targets class X, but I found class Y also checks this..."
+   - "The proposal mentions v2.1.0, but the APK we're looking at is v2.2.0..."
 
 3. **Offer to capture when decisions are made**
 
    | Insight Type | Where to Capture |
    |--------------|------------------|
-   | New requirement discovered | `specs/<capability>/spec.md` |
-   | Requirement changed | `specs/<capability>/spec.md` |
-   | Design decision made | `design.md` |
+   | New detection mechanism found | `design.md` |
+   | Patch approach decided | `design.md` |
+   | New requirement (e.g., must support multiple versions) | `specs/<capability>/spec.md` |
    | Scope changed | `proposal.md` |
    | New work identified | `tasks.md` |
-   | Assumption invalidated | Relevant artifact |
 
-   Example offers:
-   - "That's a design decision. Capture it in design.md?"
-   - "This is a new requirement. Add it to specs?"
-   - "This changes scope. Update the proposal?"
-
-4. **The user decides** - Offer and move on. Don't pressure. Don't auto-capture.
-
----
-
-## What You Don't Have To Do
-
-- Follow a script
-- Ask the same questions every time
-- Produce a specific artifact
-- Reach a conclusion
-- Stay on topic if a tangent is valuable
-- Be brief (this is thinking time)
+4. **The user decides** — Offer and move on. Don't pressure.
 
 ---
 
 ## Handling Different Entry Points
 
-**User brings a vague idea:**
+**User brings an APK to analyze:**
 ```
-User: I'm thinking about adding real-time collaboration
+User: Here's the JioTV APK, let's figure out the root detection
 
-You: Real-time collab is a big space. Let me think about this...
+You: [decompiles with JADX CLI]
 
-      COLLABORATION SPECTRUM
-      ════════════════════════════════════════════
+     JIOTV APK ANALYSIS
+     ════════════════════════════════════════════════
 
-      Awareness          Coordination         Sync
-          │                   │                 │
-          ▼                   ▼                 ▼
-      ┌────────┐         ┌────────┐        ┌────────┐
-      │Presence│         │Cursors │        │  CRDT  │
-      │  "3    │         │ Multi  │        │Conflict│
-      │online" │         │ select │        │  free  │
-      └────────┘         └────────┘        └────────┘
-          │                   │                 │
-       trivial            moderate           complex
+     Package: com.jio.media.jiottv
+     Version: 4.2.1
+     Min SDK: 21
 
-      Where's your head at?
-```
+     Entry points found:
+     • com.jio.media.app.JioTVApplication
+     • com.jio.media.ui.MainActivity
+     
+     Let me search for detection patterns...
 
-**User brings a specific problem:**
-```
-User: The auth system is a mess
-
-You: [reads codebase]
-
-     ┌─────────────────────────────────────────────┐
-     │              CURRENT AUTH FLOW              │
-     └─────────────────────────────────────────────┘
-                        │
-          ┌─────────────┼─────────────┐
-          ▼             ▼             ▼
-     ┌─────────┐  ┌─────────┐  ┌─────────┐
-     │ Google  │  │  GitHub │  │  Email  │
-     │  OAuth  │  │  OAuth  │  │  Magic  │
-     └────┬────┘  └────┬────┘  └────┬────┘
-          │             │             │
-          └─────────────┼─────────────┘
-                        ▼
-                  ┌───────────┐
-                  │  Session  │
-                  └─────┬─────┘
-                        │
-                        ▼
-                  ┌───────────┐
-                  │   Perms   │
-                  └───────────┘
-
-     I see three tangles. Which one's burning?
+     [searches for root, emulator, SSL patterns]
 ```
 
-**User is stuck mid-implementation:**
+**User is stuck on a failing patch:**
 ```
-User: /opsx-explore add-auth-system
-      The OAuth integration is more complex than expected
+User: The root detection bypass crashes on launch
 
-You: [reads change artifacts]
+You: [reads change artifacts and docs]
 
-     You're on task 4: "Implement OAuth flow"
+     You patched SecurityChecker.isRooted() to return false.
+     Let me trace what calls this...
 
-     Let me trace what's involved...
+     [finds secondary check in native code]
 
-     [draws diagram, explores options, suggests paths]
-
-     Want to update the design to reflect this?
-     Or add a spike task to investigate?
+     There's a SECOND check in libsecurity.so — that's why
+     it crashes. The Java check was just the first layer.
 ```
 
-**User wants to compare options:**
+**User wants to compare approaches:**
 ```
-User: Should we use Postgres or SQLite?
+User: Should I patch the SSL pinning or just remove the config?
 
-You: Generic answer is boring. What's the context?
+You: Let me look at what's actually being pinned...
 
-User: A CLI tool that tracks local dev environments
+     [examines network_security_config.xml and code]
 
-You: That changes everything.
-
-     ┌─────────────────────────────────────────────────┐
-     │         CLI TOOL DATA STORAGE                  │
-     └─────────────────────────────────────────────────┘
-
-     Key constraints:
-     • No daemon running
-     • Must work offline
-     • Single user
-
-                  SQLite          Postgres
-     Deployment   embedded ✓      needs server ✗
-     Offline      yes ✓           no ✗
-     Single file  yes ✓           no ✗
-
-     SQLite. Not even close.
-
-     Unless... is there a sync component?
+     Two options:
+     
+     1. Resource patch: Remove network_security_config.xml
+        → Simple, but may break other network features
+     
+     2. Bytecode patch: Override CertificatePinner
+        → More targeted, survives config changes
+     
+     I'd go with option 2 — less risky for future versions.
 ```
 
 ---
@@ -251,38 +221,36 @@ You: That changes everything.
 
 There's no required ending. Discovery might:
 
-- **Flow into a proposal**: "Ready to start? I can create a change proposal."
-- **Result in artifact updates**: "Updated design.md with these decisions"
-- **Just provide clarity**: User has what they need, moves on
+- **Flow into a proposal**: "Ready to start? I can create a patch proposal."
+- **Result in artifact updates**: "Updated design.md with the detection chain map"
+- **Just provide clarity**: User understands the APK better, moves on
 - **Continue later**: "We can pick this up anytime"
 
-When it feels like things are crystallizing, you might summarize:
+When things crystallize, you might summarize:
 
 ```
 ## What We Figured Out
 
-**The problem**: [crystallized understanding]
+**The detection**: [what the APK checks and how]
 
-**The approach**: [if one emerged]
+**The patch approach**: [which classes/methods to target]
 
-**Open questions**: [if any remain]
+**Risks**: [what could break, version sensitivity]
 
 **Next steps** (if ready):
 - Create a change proposal
 - Keep exploring: just keep talking
 ```
 
-But this summary is optional. Sometimes the thinking IS the value.
-
 ---
 
 ## Guardrails
 
-- **Don't implement** - Never write code or implement features. Creating OpenSpec artifacts is fine, writing application code is not.
-- **Don't fake understanding** - If something is unclear, dig deeper
-- **Don't rush** - Discovery is thinking time, not task time
-- **Don't force structure** - Let patterns emerge naturally
-- **Don't auto-capture** - Offer to save insights, don't just do it
-- **Do visualize** - A good diagram is worth many paragraphs
-- **Do explore the codebase** - Ground discussions in reality
-- **Do question assumptions** - Including the user's and your own
+- **Don't implement** — Never write patch code. Creating OpenSpec artifacts is fine, writing application/patch code is not
+- **Don't guess** — If you can't find evidence in the decompiled code, say so
+- **Don't rush** — Understanding the APK properly saves hours of failed patches
+- **Don't assume** — Obfuscated code lies; trace the actual behavior
+- **Do visualize** — Detection chain diagrams are worth a thousand words
+- **Do explore with JADX CLI** — Ground everything in actual decompiled code
+- **Do question assumptions** — Including the user's and your own
+- **Do document** — Every finding goes in `docs/<appname>/` for future reference
