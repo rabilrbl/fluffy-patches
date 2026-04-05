@@ -1,3 +1,10 @@
+# [1.0.0-dev.11](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.10...v1.0.0-dev.11) (2026-04-05)
+
+
+### Features
+
+* Enhance APK analysis documentation and add JADX CLI usage instructions across multiple files ([c58ab08](https://github.com/rabilrbl/fluffy-patches/commit/c58ab086e6b18d0dea5bf5e704632872f92ccb3b))
+
 # [1.0.0-dev.10](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.9...v1.0.0-dev.10) (2026-04-05)
 
 
