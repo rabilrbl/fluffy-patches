@@ -204,6 +204,10 @@ ANDROID_HOME="$HOME/Android/Sdk" GITHUB_ACTOR="$(gh api user --jq '.login')" GIT
 ## Debugging Tips
 
 - Use `adb logcat` to see patcher runtime errors
-- Check the APK with JADX to verify class/method existence before writing patches
+- Check the APK with JADX CLI to verify class/method existence before writing patches:
+  ```bash
+  jadx app.apk -d jadx_output --deobf
+  find jadx_output/ -name "*.java" | xargs grep -n "ClassName\|methodName"
+  ```
 - Test patches on a real device/emulator via Morphe Manager
 - Document findings in `docs/<appname>/` for future contributors

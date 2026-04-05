@@ -21,6 +21,17 @@ context: |
   Testing: No automated tests. All patches must be tested on an APK using Morphe CLI before committing.
   Use ADB to verify patched APKs on devices/emulators when available.
   
+  APK Analysis: Use JADX CLI to decompile APKs before writing patches.
+  - `jadx app.apk -d jadx_output --deobf` for full decompilation
+  - `find jadx_output/ -name "*.java" | xargs grep -l "ClassName"` to search classes
+  - `find jadx_output/ -name "*.java" | xargs grep -n "methodName("` to search methods
+  - Always verify class/method existence in the target APK before writing patches.
+  
+  Available Skills (loaded via `skill` tool):
+  - `morphe-patching`: Create/edit/debug Morphe patches (bytecodePatch, resourcePatch, smali injection)
+  - `android-apk-analysis`: APK reverse engineering (JADX CLI, finding targets, security mechanisms)
+  - `revanced-to-morphe`: Convert ReVanced patches to Morphe format
+  
   Documentation: All findings, debugging notes, and research go under `docs/<appname>/`
   with category-based files (e.g., `docs/jiotv/ssl-pinning.md`).
   

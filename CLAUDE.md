@@ -90,6 +90,48 @@ Patches can declare `dependsOn(otherPatch)` to compose behaviors.
 4. Reference the new constant in each patch's `compatibleWith(...)` call.
 5. Run `./gradlew :patches:generatePatchesList` to regenerate metadata.
 
+## APK Analysis with JADX CLI
+
+Use JADX CLI to decompile and analyze target APKs before writing patches:
+
+```bash
+# Full decompilation with deobfuscation
+jadx app.apk -d jadx_output --deobf
+
+# Search for a class in decompiled output
+find jadx_output/ -name "*.java" | xargs grep -l "ClassName"
+
+# Search for a method call
+find jadx_output/ -name "*.java" | xargs grep -n "methodName("
+
+# Search for a string literal
+find jadx_output/ -name "*.java" | xargs grep -l "string to find"
+
+# Get AndroidManifest.xml
+cat jadx_output/resources/AndroidManifest.xml
+
+# Find all classes in a package
+find jadx_output/ -path "*/com/example/*" -name "*.java"
+```
+
+Always verify class/method existence in the target APK before writing patches.
+
+## Available Skills
+
+This project includes agent skills loaded on-demand via the `skill` tool. Use these when the task matches their description:
+
+| Skill | Description | When to Use |
+|-------|-------------|-------------|
+| `morphe-patching` | Create, edit, and debug Morphe patches | Writing new patches, fixing broken patches, smali injection |
+| `android-apk-analysis` | Analyze Android APK structure, decompile with JADX | Reverse-engineering APKs, finding patch targets |
+| `revanced-to-morphe` | Convert ReVanced patches to Morphe patches | Migrating from ReVanced, adapting patching techniques |
+| `openspec-explore` | Think through ideas and clarify requirements | Exploring ideas before or during a change |
+| `openspec-propose` | Propose a new change with design, specs, and tasks | Quickly describing what to build |
+| `openspec-apply-change` | Implement tasks from an OpenSpec change | Starting or continuing implementation |
+| `openspec-archive-change` | Archive a completed change | Finalizing after implementation is done |
+
+To use a skill, invoke it with the `skill` tool. The full instructions will be loaded automatically.
+
 ## Documentation
 
 All knowledge, findings, and debugging notes must be documented under `docs/<appname>/` with category-based folders and files. Examples:

@@ -175,19 +175,64 @@ Include:
 
 ## Tools Reference
 
-### JADX MCP Tools Available
+### JADX CLI Commands
 
-- `jadx_get_android_manifest` — Get AndroidManifest.xml
-- `jadx_get_main_activity_class` — Get main activity
-- `jadx_search_classes_by_keyword` — Search classes by keyword
-- `jadx_get_class_source` — Get full class source
-- `jadx_get_xrefs_to_method` — Find method references
-- `jadx_get_xrefs_to_class` — Find class references
-- `jadx_get_strings` — Get string resources
+```bash
+# Full decompilation to directory
+jadx app.apk -d jadx_output
+
+# With deobfuscation
+jadx app.apk -d jadx_output --deobf
+
+# Show bad code (when decompilation fails)
+jadx app.apk -d jadx_output --show-bad-code
+
+# Export as JAR
+jadx app.apk --output-format jar -d jadx_output
+
+# Single class export
+jadx app.apk -d jadx_output --cls com.example.MyClass
+
+# Search for a class name
+jadx app.apk -d jadx_output --deobf
+find jadx_output/ -name "*.java" | xargs grep -l "ClassName"
+
+# Search for a method call
+find jadx_output/ -name "*.java" | xargs grep -l "methodName("
+
+# Search for a string literal
+find jadx_output/ -name "*.java" | xargs grep -l "string to find"
+
+# Get AndroidManifest.xml
+jadx app.apk -d jadx_output
+cat jadx_output/resources/AndroidManifest.xml
+
+# Get string resources
+find jadx_output/ -name "strings.xml"
+```
+
+### Common JADX CLI Analysis Patterns
+
+```bash
+# Find all classes in a package
+find jadx_output/ -path "*/com/example/*" -name "*.java"
+
+# Find classes implementing an interface
+find jadx_output/ -name "*.java" | xargs grep -l "implements SomeInterface"
+
+# Find classes extending a base class
+find jadx_output/ -name "*.java" | xargs grep -l "extends SomeBaseClass"
+
+# Find method references across all decompiled files
+find jadx_output/ -name "*.java" | xargs grep -n "methodName"
+
+# Find all usages of a class
+find jadx_output/ -name "*.java" | xargs grep -n "ClassName"
+```
 
 ### Command Line Tools
 
-- `jadx` — Java decompiler
+- `jadx` — Java decompiler (CLI)
 - `apktool` — APK decompiler/recompiler
 - `aapt` — Android Asset Packaging Tool
 - `dex2jar` — Convert dex to jar
