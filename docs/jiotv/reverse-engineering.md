@@ -11,21 +11,35 @@
 
 | Tool | Purpose |
 |------|---------|
-| **JADX-GUI** | Primary decompiler with MCP plugin for programmatic access |
+| **JADX CLI** | Primary decompiler for programmatic access |
 | **morphe-cli** | Official CLI for testing patches against the APK |
 | **unzip/strings** | Quick APK content inspection |
 | **Python3** | Smali analysis scripts |
 
-## JADX MCP Plugin Commands
+## JADX CLI Commands
 
-```
-jadx_fetch_current_class           # Get currently selected class
-jadx_get_class_source              # Get full Java source of a class
-jadx_get_smali_of_class            # Get smali representation (CRITICAL)
-jadx_search_classes_by_keyword     # Search by keyword with scope filters
-jadx_get_methods_of_class          # List all method names in a class
-jadx_get_xrefs_to_method           # Find callers of a method
-jadx_get_xrefs_to_class            # Find references to a class
+```bash
+# Full decompilation with deobfuscation
+jadx app.apk -d jadx_output --deobf
+
+# Get smali representation of a class (CRITICAL)
+jadx app.apk -d jadx_output --deobf --show-bad-code
+find jadx_output/ -name "ClassName.smali"
+
+# Search for a class in decompiled output
+find jadx_output/ -name "*.java" | xargs grep -l "ClassName"
+
+# Search for a method call
+find jadx_output/ -name "*.java" | xargs grep -n "methodName("
+
+# Search for a string literal
+find jadx_output/ -name "*.java" | xargs grep -l "string to find"
+
+# Get AndroidManifest.xml
+cat jadx_output/resources/AndroidManifest.xml
+
+# Find all classes in a package
+find jadx_output/ -path "*/com/example/*" -name "*.java"
 ```
 
 ## Critical Discovery: JADX Deobfuscation vs Real Smali Names
@@ -46,10 +60,17 @@ The obfuscation tokens (`p037`, `p062`, `p063`) are simply **removed** in the re
 
 ### How to Find Real Smali Names
 
-Always use `jadx_get_smali_of_class` and check the `.class` declaration line:
+Use JADX CLI to decompile, then check the smali files:
 
-```
-jadx_get_smali_of_class("com.jio.jioplay.p037tv.utils.CommonUtils")
+```bash
+# Decompile with smali output
+jadx app.apk -d jadx_output --deobf
+
+# Find the smali file
+find jadx_output/ -name "CommonUtils.smali"
+
+# Check the .class declaration line
+grep ".class" jadx_output/sources/com/jio/jioplay/tv/utils/CommonUtils.smali
 ```
 
 Returns:
@@ -96,7 +117,7 @@ Returns:
 
 ### How to Verify Method Types
 
-Use `jadx_get_smali_of_class` and look for section markers:
+Use JADX CLI smali output and look for section markers:
 
 ```smali
 # direct methods

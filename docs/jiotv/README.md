@@ -8,7 +8,7 @@ Patches for **JioTV** (`com.jio.jioplay.tv`) v7.1.7 (404), an anti-split APK.
 
 | Document | Description |
 |----------|-------------|
-| [Reverse Engineering](reverse-engineering.md) | JADX methodology, smali analysis, deobfuscation caveats |
+| [Reverse Engineering](reverse-engineering.md) | JADX CLI methodology, smali analysis, deobfuscation caveats |
 | [pairip DRM](pairip-drm.md) | Native DRM library analysis, VM execution, bypass strategy |
 | [Play Store Redirects](play-store-redirects.md) | All Play Store redirect paths and their bypasses |
 | [Patch Reference](patch-reference.md) | Complete method type reference, class mappings, patch details |

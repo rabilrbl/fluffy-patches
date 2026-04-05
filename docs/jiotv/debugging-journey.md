@@ -6,7 +6,7 @@
 
 **Cause**: Used JADX deobfuscated names (`Lcom/jio/jioplay/tv/p037tv/utils/CommonUtils;`) instead of real smali names (`Lcom/jio/jioplay/tv/utils/CommonUtils;`). JADX strips obfuscation tokens (`p037`, `p062`, `p063`) from package names.
 
-**Fix**: Verified all class names via `jadx_get_smali_of_class` before writing patches.
+**Fix**: Verified all class names via JADX CLI smali output before writing patches.
 
 ## Iteration 2: Wrong Method Types (Direct vs Virtual)
 
@@ -311,7 +311,7 @@ adb logcat -v time | grep <PID>
 
 ## Key Lessons
 
-1. **Never trust JADX deobfuscated names** — Always verify via `jadx_get_smali_of_class`
+1. **Never trust JADX deobfuscated names** — Always verify via JADX CLI smali output
 2. **Lifecycle overrides are virtual** — `onCreate`, `onStart`, `attachBaseContext`, etc.
 3. **Static methods are direct** — `public static` → `.directMethods`
 4. **Public instance methods are virtual** — Even if they look like utility methods
