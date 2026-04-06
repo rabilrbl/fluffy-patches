@@ -15,7 +15,6 @@ Patches for **JioTV** (`com.jio.jioplay.tv`) v7.1.7 (404), an anti-split APK.
 | [Debugging Journey](debugging-journey.md) | Iterative debugging log with 21 iterations of failures and fixes |
 | [Session 2026-04-04 Continued](session-2026-04-04-continued.md) | Continued session: Firebase manifest removal, ClassReference crash, APK repackaging workflow |
 | [Session 2026-04-05](session-2026-04-05.md) | APKEditor approach, libpairipcorex.so testing, ARM64 device testing |
-| [Session 2026-04-06 Emulator Debug Pass](session-2026-04-06-emulator-debug-pass.md) | Fresh AVD/tooling validation, emulator crash evidence, current hard blocker |
 | [Emulator & Root Detection](emulator-root-detection.md) | Detection mechanisms and bypasses |
 | [SSL Pinning](ssl-pinning.md) | Certificate pinning analysis and bypass |
 | [External PairIP Research](external-pairip-research.md) | Consolidated findings from external sources |
