@@ -1,3 +1,10 @@
+# [1.0.0-dev.14](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.13...v1.0.0-dev.14) (2026-04-06)
+
+
+### Features
+
+* add resource patch to remove pairip native library and bypass license check ([a8384db](https://github.com/rabilrbl/fluffy-patches/commit/a8384db7a29e88fe982d3944d3146abbf1c79e1a))
+
 # [1.0.0-dev.13](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.12...v1.0.0-dev.13) (2026-04-06)
 
 

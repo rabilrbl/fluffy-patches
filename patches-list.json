@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0-dev.13",
+  "version": "1.0.0-dev.14",
   "patches": [
     {
-      "name": "Disable FirebaseInitProvider",
-      "description": "Removes FirebaseInitProvider from AndroidManifest.xml to prevent crash when VM config data is missing.",
+      "name": "Bypass pairip license check",
+      "description": "Neutralizes pairip license verification by preventing VMRunner execution and suppressing license check errors.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
@@ -12,8 +12,8 @@
       "options": []
     },
     {
-      "name": "Dismiss Google Play error dialog",
-      "description": "Prevents the 'Something went wrong - Check that Google Play is enabled' dialog from appearing when license check fails on devices without Play Store.",
+      "name": "Disable FirebaseInitProvider",
+      "description": "Removes FirebaseInitProvider from AndroidManifest.xml to prevent crash when VM config data is missing.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
@@ -44,6 +44,16 @@
     {
       "name": "Remove emulator detection",
       "description": "Removes emulator and unsupported device detection checks in PermissionActivity.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.jio.jioplay.tv": null
+      },
+      "options": []
+    },
+    {
+      "name": "Remove pairip native library",
+      "description": "Removes libpairipcore.so from all architectures to prevent native signature verification that crashes on patched APKs.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
