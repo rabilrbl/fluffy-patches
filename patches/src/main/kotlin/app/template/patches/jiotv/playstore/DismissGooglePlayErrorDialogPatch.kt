@@ -8,13 +8,13 @@ import app.template.patches.shared.Constants.COMPATIBILITY_JIOTV_MOBILE
 @Suppress("unused")
 val dismissGooglePlayErrorDialogPatch = bytecodePatch(
     name = "Dismiss Google Play error dialog",
-    description = "Makes the 'Something went wrong - Check that Google Play is enabled' dialog dismissible by preventing the app from closing when the Close button is tapped.",
+    description = "Prevents the 'Something went wrong - Check that Google Play is enabled' dialog from appearing when license check fails on devices without Play Store.",
 ) {
     compatibleWith(COMPATIBILITY_JIOTV_MOBILE)
 
     execute {
         classDefBy("Lcom/pairip/licensecheck3/LicenseClientV3;")
-            .methods.first { it.name == "onDialogExitClick" }
+            .methods.first { it.name == "handleError" }
             .toMutable()
             .addInstructions(0, "return-void")
     }
