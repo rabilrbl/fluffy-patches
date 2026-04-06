@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-dev.11",
+  "version": "1.0.0-dev.12",
   "patches": [
     {
       "name": "Disable FirebaseInitProvider",
@@ -12,8 +12,8 @@
       "options": []
     },
     {
-      "name": "Disable pairip license check (manifest)",
-      "description": "Removes the pairip LicenseContentProvider from AndroidManifest to prevent auto-initialization of license checking.",
+      "name": "Dismiss Google Play error dialog",
+      "description": "Makes the 'Something went wrong - Check that Google Play is enabled' dialog dismissible by preventing the app from closing when the Close button is tapped.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
@@ -24,16 +24,6 @@
     {
       "name": "Enable cleartext traffic",
       "description": "Sets usesCleartextTraffic to true in AndroidManifest and patches the network security config to allow cleartext HTTP traffic and user-installed CA certificates.",
-      "use": true,
-      "dependencies": [],
-      "compatiblePackages": {
-        "com.jio.jioplay.tv": null
-      },
-      "options": []
-    },
-    {
-      "name": "Remove Play Store license check",
-      "description": "Removes the Play Store installation and license verification check (pairip).",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
