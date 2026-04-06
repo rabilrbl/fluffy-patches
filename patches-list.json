@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-dev.12",
+  "version": "1.0.0-dev.13",
   "patches": [
     {
       "name": "Disable FirebaseInitProvider",
@@ -13,7 +13,7 @@
     },
     {
       "name": "Dismiss Google Play error dialog",
-      "description": "Makes the 'Something went wrong - Check that Google Play is enabled' dialog dismissible by preventing the app from closing when the Close button is tapped.",
+      "description": "Prevents the 'Something went wrong - Check that Google Play is enabled' dialog from appearing when license check fails on devices without Play Store.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {

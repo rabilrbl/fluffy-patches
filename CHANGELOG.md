@@ -1,3 +1,12 @@
+# [1.0.0-dev.13](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.12...v1.0.0-dev.13) (2026-04-06)
+
+
+### Features
+
+* add jiotv-base-patched-temporary-files to .gitignore ([fa335d8](https://github.com/rabilrbl/fluffy-patches/commit/fa335d8053f19263166372a2bc2c11ee6eafedd3))
+* add play store disabled log for debugging purposes ([436f19e](https://github.com/rabilrbl/fluffy-patches/commit/436f19ee23f287b75d028cdc645ab0d34553d5f8))
+* update dismiss Google Play error dialog patch to prevent dialog from appearing on license check failure ([fca2782](https://github.com/rabilrbl/fluffy-patches/commit/fca27827d54ba84e0c5c55c62cf068121d836cb0))
+
 # [1.0.0-dev.12](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.11...v1.0.0-dev.12) (2026-04-06)
 
 
