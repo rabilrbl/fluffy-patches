@@ -65,9 +65,9 @@ val removePlayStoreLicenseCheckPatch = bytecodePatch(
             .toMutable()
             .addInstructions(0, "return-void")
 
-        classDefBy("Lcom/pairip/StartupLauncher;")
-            .methods.first { it.name == "launch" }
-            .toMutable()
-            .addInstructions(0, "return-void")
+        // IMPORTANT: Do not neutralize StartupLauncher.launch().
+        // The pairip VM is invoked from MultiDexApplication.<clinit>(), and the app
+        // depends on that native initialization path for runtime setup. Disabling the
+        // launch call causes earlier splash/init crashes instead of a usable bypass.
     }
 }
