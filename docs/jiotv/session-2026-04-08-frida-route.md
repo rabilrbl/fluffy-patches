@@ -105,11 +105,30 @@ Useful findings:
   - `/memfd:frida-agent-64.so (deleted)`
   - so if pairip scans `/proc/self/maps`, it has a very easy signature to match
 
+### Low-Effort Stealth Frida Experiments
+A few quick signature-reduction tests were run before attempting a full custom Frida build.
+
+What was tested:
+- alternate attach modes such as `--realm emulated`
+- alternate script runtime such as `--runtime qjs`
+- patched copy of the x86_64 `frida-server` binary with the obvious string `frida-agent-64.so` replaced by a same-length placeholder
+- patched throwaway copy of the host Python Frida extension (`_frida.abi3.so`) with the same string replacement
+
+Result:
+- none of these low-effort changes removed the injected memfd name from `/proc/<pid>/maps`
+- the process still showed:
+  - `/memfd:frida-agent-64.so (deleted)`
+
+Meaning:
+- the recognizable agent name is not eliminated by shallow string patching of just the visible host/server binaries
+- a proper stealth Frida route likely needs a deeper patch of the actual injected agent blob or a custom Frida build
+
 Practical takeaway:
 - this library likely has its own low-level anti-debug / anti-instrumentation path
 - plain Java-layer Frida hooks are too late and too visible
+- shallow Frida string patching is not enough
 - the next serious bypass attempt should focus on either:
-  - stealthier Frida / reduced attach footprint, or
+  - a deeper custom / stealth Frida build, or
   - neutralizing the native anti-debug logic in `libpairipcore.so`
 
 ## Practical Meaning
