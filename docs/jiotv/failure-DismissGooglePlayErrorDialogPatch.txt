@@ -1,0 +1,375 @@
+04-06 23:28:54.345   574   599 I ActivityManager: Start proc 9693:com.jio.jioplay.tv/u0a189 for pre-top-activity {com.jio.jioplay.tv/com.jio.jioplay.tv.AppLogo}
+04-06 23:28:54.350  9693  9693 W .jio.jioplay.t: Unexpected CPU variant for X86 using defaults: x86_64
+04-06 23:28:54.352  9693  9693 E .jio.jioplay.t: Not starting debugger since process cannot load the jdwp agent.
+04-06 23:28:54.366   574  6596 W InputReader: Device virtio_input_multi_touch_7 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.366   574  6596 W InputReader: Device virtio_input_multi_touch_4 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.366   574  6596 W InputReader: Device virtio_input_multi_touch_9 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.366   574  6596 W InputReader: Device virtio_input_multi_touch_5 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.366   574  6596 W InputReader: Device virtio_input_multi_touch_2 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.366   574  6596 W InputReader: Device virtio_input_multi_touch_8 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.366   574  6596 W InputReader: Device virtio_input_multi_touch_3 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.366   574  6596 W InputReader: Device virtio_input_multi_touch_10 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.366   574  6596 W InputReader: Device virtio_input_multi_touch_6 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.366   574  6596 W InputReader: Device virtio_input_multi_touch_11 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.366   574  6596 W InputReader: Device virtio_input_multi_touch_7 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.366   574  6596 W InputReader: Device virtio_input_multi_touch_4 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.366   574  6596 W InputReader: Device virtio_input_multi_touch_9 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.366   574  6596 W InputReader: Device virtio_input_multi_touch_5 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.366   574  6596 W InputReader: Device virtio_input_multi_touch_2 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.366   574  6596 W InputReader: Device virtio_input_multi_touch_8 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.366   574  6596 W InputReader: Device virtio_input_multi_touch_3 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.366   574  6596 W InputReader: Device virtio_input_multi_touch_10 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.366   574  6596 W InputReader: Device virtio_input_multi_touch_6 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.366   574  6596 W InputReader: Device virtio_input_multi_touch_11 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.371  9693  9693 I .jio.jioplay.t: The ClassLoaderContext is a special shared library.
+--------- beginning of crash
+04-06 23:28:54.391  9693  9693 F libc    : Fatal signal 11 (SIGSEGV), code 128 (SI_KERNEL), fault addr 0x0 in tid 9693 (.jio.jioplay.tv), pid 9693 (.jio.jioplay.tv)
+04-06 23:28:54.407  9718  9718 I crash_dump64: obtaining output fd from tombstoned, type: kDebuggerdTombstone
+04-06 23:28:54.407   295   295 I tombstoned: received crash request for pid 9693
+04-06 23:28:54.407  9718  9718 I crash_dump64: performing dump of process 9693 (target tid = 9693)
+04-06 23:28:54.410   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.411   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e8e0
+04-06 23:28:54.412  1796  2126 I MicroDetectionState: Should stop hotword detection immediately - false
+04-06 23:28:54.412  1796  2126 I MicroDetector: Keeping mic open: false
+04-06 23:28:54.412  1796  2126 I MicroDetector: #shutdownAudioWithAudioLibrary
+04-06 23:28:54.412  1796  1970 I MicroRecognitionRunner: Stopping hotword detection.
+04-06 23:28:54.412  1796  8893 W c       : #copyFromBuffer interrupted: exception in wait.
+04-06 23:28:54.412  1796  8893 W c       : java.lang.InterruptedException
+04-06 23:28:54.412  1796  8893 W c       : 	at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.reportInterruptAfterWait(AbstractQueuedSynchronizer.java:2042)
+04-06 23:28:54.412  1796  8893 W c       : 	at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:2076)
+04-06 23:28:54.412  1796  8893 W c       : 	at com.google.android.libraries.search.c.g.a.c.a(SourceFile:6)
+04-06 23:28:54.412  1796  8893 W c       : 	at com.google.android.libraries.search.c.e.a.read(SourceFile:18)
+04-06 23:28:54.412  1796  8893 W c       : 	at com.google.android.libraries.assistant.hotword.s.a(SourceFile:16)
+04-06 23:28:54.412  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.n.a(SourceFile:84)
+04-06 23:28:54.412  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.k.run(Unknown Source:2)
+04-06 23:28:54.412  1796  8893 W c       : 	at com.google.android.libraries.gsa.l.a.l.call(Unknown Source:2)
+04-06 23:28:54.412  1796  8893 W c       : 	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+04-06 23:28:54.412  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.aq.run(SourceFile:1)
+04-06 23:28:54.412  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+04-06 23:28:54.412  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+04-06 23:28:54.412  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.f.run(Unknown Source:3)
+04-06 23:28:54.412  1796  8893 W c       : 	at java.lang.Thread.run(Thread.java:923)
+04-06 23:28:54.412  1796  8893 W c       : #copyFromBuffer interrupted: exception in wait.
+04-06 23:28:54.412  1796  8893 W c       : java.lang.InterruptedException
+04-06 23:28:54.412  1796  8893 W c       : 	at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:2062)
+04-06 23:28:54.412  1796  8893 W c       : 	at com.google.android.libraries.search.c.g.a.c.a(SourceFile:6)
+04-06 23:28:54.412  1796  8893 W c       : 	at com.google.android.libraries.search.c.e.a.read(SourceFile:18)
+04-06 23:28:54.412  1796  8893 W c       : 	at com.google.android.libraries.assistant.hotword.s.a(SourceFile:16)
+04-06 23:28:54.412  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.n.a(SourceFile:84)
+04-06 23:28:54.412  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.k.run(Unknown Source:2)
+04-06 23:28:54.412  1796  8893 W c       : 	at com.google.android.libraries.gsa.l.a.l.call(Unknown Source:2)
+04-06 23:28:54.412  1796  8893 W c       : 	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+04-06 23:28:54.412  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.aq.run(SourceFile:1)
+04-06 23:28:54.412  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+04-06 23:28:54.412  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+04-06 23:28:54.412  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.f.run(Unknown Source:3)
+04-06 23:28:54.412  1796  8893 W c       : 	at java.lang.Thread.run(Thread.java:923)
+04-06 23:28:54.413  9718  9718 F DEBUG   : *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+04-06 23:28:54.413  9718  9718 F DEBUG   : Build fingerprint: 'google/sdk_gphone_x86_64/generic_x86_64_arm64:11/RSR1.201211.001/7027799:user/release-keys'
+04-06 23:28:54.413  9718  9718 F DEBUG   : Revision: '0'
+04-06 23:28:54.413  9718  9718 F DEBUG   : ABI: 'x86_64'
+04-06 23:28:54.413  9718  9718 F DEBUG   : Timestamp: 2026-04-06 23:28:54+0530
+04-06 23:28:54.413  9718  9718 F DEBUG   : pid: 9693, tid: 9693, name: .jio.jioplay.tv  >>> com.jio.jioplay.tv <<<
+04-06 23:28:54.413  9718  9718 F DEBUG   : uid: 10189
+04-06 23:28:54.413  9718  9718 F DEBUG   : signal 11 (SIGSEGV), code 128 (SI_KERNEL), fault addr 0x0
+04-06 23:28:54.413  9718  9718 F DEBUG   :     rax 5a67a220ff6c8563  rbx 00007fffe50e0630  rcx 0000000031f55b85  rdx 0000000000023df2
+04-06 23:28:54.413  9718  9718 F DEBUG   :     r8  0000000000035f8e  r9  00000000fffe5039  r10 000000000001afc0  r11 00000100000001b3
+04-06 23:28:54.413  9718  9718 F DEBUG   :     r12 000000000002515b  r13 0000000000004070  r14 00000000ffffd0e8  r15 0000000000002f1a
+04-06 23:28:54.413  9718  9718 F DEBUG   :     rdi 0000795210b1f040  rsi 000000000000e6b7
+04-06 23:28:54.413  9718  9718 F DEBUG   :     rbp 000000000ecd8649  rsp 00007fffe50dfcd0  rip 000079520d6f68cf
+04-06 23:28:54.413  9718  9718 F DEBUG   : backtrace:
+04-06 23:28:54.413  9718  9718 F DEBUG   :       #00 pc 00000000000328cf  /data/app/~~BYA6zme3iWUNNVrgpeOdBw==/com.jio.jioplay.tv-juW8EJNbBa6q8yzWkc02ng==/base.apk!libpairipcore.so (offset 0x2040000)
+04-06 23:28:54.414  1796  8893 I chatty  : uid=10107(com.google.android.googlequicksearchbox) Blocking Thread identical 16 lines
+04-06 23:28:54.414  1796  8893 W c       : #copyFromBuffer interrupted: exception in wait.
+04-06 23:28:54.414  1796  8893 W c       : java.lang.InterruptedException
+04-06 23:28:54.414  1796  8893 W c       : 	at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:2062)
+04-06 23:28:54.414  1796  8893 W c       : 	at com.google.android.libraries.search.c.g.a.c.a(SourceFile:6)
+04-06 23:28:54.414  1796  8893 W c       : 	at com.google.android.libraries.search.c.e.a.read(SourceFile:18)
+04-06 23:28:54.414  1796  8893 W c       : 	at com.google.android.libraries.assistant.hotword.s.a(SourceFile:16)
+04-06 23:28:54.414  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.n.a(SourceFile:84)
+04-06 23:28:54.414  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.k.run(Unknown Source:2)
+04-06 23:28:54.414  1796  8893 W c       : 	at com.google.android.libraries.gsa.l.a.l.call(Unknown Source:2)
+04-06 23:28:54.414  1796  8893 W c       : 	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+04-06 23:28:54.414  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.aq.run(SourceFile:1)
+04-06 23:28:54.414  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+04-06 23:28:54.414  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+04-06 23:28:54.414  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.f.run(Unknown Source:3)
+04-06 23:28:54.414  1796  8893 W c       : 	at java.lang.Thread.run(Thread.java:923)
+04-06 23:28:54.414  1796  9557 E DeviceStateChecker: DeviceStateChecker cancelled
+04-06 23:28:54.415  1796  8893 W c       : #copyFromBuffer interrupted: exception in wait.
+04-06 23:28:54.415  1796  8893 W c       : java.lang.InterruptedException
+04-06 23:28:54.415  1796  8893 W c       : 	at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:2062)
+04-06 23:28:54.415  1796  8893 W c       : 	at com.google.android.libraries.search.c.g.a.c.a(SourceFile:6)
+04-06 23:28:54.415  1796  8893 W c       : 	at com.google.android.libraries.search.c.e.a.read(SourceFile:18)
+04-06 23:28:54.415  1796  8893 W c       : 	at com.google.android.libraries.assistant.hotword.s.a(SourceFile:16)
+04-06 23:28:54.415  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.n.a(SourceFile:84)
+04-06 23:28:54.415  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.k.run(Unknown Source:2)
+04-06 23:28:54.415  1796  8893 W c       : 	at com.google.android.libraries.gsa.l.a.l.call(Unknown Source:2)
+04-06 23:28:54.415  1796  8893 W c       : 	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+04-06 23:28:54.415  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.aq.run(SourceFile:1)
+04-06 23:28:54.415  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+04-06 23:28:54.415  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+04-06 23:28:54.415  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.f.run(Unknown Source:3)
+04-06 23:28:54.415  1796  8893 W c       : 	at java.lang.Thread.run(Thread.java:923)
+04-06 23:28:54.426  1796  8893 I chatty  : uid=10107(com.google.android.googlequicksearchbox) Blocking Thread identical 169 lines
+04-06 23:28:54.426  1796  8893 W c       : #copyFromBuffer interrupted: exception in wait.
+04-06 23:28:54.426  1796  8893 W c       : java.lang.InterruptedException
+04-06 23:28:54.426  1796  8893 W c       : 	at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:2062)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.android.libraries.search.c.g.a.c.a(SourceFile:6)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.android.libraries.search.c.e.a.read(SourceFile:18)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.android.libraries.assistant.hotword.s.a(SourceFile:16)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.n.a(SourceFile:84)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.k.run(Unknown Source:2)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.android.libraries.gsa.l.a.l.call(Unknown Source:2)
+04-06 23:28:54.426  1796  8893 W c       : 	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.aq.run(SourceFile:1)
+04-06 23:28:54.426  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+04-06 23:28:54.426  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.f.run(Unknown Source:3)
+04-06 23:28:54.426  1796  8893 W c       : 	at java.lang.Thread.run(Thread.java:923)
+04-06 23:28:54.426   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.426  1796  8893 W c       : #copyFromBuffer interrupted: exception in wait.
+04-06 23:28:54.426  1796  8893 W c       : java.lang.InterruptedException
+04-06 23:28:54.426  1796  8893 W c       : 	at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:2062)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.android.libraries.search.c.g.a.c.a(SourceFile:6)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.android.libraries.search.c.e.a.read(SourceFile:18)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.android.libraries.assistant.hotword.s.a(SourceFile:16)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.n.a(SourceFile:84)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.k.run(Unknown Source:2)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.android.libraries.gsa.l.a.l.call(Unknown Source:2)
+04-06 23:28:54.426  1796  8893 W c       : 	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.aq.run(SourceFile:1)
+04-06 23:28:54.426  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+04-06 23:28:54.426  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.f.run(Unknown Source:3)
+04-06 23:28:54.426  1796  8893 W c       : 	at java.lang.Thread.run(Thread.java:923)
+04-06 23:28:54.426  1796  8893 W c       : #copyFromBuffer interrupted: exception in wait.
+04-06 23:28:54.426  1796  8893 W c       : java.lang.InterruptedException
+04-06 23:28:54.426  1796  8893 W c       : 	at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:2062)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.android.libraries.search.c.g.a.c.a(SourceFile:6)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.android.libraries.search.c.e.a.read(SourceFile:18)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.android.libraries.assistant.hotword.s.a(SourceFile:16)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.n.a(SourceFile:84)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.k.run(Unknown Source:2)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.android.libraries.gsa.l.a.l.call(Unknown Source:2)
+04-06 23:28:54.426  1796  8893 W c       : 	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.aq.run(SourceFile:1)
+04-06 23:28:54.426  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+04-06 23:28:54.426  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+04-06 23:28:54.426  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.f.run(Unknown Source:3)
+04-06 23:28:54.426  1796  8893 W c       : 	at java.lang.Thread.run(Thread.java:923)
+04-06 23:28:54.427   574  4777 I system_server: oneway function results will be dropped but finished with status OK and parcel size 4
+04-06 23:28:54.427  1796  8893 W c       : #copyFromBuffer interrupted: exception in wait.
+04-06 23:28:54.427  1796  8893 W c       : java.lang.InterruptedException
+04-06 23:28:54.427  1796  8893 W c       : 	at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:2062)
+04-06 23:28:54.427  1796  8893 W c       : 	at com.google.android.libraries.search.c.g.a.c.a(SourceFile:6)
+04-06 23:28:54.427  1796  8893 W c       : 	at com.google.android.libraries.search.c.e.a.read(SourceFile:18)
+04-06 23:28:54.427  1796  8893 W c       : 	at com.google.android.libraries.assistant.hotword.s.a(SourceFile:16)
+04-06 23:28:54.427  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.n.a(SourceFile:84)
+04-06 23:28:54.427  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.k.run(Unknown Source:2)
+04-06 23:28:54.427  1796  8893 W c       : 	at com.google.android.libraries.gsa.l.a.l.call(Unknown Source:2)
+04-06 23:28:54.427  1796  8893 W c       : 	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+04-06 23:28:54.427  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.aq.run(SourceFile:1)
+04-06 23:28:54.427  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+04-06 23:28:54.427  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+04-06 23:28:54.427  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.f.run(Unknown Source:3)
+04-06 23:28:54.427  1796  8893 W c       : 	at java.lang.Thread.run(Thread.java:923)
+04-06 23:28:54.427  1796  8893 I chatty  : uid=10107(com.google.android.googlequicksearchbox) Blocking Thread identical 6 lines
+04-06 23:28:54.427  1796  8893 W c       : #copyFromBuffer interrupted: exception in wait.
+04-06 23:28:54.427  1796  8893 W c       : java.lang.InterruptedException
+04-06 23:28:54.427  1796  8893 W c       : 	at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:2062)
+04-06 23:28:54.427  1796  8893 W c       : 	at com.google.android.libraries.search.c.g.a.c.a(SourceFile:6)
+04-06 23:28:54.427  1796  8893 W c       : 	at com.google.android.libraries.search.c.e.a.read(SourceFile:18)
+04-06 23:28:54.427  1796  8893 W c       : 	at com.google.android.libraries.assistant.hotword.s.a(SourceFile:16)
+04-06 23:28:54.427  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.n.a(SourceFile:84)
+04-06 23:28:54.427  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.k.run(Unknown Source:2)
+04-06 23:28:54.427  1796  8893 W c       : 	at com.google.android.libraries.gsa.l.a.l.call(Unknown Source:2)
+04-06 23:28:54.427  1796  8893 W c       : 	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+04-06 23:28:54.427  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.aq.run(SourceFile:1)
+04-06 23:28:54.427  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+04-06 23:28:54.427  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+04-06 23:28:54.427  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.f.run(Unknown Source:3)
+04-06 23:28:54.427  1796  8893 W c       : 	at java.lang.Thread.run(Thread.java:923)
+04-06 23:28:54.428   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e7c0
+04-06 23:28:54.428  1796  8893 W c       : #copyFromBuffer interrupted: exception in wait.
+04-06 23:28:54.428  1796  8893 W c       : java.lang.InterruptedException
+04-06 23:28:54.428  1796  8893 W c       : 	at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:2062)
+04-06 23:28:54.428  1796  8893 W c       : 	at com.google.android.libraries.search.c.g.a.c.a(SourceFile:6)
+04-06 23:28:54.428  1796  8893 W c       : 	at com.google.android.libraries.search.c.e.a.read(SourceFile:18)
+04-06 23:28:54.428  1796  8893 W c       : 	at com.google.android.libraries.assistant.hotword.s.a(SourceFile:16)
+04-06 23:28:54.428  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.n.a(SourceFile:84)
+04-06 23:28:54.428  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.k.run(Unknown Source:2)
+04-06 23:28:54.428  1796  8893 W c       : 	at com.google.android.libraries.gsa.l.a.l.call(Unknown Source:2)
+04-06 23:28:54.428  1796  8893 W c       : 	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+04-06 23:28:54.428  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.aq.run(SourceFile:1)
+04-06 23:28:54.428  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+04-06 23:28:54.428  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+04-06 23:28:54.428  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.f.run(Unknown Source:3)
+04-06 23:28:54.428  1796  8893 W c       : 	at java.lang.Thread.run(Thread.java:923)
+04-06 23:28:54.431  1796  8893 I chatty  : uid=10107(com.google.android.googlequicksearchbox) Blocking Thread identical 46 lines
+04-06 23:28:54.431  1796  8893 W c       : #copyFromBuffer interrupted: exception in wait.
+04-06 23:28:54.431  1796  8893 W c       : java.lang.InterruptedException
+04-06 23:28:54.431  1796  8893 W c       : 	at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:2062)
+04-06 23:28:54.431  1796  8893 W c       : 	at com.google.android.libraries.search.c.g.a.c.a(SourceFile:6)
+04-06 23:28:54.431  1796  8893 W c       : 	at com.google.android.libraries.search.c.e.a.read(SourceFile:18)
+04-06 23:28:54.431  1796  8893 W c       : 	at com.google.android.libraries.assistant.hotword.s.a(SourceFile:16)
+04-06 23:28:54.431  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.n.a(SourceFile:84)
+04-06 23:28:54.431  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.k.run(Unknown Source:2)
+04-06 23:28:54.431  1796  8893 W c       : 	at com.google.android.libraries.gsa.l.a.l.call(Unknown Source:2)
+04-06 23:28:54.431  1796  8893 W c       : 	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+04-06 23:28:54.431  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.aq.run(SourceFile:1)
+04-06 23:28:54.431  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+04-06 23:28:54.431  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+04-06 23:28:54.431  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.f.run(Unknown Source:3)
+04-06 23:28:54.431  1796  8893 W c       : 	at java.lang.Thread.run(Thread.java:923)
+04-06 23:28:54.431   574  4777 I SoundTriggerMiddlewareLogging: setCaptureState[this=com.android.server.soundtrigger_middleware.SoundTriggerMiddlewareImpl@650d1ee, caller=1041/342](false)
+04-06 23:28:54.431  1796  8893 W c       : #copyFromBuffer interrupted: exception in wait.
+04-06 23:28:54.431  1796  8893 W c       : java.lang.InterruptedException
+04-06 23:28:54.431  1796  8893 W c       : 	at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:2062)
+04-06 23:28:54.431  1796  8893 W c       : 	at com.google.android.libraries.search.c.g.a.c.a(SourceFile:6)
+04-06 23:28:54.431  1796  8893 W c       : 	at com.google.android.libraries.search.c.e.a.read(SourceFile:18)
+04-06 23:28:54.431  1796  8893 W c       : 	at com.google.android.libraries.assistant.hotword.s.a(SourceFile:16)
+04-06 23:28:54.431  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.n.a(SourceFile:84)
+04-06 23:28:54.431  1796  8893 W c       : 	at com.google.android.apps.gsa.staticplugins.microdetection.c.k.run(Unknown Source:2)
+04-06 23:28:54.431  1796  8893 W c       : 	at com.google.android.libraries.gsa.l.a.l.call(Unknown Source:2)
+04-06 23:28:54.431  1796  8893 W c       : 	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+04-06 23:28:54.431  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.aq.run(SourceFile:1)
+04-06 23:28:54.431  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+04-06 23:28:54.431  1796  8893 W c       : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+04-06 23:28:54.431  1796  8893 W c       : 	at com.google.apps.tiktok.concurrent.f.run(Unknown Source:3)
+04-06 23:28:54.431  1796  8893 W c       : 	at java.lang.Thread.run(Thread.java:923)
+04-06 23:28:54.431  1796  8890 E AudioRecord-JNI: Unable to retrieve AudioRecord object
+04-06 23:28:54.432  1796  8893 W b       : #read failed: read EOF from AudioAccessor.
+04-06 23:28:54.433   574  6596 I system_server: oneway function results will be dropped but finished with status OK and parcel size 4
+04-06 23:28:54.434  1796  8893 I MicroRecognitionRunner: Detection finished
+04-06 23:28:54.443   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.444   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e8e0
+04-06 23:28:54.460   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.462   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e7c0
+04-06 23:28:54.476   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.477   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e8e0
+04-06 23:28:54.493   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.494   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e7c0
+04-06 23:28:54.505   295   295 E tombstoned: Tombstone written to: /data/tombstones/tombstone_27
+04-06 23:28:54.506   574  9723 W ActivityTaskManager:   Force finishing activity com.jio.jioplay.tv/.AppLogo
+04-06 23:28:54.507   574   606 I BootReceiver: Copying /data/tombstones/tombstone_27 to DropBox (SYSTEM_TOMBSTONE)
+04-06 23:28:54.507   319   319 D goldfish-address-space: claimShared: Ask to claim region [0x3f4f68000 0x3f556b000]
+04-06 23:28:54.507   574   606 I DropBoxManagerService: add tag=SYSTEM_TOMBSTONE isTagEnabled=true flags=0x2
+04-06 23:28:54.509   574  9724 I DropBoxManagerService: add tag=data_app_native_crash isTagEnabled=true flags=0x2
+04-06 23:28:54.509   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.511   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e8e0
+04-06 23:28:54.515   302   302 I Zygote  : Process 9693 exited due to signal 11 (Segmentation fault)
+04-06 23:28:54.522   574  9723 W ActivityTaskManager: Exception thrown during pause
+04-06 23:28:54.522   574  9723 W ActivityTaskManager: android.os.DeadObjectException
+04-06 23:28:54.522   574  9723 W ActivityTaskManager: 	at android.os.BinderProxy.transactNative(Native Method)
+04-06 23:28:54.522   574  9723 W ActivityTaskManager: 	at android.os.BinderProxy.transact(BinderProxy.java:540)
+04-06 23:28:54.522   574  9723 W ActivityTaskManager: 	at android.app.IApplicationThread$Stub$Proxy.scheduleTransaction(IApplicationThread.java:2504)
+04-06 23:28:54.522   574  9723 W ActivityTaskManager: 	at android.app.servertransaction.ClientTransaction.schedule(ClientTransaction.java:136)
+04-06 23:28:54.522   574  9723 W ActivityTaskManager: 	at com.android.server.wm.ClientLifecycleManager.scheduleTransaction(ClientLifecycleManager.java:47)
+04-06 23:28:54.522   574  9723 W ActivityTaskManager: 	at com.android.server.wm.ClientLifecycleManager.scheduleTransaction(ClientLifecycleManager.java:69)
+04-06 23:28:54.522   574  9723 W ActivityTaskManager: 	at com.android.server.wm.ActivityStack.startPausingLocked(ActivityStack.java:1109)
+04-06 23:28:54.522   574  9723 W ActivityTaskManager: 	at com.android.server.wm.ActivityRecord.finishIfPossible(ActivityRecord.java:2616)
+04-06 23:28:54.522   574  9723 W ActivityTaskManager: 	at com.android.server.wm.ActivityRecord.finishIfPossible(ActivityRecord.java:2512)
+04-06 23:28:54.522   574  9723 W ActivityTaskManager: 	at com.android.server.wm.ActivityStack.finishTopCrashedActivityLocked(ActivityStack.java:2217)
+04-06 23:28:54.522   574  9723 W ActivityTaskManager: 	at com.android.server.wm.RootWindowContainer.finishTopCrashedActivities(RootWindowContainer.java:2275)
+04-06 23:28:54.522   574  9723 W ActivityTaskManager: 	at com.android.server.wm.ActivityTaskManagerService$LocalService.finishTopCrashedActivities(ActivityTaskManagerService.java:7271)
+04-06 23:28:54.522   574  9723 W ActivityTaskManager: 	at com.android.server.am.AppErrors.handleAppCrashLocked(AppErrors.java:759)
+04-06 23:28:54.522   574  9723 W ActivityTaskManager: 	at com.android.server.am.AppErrors.makeAppCrashingLocked(AppErrors.java:606)
+04-06 23:28:54.522   574  9723 W ActivityTaskManager: 	at com.android.server.am.AppErrors.crashApplicationInner(AppErrors.java:489)
+04-06 23:28:54.522   574  9723 W ActivityTaskManager: 	at com.android.server.am.AppErrors.crashApplication(AppErrors.java:419)
+04-06 23:28:54.522   574  9723 W ActivityTaskManager: 	at com.android.server.am.ActivityManagerService.handleApplicationCrashInner(ActivityManagerService.java:9894)
+04-06 23:28:54.522   574  9723 W ActivityTaskManager: 	at com.android.server.am.NativeCrashListener$NativeCrashReporter.run(NativeCrashListener.java:84)
+04-06 23:28:54.523   574  9723 W InputReader: Device virtio_input_multi_touch_7 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.523   574  9723 W InputReader: Device virtio_input_multi_touch_4 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.523   574  9723 W InputReader: Device virtio_input_multi_touch_9 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.523   574  9723 W InputReader: Device virtio_input_multi_touch_5 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.523   574  9723 W InputReader: Device virtio_input_multi_touch_2 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.523   574  9723 W InputReader: Device virtio_input_multi_touch_8 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.523   574  9723 W InputReader: Device virtio_input_multi_touch_3 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.523   574  9723 W InputReader: Device virtio_input_multi_touch_10 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.523   574  9723 W InputReader: Device virtio_input_multi_touch_6 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.523   574  9723 W InputReader: Device virtio_input_multi_touch_11 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.523   574  9723 W InputReader: Device virtio_input_multi_touch_7 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.523   574  9723 W InputReader: Device virtio_input_multi_touch_4 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.523   574  9723 W InputReader: Device virtio_input_multi_touch_9 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.523   574  9723 W InputReader: Device virtio_input_multi_touch_5 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.523   574  9723 W InputReader: Device virtio_input_multi_touch_2 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.523   574  9723 W InputReader: Device virtio_input_multi_touch_8 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.523   574  9723 W InputReader: Device virtio_input_multi_touch_3 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.523   574  9723 W InputReader: Device virtio_input_multi_touch_10 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.523   574  9723 W InputReader: Device virtio_input_multi_touch_6 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.523   574  9723 W InputReader: Device virtio_input_multi_touch_11 is associated with display ADISPLAY_ID_NONE.
+04-06 23:28:54.526   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.527  1158  1884 W GooglePlayServicesUtil: Google Play Store is missing.
+04-06 23:28:54.528   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e7c0
+04-06 23:28:54.530   574  6596 I ActivityManager: Process com.jio.jioplay.tv (pid 9693) has died: fg  TOP 
+04-06 23:28:54.531   574   600 I libprocessgroup: Successfully killed process cgroup uid 10189 pid 9693 in 0ms
+04-06 23:28:54.532   574   598 W BroadcastQueue: Background execution not allowed: receiving Intent { act=android.intent.action.DROPBOX_ENTRY_ADDED flg=0x10 (has extras) } to com.google.android.gms/.stats.service.DropBoxEntryAddedReceiver
+04-06 23:28:54.532   574  4777 W ActivityManager: Unable to start service Intent { act=android.service.appprediction.AppPredictionService cmp=com.google.android.as/com.google.android.apps.miphone.aiai.app.AiAiPredictionService } U=0: not found
+04-06 23:28:54.532   574  4777 W RemoteAppPredictionService: could not bind to Intent { act=android.service.appprediction.AppPredictionService cmp=com.google.android.as/com.google.android.apps.miphone.aiai.app.AiAiPredictionService } using flags 67108865
+04-06 23:28:54.532   574   598 W BroadcastQueue: Background execution not allowed: receiving Intent { act=android.intent.action.DROPBOX_ENTRY_ADDED flg=0x10 (has extras) } to com.google.android.gms/.stats.service.DropBoxEntryAddedReceiver
+04-06 23:28:54.533   574   592 D EventSequenceValidator: dec AccIntentStartedEvents to 1
+04-06 23:28:54.534  1796  2126 I MicroDetectionState: Should stop hotword detection immediately - false
+04-06 23:28:54.535  1796  2126 I MicroDetectionWorker: #startMicroDetector [speakerMode: 0]
+04-06 23:28:54.536  1796  1970 I MicroDataManager: isInitializing-false locale not changed-true model not changed-true
+04-06 23:28:54.536  1796  1970 I MicroDataManager: Already initialized, obtaining the hotword data immediately.
+04-06 23:28:54.537  1796  8890 I MicroRecognitionRunner: Starting detection.
+04-06 23:28:54.537  1796  8890 I InputStreamUtils: Using micInputStream
+04-06 23:28:54.543   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.545   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e8e0
+04-06 23:28:54.560   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.563   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e7c0
+04-06 23:28:54.576   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.578   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e8e0
+04-06 23:28:54.593   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.594   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e7c0
+04-06 23:28:54.609   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.611   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e8e0
+04-06 23:28:54.626   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.628   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e7c0
+04-06 23:28:54.632   574  6596 I SoundTriggerMiddlewareLogging: setCaptureState[this=com.android.server.soundtrigger_middleware.SoundTriggerMiddlewareImpl@650d1ee, caller=1041/342](false)
+04-06 23:28:54.632  1796  2126 I HotwordLSAdapter: stopListeningStatus result: 1
+04-06 23:28:54.633   574   887 I system_server: oneway function results will be dropped but finished with status OK and parcel size 4
+04-06 23:28:54.633  1796  1970 I AListeningSessionUtils: Sending AudioStatusChangedBroadcast to :interactor. audioSourceType: 5, isActive: false
+04-06 23:28:54.633   574   887 I system_server: oneway function results will be dropped but finished with status OK and parcel size 4
+04-06 23:28:54.633   574   887 I system_server: oneway function results will be dropped but finished with status OK and parcel size 4
+04-06 23:28:54.634   342  9729 I AudioFlinger: AudioFlinger's thread 0x71434d373040 tid=9729 ready to run
+04-06 23:28:54.635   574   938 I system_server: oneway function results will be dropped but finished with status OK and parcel size 4
+04-06 23:28:54.636   574   938 I chatty  : uid=1000(system) Binder:574_9 identical 3 lines
+04-06 23:28:54.636   574   938 I system_server: oneway function results will be dropped but finished with status OK and parcel size 4
+04-06 23:28:54.637   574   938 I AudioService.RecordingActivityMonitor: rec update riid:111 uid:10107 session:169 src:HOTWORD pack:com.google.android.googlequicksearchbox
+04-06 23:28:54.637   574  1850 I SoundTriggerMiddlewareLogging: setCaptureState[this=com.android.server.soundtrigger_middleware.SoundTriggerMiddlewareImpl@650d1ee, caller=1041/342](true)
+04-06 23:28:54.637   308   351 E FMQ     : grantorIdx must be less than 3
+04-06 23:28:54.637   308   475 E android.hardware.audio.service.ranchu: device/generic/goldfish/audio/stream_in.cpp:setMicrophoneDirection:439 failure: Result::NOT_SUPPORTED
+04-06 23:28:54.637   308   351 E FMQ     : grantorIdx must be less than 3
+04-06 23:28:54.637   308   475 E android.hardware.audio.service.ranchu: device/generic/goldfish/audio/stream_in.cpp:setMicrophoneFieldDimension:444 failure: Result::NOT_SUPPORTED
+04-06 23:28:54.637   342  9729 E FMQ     : grantorIdx must be less than 3
+04-06 23:28:54.637   342  9729 E FMQ     : grantorIdx must be less than 3
+04-06 23:28:54.638  1796  2126 I MicroDetectionWorker: onReady
+04-06 23:28:54.638  1796  2126 I HotwordLSAdapter: getAudioSourceOpeningStatus completed: 1
+04-06 23:28:54.638  1796  2126 I HotwordLSAdapter: Sending AudioStatusChangedBroadcast to :interactor. audioSourceType: 5, isActive: true
+04-06 23:28:54.643   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.644   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e8e0
+04-06 23:28:54.656   308  9730 W android.hardware.audio.service.ranchu: TinyalsaSource::read:126 pcm_read was late delivering frames, inserting 15238 us of silence
+04-06 23:28:54.659   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.661   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e7c0
+04-06 23:28:54.676   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.677   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e8e0
+04-06 23:28:54.693   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.694   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e7c0
+04-06 23:28:54.709   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.711   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e8e0
+04-06 23:28:54.726   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.728   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e7c0
+04-06 23:28:54.743   320   320 W EmuHWC2 : validate: layer 215 CompositionType 1, fallback
+04-06 23:28:54.744   320   320 W EmuHWC2 : No layers, exit, buffer 0x72e25999e8e0
+04-06 23:28:54.848   574  5304 D HostConnection: HostConnection::get() New Host Connection established 0x7952aab5cf50, tid 5304
+04-06 23:28:54.852   574  5304 D HostConnection: HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_native_sync_v3 ANDROID_EMU_native_sync_v4 ANDROID_EMU_dma_v1 ANDROID_EMU_direct_mem ANDROID_EMU_host_composition_v1 ANDROID_EMU_host_composition_v2 ANDROID_EMU_vulkan ANDROID_EMU_deferred_vulkan_commands ANDROID_EMU_vulkan_null_optional_strings ANDROID_EMU_vulkan_create_resources_with_requirements ANDROID_EMU_YUV_Cache ANDROID_EMU_vulkan_ignored_handles ANDROID_EMU_has_shared_slots_host_memory_allocator ANDROID_EMU_vulkan_free_memory_sync ANDROID_EMU_vulkan_shader_float16_int8 ANDROID_EMU_vulkan_async_queue_submit ANDROID_EMU_sync_buffer_data ANDROID_EMU_vulkan_async_qsri ANDROID_EMU_read_color_buffer_dma ANDROID_EMU_hwc_color_transform GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_0 
+04-06 23:28:54.852   574  5304 W OpenGLRenderer: Failed to choose config with EGL_SWAP_BEHAVIOR_PRESERVED, retrying without...
+04-06 23:28:54.853   574  5304 D EGL_emulation: eglCreateContext: 0x79529ac28b30: maj 3 min 0 rcv 3
+04-06 23:28:54.854   574  5304 D EGL_emulation: eglMakeCurrent: 0x79529ac28b30: ver 3 0 (tinfo 0x79523abaa6f0) (first time)
+04-06 23:28:54.920   574   585 W System  : A resource failed to call release. 
+04-06 23:28:55.007   574   592 W ActivityTaskManager: Activity top resumed state loss timeout for ActivityRecord{a868b7e u0 com.jio.jioplay.tv/.AppLogo t-1 f}}
+04-06 23:28:54.920   574   585 I chatty  : uid=1000(system) FinalizerDaemon identical 3 lines
+04-06 23:28:54.920   574   585 W System  : A resource failed to call release. 
+04-06 23:28:55.067   308  9730 W android.hardware.audio.service.ranchu: TinyalsaSource::read:126 pcm_read was late delivering frames, inserting 15238 us of silence

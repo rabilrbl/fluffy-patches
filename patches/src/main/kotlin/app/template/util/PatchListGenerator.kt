@@ -45,13 +45,17 @@ typealias PackageName = String
 typealias VersionName = String
 
 internal fun main() {
+    val buildLibs = File("build/libs/")
     val patchFiles = setOf(
-        File("build/libs/").listFiles { file ->
+        buildLibs.listFiles { file ->
             val fileName = file.name
             !fileName.contains("javadoc") &&
                     !fileName.contains("sources") &&
                     fileName.endsWith(".mpp")
-        }!!.first()
+        }?.firstOrNull() ?: run {
+            System.err.println("No .mpp file found in ${buildLibs.absolutePath}")
+            return
+        }
     )
     val loadedPatches = loadPatchesFromJar(patchFiles)
     val patchClassLoader = URLClassLoader(patchFiles.map { it.toURI().toURL() }.toTypedArray())

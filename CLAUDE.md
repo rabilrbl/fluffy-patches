@@ -8,6 +8,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Build Commands
 
+### Required Environment Variables
+
+| Variable | Purpose |
+|----------|---------|
+| `ANDROID_HOME` | Path to Android SDK (required for `buildAndroid` task) |
+| `GITHUB_ACTOR` | GitHub username for accessing Morphe's private Maven registry |
+| `GITHUB_TOKEN` | GitHub personal access token with `read:packages` scope |
+
+### Commands
+
 ```bash
 # Build the patch package (.mpp file)
 ./gradlew :patches:buildAndroid
@@ -23,6 +33,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```
 
 Build output: `patches/build/libs/patches-{version}.mpp`
+
+### Verifying the Build
+
+```bash
+ANDROID_HOME="$HOME/Android/Sdk" GITHUB_ACTOR="$(gh api user --jq '.login')" GITHUB_TOKEN="$(gh auth token)" ./gradlew :patches:buildAndroid
+```
+
+## Testing
+
+- All patch updates must be tested on an APK using the Morphe CLI before committing.
+- Use `adb` commands to install and verify the patched APK on a device/emulator when available.
+- Any scripts added to `scripts/` must also be tested against a real APK and verified via ADB.
 
 ## Architecture
 
@@ -64,7 +86,66 @@ Patches can declare `dependsOn(otherPatch)` to compose behaviors.
 
 1. Add a `Compatibility(...)` constant in `shared/Constants.kt` with the app's package name, APK type, and icon color.
 2. Create `patches/<appname>/` with patch files grouped by category.
-3. Reference the new constant in each patch's `compatibleWith(...)` call.
+3. Create `docs/<appname>/` and document initial APK analysis.
+4. Reference the new constant in each patch's `compatibleWith(...)` call.
+5. Run `./gradlew :patches:generatePatchesList` to regenerate metadata.
+
+## APK Analysis with JADX CLI
+
+Use JADX CLI to decompile and analyze target APKs before writing patches:
+
+```bash
+# Full decompilation with deobfuscation
+jadx app.apk -d jadx_output --deobf
+
+# Search for a class in decompiled output
+find jadx_output/ -name "*.java" | xargs grep -l "ClassName"
+
+# Search for a method call
+find jadx_output/ -name "*.java" | xargs grep -n "methodName("
+
+# Search for a string literal
+find jadx_output/ -name "*.java" | xargs grep -l "string to find"
+
+# Get AndroidManifest.xml
+cat jadx_output/resources/AndroidManifest.xml
+
+# Find all classes in a package
+find jadx_output/ -path "*/com/example/*" -name "*.java"
+```
+
+Always verify class/method existence in the target APK before writing patches.
+
+## Available Skills
+
+This project includes agent skills loaded on-demand via the `skill` tool. Use these when the task matches their description:
+
+| Skill | Description | When to Use |
+|-------|-------------|-------------|
+| `morphe-patching` | Create, edit, and debug Morphe patches | Writing new patches, fixing broken patches, smali injection |
+| `android-apk-analysis` | Analyze Android APK structure, decompile with JADX | Reverse-engineering APKs, finding patch targets |
+| `revanced-to-morphe` | Convert ReVanced patches to Morphe patches | Migrating from ReVanced, adapting patching techniques |
+| `openspec-explore` | Think through ideas and clarify requirements | Exploring ideas before or during a change |
+| `openspec-propose` | Propose a new change with design, specs, and tasks | Quickly describing what to build |
+| `openspec-apply-change` | Implement tasks from an OpenSpec change | Starting or continuing implementation |
+| `openspec-archive-change` | Archive a completed change | Finalizing after implementation is done |
+
+To use a skill, invoke it with the `skill` tool. The full instructions will be loaded automatically.
+
+## Documentation
+
+All knowledge, findings, and debugging notes must be documented under `docs/<appname>/` with category-based folders and files. Examples:
+
+- `docs/jiotv/ssl-pinning.md` — SSL pinning analysis
+- `docs/jiotv/emulator-root-detection.md` — Detection mechanisms researched
+- `docs/jiotv/debugging-journey.md` — Step-by-step debugging notes
+
+Create new markdown files as you discover:
+- How a detection mechanism works (classes, methods, strings)
+- Failed patch attempts and why they failed
+- Smali patterns and Dalvik instruction findings
+- APK structure observations
+- Any useful context for future contributors
 
 ### Patch Metadata
 
