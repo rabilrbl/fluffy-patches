@@ -22,7 +22,8 @@ Read `targets.md` and `session-2026-04-08-latest-uptodown-xapk.md` first so you 
 | [Session 2026-04-04 Continued](session-2026-04-04-continued.md) | Continued session: Firebase manifest removal, ClassReference crash, APK repackaging workflow |
 | [Session 2026-04-05](session-2026-04-05.md) | APKEditor approach, libpairipcorex.so testing, ARM64 device testing |
 | [Session 2026-04-08 Latest Uptodown XAPK](session-2026-04-08-latest-uptodown-xapk.md) | Confirms original 371 split install launches and re-signing alone reintroduces the native crash |
-| [Session 2026-04-08 Frida Route](session-2026-04-08-frida-route.md) | Runtime-hook route scaffolding and the current Play Store AVD blocker |
+| [Session 2026-04-08 Frida Route](session-2026-04-08-frida-route.md) | Runtime-hook route, Magisk-rooted attach, and the current anti-Frida findings |
+| [Next Session Handoff](next-session-handoff.md) | Compact resume note with the active baseline, confirmed blockers, and best next moves |
 | [Emulator & Root Detection](emulator-root-detection.md) | Detection mechanisms and bypasses |
 | [SSL Pinning](ssl-pinning.md) | Certificate pinning analysis and bypass |
 | [External PairIP Research](external-pairip-research.md) | Consolidated findings from external sources |
