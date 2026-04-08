@@ -1,7 +1,21 @@
 Java.perform(function () {
+  function findFactoryFor(className) {
+    var loaders = Java.enumerateClassLoadersSync();
+    for (var i = 0; i < loaders.length; i++) {
+      try {
+        var factory = Java.ClassFactory.get(loaders[i]);
+        factory.use(className);
+        console.log('[loader] found ' + className + ' in loader #' + i + ' -> ' + loaders[i]);
+        return factory;
+      } catch (err) {}
+    }
+    return Java;
+  }
+
   function tryHook(className, methodName, implFactory) {
     try {
-      var klass = Java.use(className);
+      var factory = findFactoryFor(className);
+      var klass = factory.use(className);
       if (!klass[methodName]) {
         console.log('[skip] ' + className + '.' + methodName + ' missing');
         return;
@@ -16,18 +30,18 @@ Java.perform(function () {
     }
   }
 
-  tryHook('com.pairip.licensecheck3.LicenseClientV3', 'handleError', function (className, methodName, overload) {
+  tryHook('com.pairip.licensecheck3.LicenseClientV3', 'handleError', function () {
     return function () {
       console.log('[bypass] LicenseClientV3.handleError(' + arguments.length + ')');
       return;
     };
   });
 
-  tryHook('com.pairip.licensecheck3.LicenseClientV3', 'connectToLicensingService', function () {
+  tryHook('com.pairip.licensecheck3.LicenseClientV3', 'connectToLicensingService', function (className, methodName, overload) {
     return function () {
       console.log('[trace] LicenseClientV3.connectToLicensingService');
       try {
-        return this.connectToLicensingService.apply(this, arguments);
+        return overload.apply(this, arguments);
       } catch (err) {
         console.log('[trace] connectToLicensingService threw: ' + err);
         throw err;
@@ -35,7 +49,7 @@ Java.perform(function () {
     };
   });
 
-  tryHook('android.content.ContextWrapper', 'startActivity', function () {
+  tryHook('android.content.ContextWrapper', 'startActivity', function (className, methodName, overload) {
     return function (intent) {
       try {
         if (intent) {
@@ -44,7 +58,7 @@ Java.perform(function () {
       } catch (err) {
         console.log('[intent] logging failed: ' + err);
       }
-      return this.startActivity.apply(this, arguments);
+      return overload.apply(this, arguments);
     };
   });
 

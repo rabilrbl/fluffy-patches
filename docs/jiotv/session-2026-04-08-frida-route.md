@@ -27,40 +27,101 @@ Start a runtime-hook path against the **working original signed split install** 
   - attaches Frida to the live process when possible
 
 ## Result On This Specific AVD
-The route is **prepared but blocked** on the current emulator build.
+The route was first blocked by `adb root` assumptions, but **Magisk root did work once shell root was granted**.
 
 ### Checks Run
 ```bash
 adb devices -l
 adb shell dumpsys package com.jio.jioplay.tv | grep -E 'versionCode|versionName'
 adb shell pidof com.jio.jioplay.tv
-adb root
+adb shell /debug_ramdisk/su -c id
+adb push ~/Downloads/Android_APKs/frida-server-17.9.1-android-x86_64 /data/local/tmp/frida-server
+adb shell chmod 755 /data/local/tmp/frida-server
+adb shell '/debug_ramdisk/su 0 -c "nohup /data/local/tmp/frida-server >/data/local/tmp/frida-server.log 2>&1 &"'
 adb forward tcp:27042 tcp:27042
 frida-ps -H 127.0.0.1:27042
+frida -H 127.0.0.1:27042 -p <main-pid> -l scripts/jiotv-371-original-frida.js
 ```
 
 ### Observed
-- `adb root` failed with:
-  - `adbd cannot run as root in production builds`
-- `frida-ps -H 127.0.0.1:27042` could not reach a Frida server
-- Therefore classic Frida attach is not available on this Play Store AVD as-is
+- `adb root` still fails on this production Play Store image, which is expected
+- Magisk is present under `/debug_ramdisk/magisk`
+- `adb shell /debug_ramdisk/su -c id` succeeded after shell root was granted
+- `frida-server` must be started as **root**, not as the shell user
+  - working form:
+    ```bash
+    adb shell '/debug_ramdisk/su 0 -c "nohup /data/local/tmp/frida-server >/data/local/tmp/frida-server.log 2>&1 &"'
+    ```
+- Frida transport became reachable on `tcp:27042`
+- Frida can attach to the **main app pid** of `com.jio.jioplay.tv`
+- Important gotcha: `frida-ps -a` also shows a WebView sandbox process that looks associated with the app, but attaching there is misleading and not the target to hook
+
+### Hook Result
+The classloader-aware script successfully found and hooked:
+- `com.pairip.licensecheck3.LicenseClientV3.handleError`
+- `com.pairip.licensecheck3.LicenseClientV3.connectToLicensingService`
+- `android.content.ContextWrapper.startActivity`
+
+Immediately after attach, the app crashed with native anti-instrumentation behavior:
+- `SIGSEGV SI_TKILL`
+- crashing library: `split_config.x86_64.apk!libpairipcore.so`
+
+### Plain-Attach Result
+A clean follow-up test was run with **plain Frida attach and no script at all**.
+
+Result:
+- the main app process still crashed in `libpairipcore.so`
+- so the current trigger is **attach/instrumentation presence itself**, not just the Java hooks in `jiotv-371-original-frida.js`
+
+This sharpens the conclusion:
+**pairip on the 371 split x86_64 path detects Frida attach at a native level and kills the process even before hook content matters.**
+
+### Native Clues From `libpairipcore.so`
+The x86_64 `libpairipcore.so` from `config.x86_64.apk` was extracted and inspected.
+
+Useful findings:
+- dynamic imports include:
+  - `dl_iterate_phdr`
+  - `dlopen`
+  - `dlsym`
+  - `syscall`
+  - `getpid`
+  - `stat`
+  - `strcmp`
+- string surface is intentionally sparse, but there is an explicit `syscall` import and multiple direct call sites
+- a notable block around `0x3cac9` uses raw syscall numbers consistent with anti-debug flow on x86_64, including:
+  - `101` (`ptrace`)
+  - `61` (`wait4`)
+  - `60` (`exit`)
+  - `110` (`getppid`)
+- another block around `0x32572` uses raw syscall numbers including:
+  - `157` (`arch_prctl`)
+  - `56` (`clone`)
+  - followed by more wait / control syscalls
+- the crash tombstone also showed an open file descriptor to:
+  - `/proc/<pid>/maps`
+  - which is consistent with native module / memory-map inspection during anti-instrumentation checks
+
+Practical takeaway:
+- this library likely has its own low-level anti-debug / anti-instrumentation path
+- plain Java-layer Frida hooks are too late and too visible
+- the next serious bypass attempt should focus on either:
+  - stealthier Frida / reduced attach footprint, or
+  - neutralizing the native anti-debug logic in `libpairipcore.so`
 
 ## Practical Meaning
-For the **current original signed split install**, runtime-hooking is still the right direction, but this exact emulator image is the wrong vehicle for standard Frida-server-based work.
+For the **current original signed split install**, runtime-hooking remains the correct direction, and this rooted AVD is usable for experiments. But plain Frida attach is not sufficient by itself because pairip reacts with a native crash once instrumentation is present.
 
 ## Resume Paths
-### Path A: rooted target
-Use a rooted AVD or rooted physical device, then:
-1. start `frida-server`
-2. forward `tcp:27042`
-3. run `scripts/jiotv-371-original-frida-route.sh`
+### Path A: stealthier Frida / anti-anti-instrumentation pass
+Possible next work:
+1. delay hook installation further
+2. reduce obvious Frida surface area
+3. investigate native hook points around `libpairipcore.so`
+4. trace whether the crash happens on attach alone or only after Java hooks are installed
 
 ### Path B: alternate runtime technique
-If staying on this Play Store AVD, use a runtime method that does not depend on root-hosted Frida server.
-Potential directions:
-- rebuild on a rootable emulator image
-- use a rooted physical device
-- evaluate other non-re-sign runtime instrumentation options separately from the Morphe patch flow
+Use another runtime method that avoids the current detection path, while keeping the original signed splits intact.
 
 ## Important Reminder
 Do not fall back into the older 404 merged / antisplit assumptions when resuming this line of work. This route is specifically for the **371 split baseline**.
