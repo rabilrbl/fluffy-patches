@@ -2,12 +2,18 @@
 
 ## Overview
 
-Patches for **JioTV** (`com.jio.jioplay.tv`) v7.1.7 (404), an anti-split APK.
+JioTV research here currently spans **two different targets** that need to stay separate:
+
+- **371 split build**, `versionName 7.1.7`, `versionCode 371`, current Uptodown-style split install, uses `licensecheck3`
+- **404 merged / antisplit path**, older APKMirror-style merged APK notes and older `licensecheck/*` assumptions
+
+Read `targets.md` and `session-2026-04-08-latest-uptodown-xapk.md` first so you do not mix the 371 split baseline with the older 404 merged path.
 
 ## Document Index
 
 | Document | Description |
 |----------|-------------|
+| [Targets](targets.md) | Clean split between the 371 split baseline and the older 404 merged / antisplit track |
 | [Reverse Engineering](reverse-engineering.md) | JADX CLI methodology, smali analysis, deobfuscation caveats |
 | [pairip DRM](pairip-drm.md) | Native DRM library analysis, VM execution, bypass strategy |
 | [Play Store Redirects](play-store-redirects.md) | All Play Store redirect paths and their bypasses |
@@ -15,6 +21,8 @@ Patches for **JioTV** (`com.jio.jioplay.tv`) v7.1.7 (404), an anti-split APK.
 | [Debugging Journey](debugging-journey.md) | Iterative debugging log with 21 iterations of failures and fixes |
 | [Session 2026-04-04 Continued](session-2026-04-04-continued.md) | Continued session: Firebase manifest removal, ClassReference crash, APK repackaging workflow |
 | [Session 2026-04-05](session-2026-04-05.md) | APKEditor approach, libpairipcorex.so testing, ARM64 device testing |
+| [Session 2026-04-08 Latest Uptodown XAPK](session-2026-04-08-latest-uptodown-xapk.md) | Confirms original 371 split install launches and re-signing alone reintroduces the native crash |
+| [Session 2026-04-08 Frida Route](session-2026-04-08-frida-route.md) | Runtime-hook route scaffolding and the current Play Store AVD blocker |
 | [Emulator & Root Detection](emulator-root-detection.md) | Detection mechanisms and bypasses |
 | [SSL Pinning](ssl-pinning.md) | Certificate pinning analysis and bypass |
 | [External PairIP Research](external-pairip-research.md) | Consolidated findings from external sources |
@@ -56,33 +64,20 @@ java -jar morphe-cli-1.6.3-all.jar patch \
 
 ## Current Status
 
-**PARTIAL PROGRESS on x86_64 AVD**: Smali patches work but Kotlin metadata initialization blocked. See [session-2026-04-05.md](session-2026-04-05.md) for latest details.
+### 371 split baseline, current reality
+- ✅ The untouched original split install launches on the x86_64 AVD
+- ✅ The tested package on-device is `versionCode 371`, `versionName 7.1.7`
+- ❌ Re-signing the untouched split set is enough to trigger the native `libpairipcore.so` crash
+- ❌ That means the current Morphe APK-modification flow is blocked by signature-sensitive native checks before patch logic becomes the main issue
 
-### What Works (x86_64 AVD)
-- ✅ APKEditor workflow modifies APK without dex redistribution
-- ✅ VMRunner.smali - Removed native library loading
-- ✅ VMRunner.executeVM - Stub returning null
-- ✅ SignatureCheck.verifyIntegrity - Returns void
-- ✅ FirebaseInitProvider.onCreate - Returns false
-- ✅ IklIsnnNWteL - 49 strings initialized to ""
-- ✅ No native SIGSEGV crash
+### 404 merged / antisplit track
+- Historical notes remain useful for class mapping, older smali work, and prior failed approaches
+- Do **not** assume those older `licensecheck/*` or VM-disabling edits apply cleanly to the 371 split target
 
-### What's Blocked
-- ❌ `ExceptionInInitializerError` in `BaseActivity.onCreate` - Kotlin metadata not initialized
-- The native library patches Kotlin runtime metadata in a way that smali cannot reproduce
-
-### ARM64 Physical Device Status
-- Original library aborts with `length_error was thrown in -fno-exceptions mode with message "vector"`
-- Integrity check fails - likely SafetyNet/Play Integrity/device model detection
+### Practical direction
+- Prefer runtime-hooking / installer-spoofing research for the 371 split build
+- Treat old 404 merged patches as a separate research branch, not the active baseline
 
 ### Known Working Solutions (Require Root)
 - **pairipfix** (LSPosed module): Runtime hooks, no APK modification
 - **BetterKnownInstalled** (Magisk module): Fakes Play Store installer at system level
-
-### Next Steps
-1. Deep reverse-engineering of `libpairipcore.so` to understand Kotlin metadata patching
-2. Create mock x86_64 native library using Android NDK
-3. Cross-compile ARM64 mock library
-
-### Working APK
-`/tmp/jiotv-patched4-aligned-debugSigned.apk` (test on x86_64 AVD)

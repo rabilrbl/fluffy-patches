@@ -2,8 +2,8 @@
   "version": "1.0.0-dev.14",
   "patches": [
     {
-      "name": "Bypass pairip license check",
-      "description": "Neutralizes pairip license verification by preventing VMRunner execution and suppressing license check errors.",
+      "name": "Disable FirebaseInitProvider",
+      "description": "Removes FirebaseInitProvider from AndroidManifest.xml as a research aid when VM-backed config data is missing.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
@@ -12,8 +12,8 @@
       "options": []
     },
     {
-      "name": "Disable FirebaseInitProvider",
-      "description": "Removes FirebaseInitProvider from AndroidManifest.xml to prevent crash when VM config data is missing.",
+      "name": "Dismiss Google Play error dialog (371 split research)",
+      "description": "Experimental JioTV 7.1.7 split-build patch. Suppresses LicenseClientV3 error handling only and does not disable VMRunner or StartupLauncher.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
@@ -33,7 +33,7 @@
     },
     {
       "name": "Remove certificate pinning",
-      "description": "Removes SSL/TLS certificate pinning for tv.media.jio.com.",
+      "description": "Research patch for SSL/TLS inspection against tv.media.jio.com.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
@@ -43,17 +43,7 @@
     },
     {
       "name": "Remove emulator detection",
-      "description": "Removes emulator and unsupported device detection checks in PermissionActivity.",
-      "use": true,
-      "dependencies": [],
-      "compatiblePackages": {
-        "com.jio.jioplay.tv": null
-      },
-      "options": []
-    },
-    {
-      "name": "Remove pairip native library",
-      "description": "Removes libpairipcore.so from all architectures to prevent native signature verification that crashes on patched APKs.",
+      "description": "Research patch for emulator and unsupported-device checks in PermissionActivity.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
@@ -63,7 +53,7 @@
     },
     {
       "name": "Remove root detection",
-      "description": "Removes root detection checks. Bypasses Firebase CommonUtils.isRooted() and Xposed framework detection.",
+      "description": "Research patch for root and integrity-related Java-side checks.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
