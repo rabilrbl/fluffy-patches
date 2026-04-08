@@ -101,6 +101,9 @@ Useful findings:
 - the crash tombstone also showed an open file descriptor to:
   - `/proc/<pid>/maps`
   - which is consistent with native module / memory-map inspection during anti-instrumentation checks
+- a control test on a benign rooted app (`Magisk`) showed that plain Frida attach leaves obvious map entries such as:
+  - `/memfd:frida-agent-64.so (deleted)`
+  - so if pairip scans `/proc/self/maps`, it has a very easy signature to match
 
 Practical takeaway:
 - this library likely has its own low-level anti-debug / anti-instrumentation path
