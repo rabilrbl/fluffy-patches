@@ -9,6 +9,22 @@ pairip is a **native DRM solution** injected into the JioTV APK. It:
 - Manages Google Play license checking
 - Shows paywall/error dialogs
 
+## Runtime Behavior (confirmed 2026-04-30)
+
+On the **original signed split install** (v371):
+- `SignatureCheck: Signature check ok` — passes and logs to logcat
+- `LicenseClientV3: Connecting to the licensing service...` — connects to Play licensing
+- **libpairipcore.so loads, executes, and unloads in < 100ms** — too fast to catch in /proc/maps
+- After verification, the library is dlclose'd and unmapped from process memory
+- This means: runtime memory dumping of the decrypted .so is extremely difficult
+
+### Anti-Frida Detection (confirmed)
+- **Frida spawn mode (`frida -f`) is detected and kills the process immediately**
+- Even minimal polling scripts (no Interceptor.attach) are detected
+- frida-server-stealth (from previous sessions) is also detected
+- The VM bytecode contains explicit checks: `android/os/Debug` → `isDebuggerConnected`,
+  `/proc/self/maps`, `/proc/self/status`, `waitingForDebugger`
+
 ## Key Classes
 
 | Class | Smali Name | Purpose |

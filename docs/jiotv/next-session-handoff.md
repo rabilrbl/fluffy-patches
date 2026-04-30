@@ -8,46 +8,88 @@
 - Version on tested AVD: `versionName 7.1.7`, `versionCode 371`
 - Keep this separate from the older **404 merged / antisplit** research track
 
-### What is already proven
-- The **original signed split install** launches on the x86_64 Play Store AVD
-- Re-signing the split set is enough to trigger the native pairip crash
-- Therefore the Morphe APK-modification route is blocked by signature-sensitive native checks
+### What is now proven
+- The **original signed split install** launches and passes pairip verification
+- `SignatureCheck: Signature check ok` confirmed in logcat
+- **pairipcore loads, verifies, and unloads in < 100ms** — impossible to catch in /proc/maps with polling
+- **Frida spawn mode is detected and killed** — even minimal polling scripts with no Interceptor.attach
+- frida-server-stealth (configured in previous sessions) is also detected
+- **LD_PRELOAD/wrap.sh approach fails** — app is not debuggable, and setprop wrap causes crash
+- The VM bytecode files contain security checks: anti-debug, anti-Frida, /proc/self/maps, dex integrity, signature verification
 
-### Root / runtime state
-- `Pixel_4_API30_PlayStore` has Magisk root available via `/debug_ramdisk/su`
-- `adb root` still fails, which is expected on this production build
-- `frida-server` can be started successfully as root with:
-  ```bash
-  adb shell '/debug_ramdisk/su 0 -c "nohup /data/local/tmp/frida-server >/data/local/tmp/frida-server.log 2>&1 &"'
-  ```
-- Frida transport on `tcp:27042` works
+### Pairip VM bytecode analysis (new)
+- 22 encrypted bytecode files in assets/ (obfuscated names)
+- All share XOR key: `6a852fbd5ac3371c2c6848d6befb97a1...` (via pairipcore-vm tool)
+- Security-relevant decoded strings:
+  - `android/os/Debug` + `isDebuggerConnected` + `waitingForDebugger`
+  - `/proc/self/maps` + `/proc/self/status`
+  - `classes.dex` + `.dex` + `lastIndexOf` (dex integrity)
+  - `com/pairip/VMRunner`
+  - All 4 arch `libpairipcore.so` paths (self-check)
+  - `sourceDir` + `base.apk`
+  - `java/io/File`, `java/lang/Exception`
 
-### Anti-Frida result
-- Plain Frida attach to the **main JioTV process** is enough to kill the app
-- No Java hook is required to reproduce the crash
-- Crash signature:
-  - `SIGSEGV SI_TKILL`
-  - `split_config.x86_64.apk!libpairipcore.so`
+### Static analysis of libpairipcore.so (new)
+- 475,984 bytes, ELF 64-bit x86-64, dynamically linked, **stripped**
+- 3 exported functions: `JNI_OnLoad` (0x64a50, 18KB), `JNI_OnUnload` (0x69240), `ExecuteProgram` (0x6c890)
+- Imports: `dl_iterate_phdr`, `dlopen`, `dlsym`, `dlclose`, `syscall` — confirms anti-tampering
+- Self-decrypts at runtime — static analysis insufficient
 
-### Strong native clues
-- `libpairipcore.so` imports and uses low-level process-control APIs including `syscall`, `dl_iterate_phdr`, `dlopen`, `dlsym`, `stat`, `strcmp`, `getpid`
-- Disassembly shows raw syscall patterns consistent with anti-debug flow, including `ptrace`, `wait4`, `exit`, `getppid`, `clone`, `arch_prctl`
-- Tombstone showed `/proc/<pid>/maps` open in the crashing process
-- Control test showed Frida leaves obvious `/memfd:frida-agent-64.so (deleted)` entries in process maps
-- Low-effort stealth attempts did not remove that signature
+### AVD setup
+- Pixel 4 API 30 Play Store x86_64 with root (Magisk 30.6 via rootAVD)
+- Start with: `~/Android/Sdk/emulator/emulator -avd Pixel_4_API30_PlayStore -no-snapshot-load -gpu angle`
+- JioTV installed as original signed splits (v371)
+- PADumper installed
 
-## Recommended Resume Order
-1. Assume **plain Frida attach is detectable** and stop spending time on shallow flag tweaks
-2. Choose one of these paths:
-   - **deeper custom / stealth Frida build** targeting the actual injected agent blob
-   - **native bypass** against pairip’s maps / anti-debug logic in `libpairipcore.so`
-3. Keep all notes under `docs/jiotv/` and continue pushing to `dev`
+### Frida anti-detection status
+- Confirmed: **pairip kills any Frida-attached process immediately**
+- This includes spawn mode and stealth frida-server
+- Frida-based dump approaches are blocked
+
+## Recommended Next Steps (ordered by viability)
+
+1. **Ghidra deep analysis of static libpairipcore.so**
+   - Load the static .so into Ghidra
+   - Analyze `JNI_OnLoad` to understand the self-decryption routine
+   - Identify the decryption algorithm and key material embedded in the binary
+   - Apply the decryption statically to produce the runtime-equivalent binary
+   - This is the most viable path since we can't catch it in memory
+
+2. **PADumper GUI approach**
+   - PADumper is installed on the device
+   - It uses ptrace (not Frida), so it might avoid anti-Frida detection
+   - Challenge: pairip's `clone+waitpid+ptrace` anti-debug may conflict
+   - Needs manual GUI testing on the AVD
+
+3. **Native ptrace-based dumper binary**
+   - Write a C program compiled for x86_64 Android that:
+     - Forks
+     - Child execs JioTV start
+     - Parent ptrace ATTACH immediately
+     - Set breakpoint at dlopen return for pairipcore
+     - Dump the library when loaded
+   - Avoids Frida detection entirely
+
+4. **QEMU/Unicorn emulation of JNI_OnLoad**
+   - Extract the decryption routine from Ghidra analysis
+   - Emulate JNI_OnLoad in QEMU/Unicorn to produce the decrypted binary
+   - Most complex but avoids all runtime protections
+
+5. **Continue building the pairipcore-vm disassembler**
+   - Use MatrixEditor/pairipcore-vm to fully decode the VM bytecode files
+   - Map which app methods are virtualized
+   - This tells us whether the VM must be preserved or can be gutted
 
 ## Relevant Docs
-- `docs/jiotv/targets.md`
-- `docs/jiotv/session-2026-04-08-latest-uptodown-xapk.md`
-- `docs/jiotv/session-2026-04-08-frida-route.md`
+- `docs/jiotv/pairip-hash-change-bypass-research.md` — Full research summary
+- `docs/jiotv/session-2026-04-30-pairip-dump-attempts.md` — This session's dump attempts
+- `docs/jiotv/next-session-handoff.md` — Previous handoff (updated to this file)
+- `docs/jiotv/pairip-drm.md` — Original pairip analysis
+- `docs/jiotv/external-pairip-research.md` — External research sources
 
-## Relevant Scripts
-- `scripts/jiotv-371-original-frida-route.sh`
-- `scripts/jiotv-371-original-frida.js`
+## Scripts
+- `/tmp/hook_pairip_v3.js` — Frida polling script (detected, doesn't work)
+- `/tmp/catch_pairipcore.sh` — On-device bash polling script (too slow)
+- `/tmp/pairip-dump/vm-bytecode/assets/` — Extracted VM bytecode files
+- `/tmp/pairip-dump/x86_64_static/lib/x86_64/libpairipcore.so` — Static (encrypted) .so
+- `pairip` CLI tool installed (from MatrixEditor/pairipcore-vm)
