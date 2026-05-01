@@ -67,17 +67,20 @@ java -jar morphe-cli-1.6.3-all.jar patch \
 
 ### 371 split baseline, current reality
 - ✅ The untouched original split install launches on the x86_64 AVD
-- ✅ The tested package on-device is `versionCode 371`, `versionName 7.1.7`
-- ❌ Re-signing the untouched split set is enough to trigger the native `libpairipcore.so` crash
-- ❌ That means the current Morphe APK-modification flow is blocked by signature-sensitive native checks before patch logic becomes the main issue
+- ✅ **v18j patched APK launches and runs** — pairip bypass working
+- ✅ 1,472/1,502 String fields hardcoded from heap dump (38/52 classes)
+- ✅ FirebaseCrashlytics + FirebasePerformance NPE crashes fixed
+- ❌ 30 String fields from 14 missing classes still unresolved
+- ❌ Content playback not yet tested (needs network / additional patches)
+- ❌ SSL pinning and emulator detection bypasses not yet applied
 
 ### 404 merged / antisplit track
 - Historical notes remain useful for class mapping, older smali work, and prior failed approaches
 - Do **not** assume those older `licensecheck/*` or VM-disabling edits apply cleanly to the 371 split target
 
 ### Practical direction
-- Prefer runtime-hooking / installer-spoofing research for the 371 split build
-- Treat old 404 merged patches as a separate research branch, not the active baseline
+- Pairip bypass proven via heap-dump + clinit injection + native stub
+- Next: test content playback, resolve remaining fields, handle SSL/root detection
 
 ### Known Working Solutions (Require Root)
 - **pairipfix** (LSPosed module): Runtime hooks, no APK modification
