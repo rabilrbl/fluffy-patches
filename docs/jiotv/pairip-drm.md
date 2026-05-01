@@ -125,8 +125,61 @@ libc++: length_error was thrown in -fno-exceptions mode with message "vector"
 Process ... exited due to signal 31
 ```
 
-### Why Dex-Level Patching Cannot Work
+### Why Dex-Level Patching Alone Cannot Work
 Any dex modification (which morphe-cli always does) changes CRC32/structural hashes. The native VM detects this at the native level, before any Java code runs. This is the **fundamental limitation** of APK-modification-based patching for pairip-protected apps.
+
+## Heap-Dump-Based Bypass (Current Approach)
+
+Since runtime hooking (Frida/Xposed) is detected by pairip, and the native library loads/unloads in <100ms (cannot be dumped), the working approach is:
+
+### 1. Replace `libpairipcore.so` with a stub
+- Build a minimal native library (`libpairipcore-stub.so`) that exports:
+  - `JNI_OnLoad` → returns `JNI_VERSION_1_6`
+  - `Java_com_pairip_VMRunner_executeVM` → returns `null` (jobject)
+  - `com_pairipcore_ExecuteProgram` → returns `null`
+  - `JNI_OnUnload` → returns void
+- This prevents the native VM from running ANY integrity checks
+- The stub is ~5KB vs the original 475KB encrypted binary
+
+### 2. Hardcode pairip-populated fields via `<clinit>` blocks
+- pairip's VM populates **1,752 static String fields** across **52 obfuscated classes** at runtime
+- Without the VM running, these fields remain `null`, causing NPEs
+- Solution: heap-dump the app on a rooted device, extract field values from HPROF, inject them as `<clinit>` blocks in smali
+- **38/52 classes** found in heap dump → **1,472/1,752 fields** resolved
+- **14/52 classes** not in heap (not yet loaded) → **30 fields unresolved** + **164 primitive fields** set to default values
+- 10 type-mismatch fields (non-String) are skipped
+
+### 3. Build & Sign
+- Replace `libpairipcore.so` in x86_64 split with stub
+- Use `apktool` to rebuild base APK with patched smali
+- Sign all splits with debug keystore
+- Install via `adb install-multiple`
+
+### Key Technical Challenges Resolved
+
+| Issue | Solution |
+|-------|----------|
+| CleverTapAPI `NoSuchFieldError: field i type String` | v2/v3 generator reads actual smali field types, skips non-String fields |
+| Literal `\t`/`\r`/`\n` in const-string breaking smali | v3 uses binary (bytes) file I/O, no Python string interpretation |
+| `\/` invalid smali escape in regex strings | v3 escapes backslash → `\\` (double backslash in file) |
+| `re.sub()` corrupting binary replacement data | v3 uses manual byte-level find-replace with slicing |
+| `65536 Unsigned short overflow` in DEX (method/string indices >65K) | Use `const-string/jumbo` (32-bit string index) instead of `const-string` |
+| classes5.dex has exactly 65,536 methods (overflow on recompile) | Move 4 patched classes from classes5 to classes10 (room for growth) |
+| `No implementation found for VMRunner.executeVM` | Added `Java_com_pairip_VMRunner_executeVM` JNI export to stub |
+
+### Firebase NPE Fixes (v18i/v18j)
+
+|| Crash | Cause | Fix |
+||-------|-------|-----|
+|| `FirebaseCrashlytics.getInstance()` NPE in `v2.onComplete` | `getInstance()` **throws** NPE (not returns null) when Crashlytics component isn't initialized | Wrapped in try-catch Exception in `v2.smali` |
+|| `FirebasePerformance.setPerformanceCollectionEnabled()` NPE in `FirebaseConfigUtil.a` | `FirebasePerformance.getInstance()` returns null in emulator | Wrapped `FirebaseConfigUtil.a()` call in try-catch in `v2.onComplete` |
+|| `APIManager.getNormalHttpClient` VerifyError (v18e) | Smali null-check branch caused register type inference failure | Reverted — FirebasePerformance block already has try-catch in original code |
+
+Note: `FirebaseCrashlytics.getInstance()` throws an NPE internally ("FirebaseCrashlytics component is not present") — a null check on the return value is insufficient. Only try-catch Exception works.
+
+### Status: ✅ WORKING (v18j)
+
+JioTV v18j launches and runs on AVD (Pixel 4 API 30, rooted). No FATAL EXCEPTION crashes. App displays AppLogo activity successfully. Only benign network errors (analytics DNS resolution failures — expected on emulator).
 
 ## SignatureCheck Field Values
 
