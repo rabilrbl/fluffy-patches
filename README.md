@@ -2,6 +2,10 @@
 
 A [Morphe Patches](https://morpheapp.github.io) repository with patches for Android apps.
 
+> [!IMPORTANT]
+> This is a research project currently in development and it does not work in its current state.
+> Active development is not guaranteed; this is research work done in free time.
+
 Click here to add these patches to Morphe: https://morphe.software/add-source?github=rabilrbl/fluffy-patches
 
 Or manually add as a patch source in Morphe: https://github.com/rabilrbl/fluffy-patches
