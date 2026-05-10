@@ -9,7 +9,7 @@ import app.template.patches.shared.Constants.COMPATIBILITY_JIOTV_MOBILE
 @Suppress("unused")
 val miscPatches = resourcePatch(
     name = "Enable cleartext traffic",
-    description = "Sets usesCleartextTraffic to true in AndroidManifest and patches the network security config to allow cleartext HTTP traffic and user-installed CA certificates.",
+    description = "Sets usesCleartextTraffic=true, extractNativeLibs=true, replaces pairip Application with JioTVApplication, and patches the network security config to allow cleartext HTTP traffic and user-installed CA certificates.",
 ) {
     compatibleWith(COMPATIBILITY_JIOTV_MOBILE)
 
@@ -17,6 +17,7 @@ val miscPatches = resourcePatch(
         document("AndroidManifest.xml").use { doc ->
             val appElement = doc.getElementsByTagName("application").item(0) as org.w3c.dom.Element
             appElement.setAttribute("android:usesCleartextTraffic", "true")
+            appElement.setAttribute("android:extractNativeLibs", "true")
             val currentName = appElement.getAttribute("android:name")
             if (currentName == "com.pairip.application.Application") {
                 appElement.setAttribute("android:name", "com.jio.jioplay.tv.JioTVApplication")
@@ -69,25 +70,12 @@ val miscPatches = resourcePatch(
 @Suppress("unused")
 val disableFirebaseInitPatch = resourcePatch(
     name = "Disable FirebaseInitProvider",
-    description = "Removes FirebaseInitProvider from AndroidManifest.xml to prevent crash when VM config data is missing.",
+    description = "Removes FirebaseInitProvider from AndroidManifest.xml. WARNING: Do NOT apply this patch — FirebaseInitProvider must be present for the app to work. This patch exists as a reference only.",
 ) {
     compatibleWith(COMPATIBILITY_JIOTV_MOBILE)
 
     execute {
-        document("AndroidManifest.xml").use { doc ->
-            val application = doc.getElementsByTagName("application").item(0) as org.w3c.dom.Element
-            val providers = application.getElementsByTagName("provider")
-            val toRemove = mutableListOf<org.w3c.dom.Node>()
-            for (i in 0 until providers.length) {
-                val provider = providers.item(i) as org.w3c.dom.Element
-                val name = provider.getAttribute("android:name")
-                if (name.contains("FirebaseInitProvider")) {
-                    toRemove.add(provider)
-                }
-            }
-            for (node in toRemove) {
-                application.removeChild(node)
-            }
-        }
+        // Intentionally left empty. FirebaseInitProvider must be kept in the manifest.
+        // Previous sessions showed that removing it causes FirebaseApp not initialized crash.
     }
 }

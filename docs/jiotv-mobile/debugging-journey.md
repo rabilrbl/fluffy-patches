@@ -482,7 +482,7 @@ The fundamental problem: **FirebaseInitProvider crashes without VM config data**
 4. **Runtime hooking** — Frida/LSPosed to hook FirebaseInitProvider at runtime
 5. **Patch all Firebase registrar classes** — No-op CrashlyticsRegistrar, AnalyticsConnectorRegistrar, etc.
 
-Key findings from external sources (see `external-pairip-research.md`):
+Key findings from external sources (see [external-pairip-research.md](research/external-pairip-research.md)):
 
 - **Solaree/pairipcore**: Native library has 100+ security checks, self-decrypts at runtime, uses runtime function fixup
 - **SafaSafari/bypass_libpairipcore**: CRC32 restoration approach (failed for JioTV)

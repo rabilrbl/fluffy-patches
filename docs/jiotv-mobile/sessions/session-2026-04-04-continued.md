@@ -103,7 +103,7 @@ patches/build/libs/patches-1.0.0-dev.9.mpp
 ## Files Modified This Session
 
 - `patches/src/main/kotlin/app/template/patches/jiotv/misc/MiscPatches.kt` - Changed Firebase patch from bytecode to resource (manifest removal)
-- `docs/jiotv/` - This session log
+- `docs/jiotv-mobile/sessions/` - This session log
 
 ## Artifacts
 

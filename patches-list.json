@@ -1,9 +1,29 @@
 {
-  "version": "1.0.0-dev.14",
+  "version": "v1.0.0-dev.14",
   "patches": [
     {
+      "name": "Bypass license check",
+      "description": "Bypasses pairip LicenseClientV3 license verification by preventing all license checks, paywall display, and error dialogs.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.jio.jioplay.tv": null
+      },
+      "options": []
+    },
+    {
+      "name": "Bypass pairip VM",
+      "description": "Bypasses pairip integrity verification VM by preventing StartupLauncher from invoking VMRunner, which avoids loading libpairipcore.so and executing signature checks.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.jio.jioplay.tv": null
+      },
+      "options": []
+    },
+    {
       "name": "Disable FirebaseInitProvider",
-      "description": "Removes FirebaseInitProvider from AndroidManifest.xml as a research aid when VM-backed config data is missing.",
+      "description": "Removes FirebaseInitProvider from AndroidManifest.xml. WARNING: Do NOT apply this patch — FirebaseInitProvider must be present for the app to work. This patch exists as a reference only.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
@@ -23,7 +43,17 @@
     },
     {
       "name": "Enable cleartext traffic",
-      "description": "Sets usesCleartextTraffic to true in AndroidManifest and patches the network security config to allow cleartext HTTP traffic and user-installed CA certificates.",
+      "description": "Sets usesCleartextTraffic=true, extractNativeLibs=true, replaces pairip Application with JioTVApplication, and patches the network security config to allow cleartext HTTP traffic and user-installed CA certificates.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.jio.jioplay.tv": null
+      },
+      "options": []
+    },
+    {
+      "name": "Force-initialize pairip string class",
+      "description": "Forces initialization of pkOPEgq (pairip string decryption class) before OkHttp loads. Without this, Header.clinit accesses null fields causing NoClassDefFoundError for Hpack.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
@@ -33,7 +63,7 @@
     },
     {
       "name": "Remove certificate pinning",
-      "description": "Research patch for SSL/TLS inspection against tv.media.jio.com.",
+      "description": "Removes SSL/TLS certificate pinning for tv.media.jio.com and media.jio.com.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
@@ -43,7 +73,7 @@
     },
     {
       "name": "Remove emulator detection",
-      "description": "Research patch for emulator and unsupported-device checks in PermissionActivity.",
+      "description": "Removes emulator and unsupported device detection checks in PermissionActivity.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
@@ -53,7 +83,17 @@
     },
     {
       "name": "Remove root detection",
-      "description": "Research patch for root and integrity-related Java-side checks.",
+      "description": "Removes root detection checks. Bypasses Firebase CommonUtils.isRooted() and Xposed framework detection.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.jio.jioplay.tv": null
+      },
+      "options": []
+    },
+    {
+      "name": "Remove split APK metadata",
+      "description": "Removes requiredSplitTypes and split-related meta-data from AndroidManifest.xml to allow standalone APK installation.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {

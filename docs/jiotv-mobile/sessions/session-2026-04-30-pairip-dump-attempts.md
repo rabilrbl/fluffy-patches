@@ -94,4 +94,4 @@ is immediately unmapped. The entire load→verify→unload cycle takes < 100ms. 
 - `/tmp/pairip-dump/x86_64_static/lib/x86_64/libpairipcore.so` — static (encrypted) binary
 - `/tmp/pairip-dump/vm-bytecode/assets/` — all 22 VM bytecode files extracted
 - `/tmp/hook_pairip_v3.js` — Frida polling script (detected and killed)
-- Research doc: `docs/jiotv/pairip-hash-change-bypass-research.md`
+- Research doc: `docs/jiotv-mobile/research/pairip-hash-change-bypass-research.md`

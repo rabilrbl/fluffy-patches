@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.18)
+project(pairipcore_stub C)
+
+add_library(pairipcore SHARED pairipcore_stub.c)
+target_link_libraries(pairipcore android log)

@@ -36,7 +36,7 @@ Or manually add as a patch source in Morphe: https://github.com/rabilrbl/fluffy-
 | Remove certificate pinning | Research patch for SSL/TLS inspection |
 | Enable cleartext traffic | Enables cleartext traffic and trusts user CAs for network inspection |
 
-See `docs/jiotv/targets.md` and `docs/jiotv/session-2026-04-08-latest-uptodown-xapk.md` before extending JioTV patches.
+See `docs/jiotv-mobile/targets.md` and `docs/jiotv-mobile/sessions/session-2026-04-08-latest-uptodown-xapk.md` before extending JioTV patches.
 
 ## Usage
 

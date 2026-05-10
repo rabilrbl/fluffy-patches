@@ -130,7 +130,7 @@ zzg.startUpdateFlow() → PlayCoreDialogWrapperActivity → Play Store dialog
 
 **UI**: Play Store's own "Get this app from Play" page (not an in-app dialog — the actual Play Store app)
 
-**Screenshot**: `docs/jiotv/Play-store-license-check-failed.jpg`
+**Screenshot**: `Play-store-license-check-failed.jpg` (see [top-level](../Play-store-license-check-failed.jpg))
 
 ### Trigger
 The pairip native VM (`libpairipcore.so`) performs dex integrity checks during static initialization. When verification fails, it directly launches Play Store via JNI.

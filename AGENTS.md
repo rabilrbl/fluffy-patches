@@ -183,9 +183,9 @@ To use a skill, invoke it with the `skill` tool. The full instructions will be l
 
 All knowledge, findings, and debugging notes must be documented under `docs/<appname>/` with category-based folders and files. Examples:
 
-- `docs/jiotv/ssl-pinning.md` — SSL pinning analysis
-- `docs/jiotv/emulator-root-detection.md` — Detection mechanisms researched
-- `docs/jiotv/debugging-journey.md` — Step-by-step debugging notes
+- `docs/jiotv-mobile/research/ssl-pinning.md` — SSL pinning analysis
+- `docs/jiotv-mobile/research/emulator-root-detection.md` — Detection mechanisms researched
+- `docs/jiotv-mobile/debugging-journey.md` — Step-by-step debugging notes
 
 Create new markdown files as you discover:
 - How a detection mechanism works (classes, methods, strings)
