@@ -13,8 +13,12 @@ info:
     name: Unlicensed
   contact:
     name: JioTV Mobile
-  x-verification-note: Base URLs verified via curl from external network (non-Jio). tv.media.jio.com and jiotvapi.media.jio.com return 404 without Jio ssoToken header. CDN endpoints (jiotvapi.cdn.jio.com)
-    work without auth. User service endpoints return 400 (auth required, endpoints exist). PreProd/QA endpoints not tested externally.
+  x-verification-note: Auth flow verified. OTP send (POST v1/loginotp/send with base64-encoded number) returns 204.
+    OTP verify (POST v2/loginotp/verify) returns 200 with authToken, ssoToken, refreshToken. Required headers for authenticated
+    endpoints: appName= RJIL_JioTV, ssotoken, accesstoken, deviceId, uniqueId, usertype, versionCode=371, os=android, devicetype=phone, Connection=close.
+    v2.x endpoints on tv.media.jio.com/apis/ respond with 400 (reachable, need correct body params).
+    v3.0+ endpoints on jiotvapi.media.jio.com/ return 404 (may be decommissioned or require different auth).
+    CDN endpoints (jiotvapi.cdn.jio.com) return 200 (dictionary verified).
 servers:
 - url: https://tv.media.jio.com/apis
   description: Default - Production Main API (each path overrides with exact base URL)
@@ -83,6 +87,8 @@ paths:
                   message:
                     type: string
       x-source: JioTvLoginApiInterface (smali_classes4)
+      x-verified: true
+      x-verified-note: 'Confirmed: POST with {"number":"<base64-phone>"} returns 204 No Content on success'
       description: Send OTP for mobile login
   /v2/loginotp/verify:
     post:
@@ -109,6 +115,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/VerifyOtpResponse'
       x-source: JioTvLoginApiInterface (smali_classes4)
+      x-verified: true
+      x-verified-note: 'Confirmed: POST with {"number":"<base64-phone>","otp":"002917","deviceInfo":{...}} returns 200 with authToken, ssoToken, refreshToken, sessionAttributes'
       description: Verify OTP and authenticate
   /jsclient/v3/dip/user/otp/send:
     post:
@@ -3449,42 +3457,119 @@ components:
           type: string
     OtpRequest:
       type: object
+      required:
+        - number
       properties:
-        mobile:
+        number:
           type: string
-          description: Mobile number
+          description: Base64-encoded phone number (with +91 prefix). Encoded via Base64.NO_WRAP
+      x-verified: true
+      x-verified-note: 'Confirmed working: POST with {"number":"KzkxODY2MDYyMjY5OA=="} returns 204'
     OtpCheckRequest:
       type: object
+      required:
+        - number
+        - otp
       properties:
-        mobile:
+        number:
           type: string
+          description: Base64-encoded phone number (with +91 prefix). Encoded via Base64.NO_WRAP
         otp:
           type: string
+          description: 6-digit OTP code
         deviceInfo:
           $ref: '#/components/schemas/DeviceInfo'
     DeviceInfo:
       type: object
       properties:
-        deviceId:
+        consumptionDeviceName:
           type: string
+          description: 'Device name: Build.BRAND + " " + Build.MODEL'
         info:
-          type: object
-          properties:
-            model:
-              type: string
-            manufacturer:
-              type: string
+          $ref: '#/components/schemas/DeviceInfoInner'
+    DeviceInfoInner:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Always "android"
+        platform:
+          $ref: '#/components/schemas/PlatformInfo'
+        androidId:
+          type: string
+          description: Settings.Secure.ANDROID_ID
+    PlatformInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Build.PRODUCT
     VerifyOtpResponse:
       type: object
       properties:
-        ssoToken:
+        code:
+          type: integer
+        message:
           type: string
-        authToken:
+        data:
+          type: object
+          properties:
+            authToken:
+              type: string
+              description: JWT access token for API authentication
+            ssoToken:
+              type: string
+              description: SSO token for session management (JWT)
+            refreshToken:
+              type: string
+              description: UUID refresh token
+            tempToken:
+              type: string
+            sessionAttributes:
+              type: object
+              properties:
+                user:
+                  type: object
+                  properties:
+                    commonName:
+                      type: string
+                    mobile:
+                      type: string
+                    preferredLocale:
+                      type: string
+                    ssoLevel:
+                      type: string
+                    subscriberId:
+                      type: string
+                    uid:
+                      type: string
+                    unique:
+                      type: string
+                jToken:
+                  type: string
+                ssoLevel:
+                  type: string
+                lbCookie:
+                  type: string
+                newUser:
+                  type: boolean
+                ip:
+                  type: string
+                deviceId:
+                  type: string
+                analyticsId:
+                  type: string
+            lbCookie:
+              type: string
+        _metadata:
+          type: object
+          nullable: true
+        request_id:
           type: string
-        refreshToken:
+        surrogate_key:
           type: string
-        deviceLimitExceeded:
-          $ref: '#/components/schemas/DeviceLimitExceeded'
+      x-verified: true
+      x-verified-note: 'Confirmed: POST /v2/loginotp/verify returns 200 with authToken, ssoToken, refreshToken, sessionAttributes'
     DeviceLimitExceeded:
       type: object
       properties:
@@ -3645,22 +3730,56 @@ components:
           type: string
     ChannelUrlRequest:
       type: object
+      required:
+        - channel_id
+        - stream_type
       properties:
         channel_id:
           type: integer
           format: int64
+          description: Numeric channel identifier
+        stream_type:
+          type: string
+          description: 'Stream type: "Seek" (live), "Catchup" (past), "Vod" (on-demand), "Invalid"'
+          enum:
+            - Seek
+            - Catchup
+            - Vod
+            - Invalid
+        srno:
+          type: string
+          description: Derived from program serial number (prefixed with "20")
         programId:
           type: string
-        showTime:
+          description: Program serial number as string
+        showtime:
+          type: string
+          description: Show time with colons stripped (only for Catchup)
+        begin:
+          type: string
+          nullable: true
+        end:
+          type: string
+          nullable: true
+      x-verified-note: 'POST /v2.2/getchannelurl/getchannelurl returns 400 (Parameter Missing) - endpoint reachable but needs correct param combo'
+    ChannelUrlRequestV2:
+      type: object
+      required:
+        - channel_id
+        - stream_type
+      properties:
+        channel_id:
+          type: integer
+          format: int64
+        stream_type:
           type: string
         srno:
           type: string
-        stream_type:
+        programId:
           type: string
-        begin:
+        showtime:
           type: string
-        end:
-          type: string
+          nullable: true
     ChannelUrlModel:
       type: object
       properties:
