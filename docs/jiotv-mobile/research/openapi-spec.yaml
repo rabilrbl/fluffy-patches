@@ -1,0 +1,4430 @@
+openapi: 3.0.3
+info:
+  title: JioTV Mobile API
+  description: 'Complete OpenAPI specification for JioTV Mobile (v7.1.7, versionCode 371) network requests.
+
+    Reverse-engineered from decompiled APK smali. Environment switching controlled by
+
+    `JioTVApplication.usePreProdEnv` boolean.
+
+    '
+  version: 7.1.7
+  license:
+    name: Unlicensed
+  contact:
+    name: JioTV Mobile
+  x-verification-note: Base URLs verified via curl from external network (non-Jio). tv.media.jio.com and jiotvapi.media.jio.com return 404 without Jio ssoToken header. CDN endpoints (jiotvapi.cdn.jio.com)
+    work without auth. User service endpoints return 400 (auth required, endpoints exist). PreProd/QA endpoints not tested externally.
+servers:
+- url: https://tv.media.jio.com/apis
+  description: Default - Production Main API (each path overrides with exact base URL)
+  x-verified-status: 404-requires-auth
+tags:
+- name: Authentication
+  description: OTP login, token exchange, refresh
+- name: Home & Discovery
+  description: Home tabs, carousels, featured content, categories
+- name: Channels & EPG
+  description: Channel listings, schedules, EPG
+- name: Playback
+  description: Stream URLs, DRM, playback rights
+- name: Search
+  description: Search and autocomplete
+- name: Content & VOD
+  description: Movies, shows, metadata, cinema
+- name: User Lists
+  description: Favorites, recents, watchlists, recordings
+- name: Subscription
+  description: Plans, packages, concurrent streams
+- name: Sports & Scorecard
+  description: Live sports, scores, tournaments
+- name: Configuration
+  description: App config, resources, dictionary, version check
+- name: Analytics
+  description: Event tracking, cinema analytics, begin session
+- name: Games
+  description: JioGames SDK, arena, esports
+- name: JioStream Mini
+  description: Mini app video player, comments, likes, watch later
+- name: Watch Party
+  description: JioWebView SDK — room creation, JWT, logging
+- name: Ads
+  description: JioAds SDK — Mercury ad delivery, VMAP, tracking
+- name: Miscellaneous
+  description: Coupons, feedback, share, location, EMBMS, camera
+paths:
+  /v1/loginotp/send:
+    post:
+      tags:
+      - Authentication
+      summary: Send OTP for login
+      operationId: sendOtp
+      servers:
+      - url: https://jiotvapi.media.jio.com/userservice/apis
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com/userservice/apis
+        description: PreProd/QA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpRequest'
+      responses:
+        '200':
+          description: OTP sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+      x-source: JioTvLoginApiInterface (smali_classes4)
+      description: Send OTP for mobile login
+  /v2/loginotp/verify:
+    post:
+      tags:
+      - Authentication
+      summary: Verify OTP and authenticate
+      operationId: verifyOtp
+      servers:
+      - url: https://jiotvapi.media.jio.com/userservice/apis
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com/userservice/apis
+        description: PreProd/QA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpCheckRequest'
+      responses:
+        '200':
+          description: Auth response with tokens
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyOtpResponse'
+      x-source: JioTvLoginApiInterface (smali_classes4)
+      description: Verify OTP and authenticate
+  /jsclient/v3/dip/user/otp/send:
+    post:
+      tags:
+      - Authentication
+      summary: Send OTP (pre-login/dip)
+      operationId: sendOtpPreLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpRequest'
+      responses:
+        '200':
+          description: OTP sent
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PreLoginAPIInterface (smali_classes3)
+  /jsclient/v3/dip/user/otp/verify:
+    post:
+      tags:
+      - Authentication
+      summary: Verify OTP (pre-login/dip)
+      operationId: verifyOtpPreLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpCheckRequest'
+      responses:
+        '200':
+          description: Auth response with tokens
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PreLoginAPIInterface (smali_classes3)
+  /login/loginviasubid:
+    post:
+      tags:
+      - Authentication
+      summary: Skip sign-in via subscriber ID
+      operationId: skipSignIn
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                subscriberId:
+                  type: string
+                deviceId:
+                  type: string
+      responses:
+        '200':
+          description: Auth response
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PreLoginAPIInterface (smali_classes3)
+  /v2.0/loginotp/refresh:
+    get:
+      tags:
+      - Authentication
+      summary: Refresh SSO token
+      operationId: refreshSsoToken
+      parameters:
+      - name: ssoToken
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: uniqueId
+        in: query
+        schema:
+          type: string
+      - name: channel_id
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Refreshed SSO token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshSsoTokenResponse'
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Refresh SSO token
+  /v1/loginotp/exchangetoken:
+    post:
+      tags:
+      - Authentication
+      summary: Exchange token for auth/refresh tokens
+      operationId: exchangeToken
+      servers:
+      - url: https://jiotvapi.media.jio.com/userservice/apis
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com/userservice/apis
+        description: PreProd/QA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExchangeTokenRequest'
+      responses:
+        '200':
+          description: Token exchange response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExchangeTokenResponse'
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Exchange token for auth/refresh tokens
+  /v1/guest:
+    post:
+      tags:
+      - Authentication
+      summary: Get guest auth token
+      operationId: guestAuthToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GuestAuthRequest'
+      responses:
+        '200':
+          description: Guest auth token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuestAuthTokenResponse'
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Get guest auth token
+  /v2/refreshtoken:
+    post:
+      tags:
+      - Authentication
+      summary: Refresh auth token
+      operationId: refreshAuthToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                deviceId:
+                  type: string
+      responses:
+        '200':
+          description: Refreshed auth tokens
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshAuthTokenResponse'
+      servers:
+      - url: https://jiotvapi.media.jio.com/userservice/apis
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com/userservice/apis
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Refresh auth token
+  /v1/generateshorttoken:
+    post:
+      tags:
+      - Authentication
+      summary: Generate short-lived token
+      operationId: generateShortToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Short token response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShortTokenResponse'
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Generate short-lived token
+  /v2/expireallusers:
+    post:
+      tags:
+      - Authentication
+      summary: Expire all user sessions
+      operationId: expireAllUsers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: All sessions expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpireAllUsersResponse'
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Expire all user sessions
+  /logout/logout:
+    get:
+      tags:
+      - Authentication
+      summary: Logout (legacy)
+      operationId: performLogout
+      responses:
+        '200':
+          description: Logged out
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Logout (legacy)
+  /v1/logout:
+    post:
+      tags:
+      - Authentication
+      summary: Logout (new system)
+      operationId: performLogoutNew
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Logged out
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Logout (new system)
+  /v2.0/home/get:
+    get:
+      tags:
+      - Home & Discovery
+      summary: Get home tab data (v2.0)
+      operationId: getTabDataV2
+      parameters:
+      - name: tabId
+        in: query
+        required: true
+        schema:
+          type: integer
+      - name: langId
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Tab data with carousels
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureResponse'
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Get home tab data (v2.0)
+  /v3.0/home/get:
+    get:
+      tags:
+      - Home & Discovery
+      summary: Get home tab data (v3.0)
+      operationId: getTabDataV3
+      parameters:
+      - name: tabId
+        in: query
+        required: true
+        schema:
+          type: integer
+      - name: langId
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Home data
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Get home tab data (v3.x)
+  /v3.2/home/get:
+    get:
+      tags:
+      - Home & Discovery
+      summary: Get home tab data (v3.2)
+      operationId: getTabDataV3_2
+      parameters:
+      - name: tabId
+        in: query
+        required: true
+        schema:
+          type: integer
+      - name: langId
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Home data
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+  /v3.4/home/get:
+    get:
+      tags:
+      - Home & Discovery
+      summary: Get home tab data with AVOD (v3.4)
+      operationId: getTabDataWithAvod
+      parameters:
+      - name: tabId
+        in: query
+        required: true
+        schema:
+          type: integer
+      - name: langId
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Home data with AVOD
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+  /v3.5/home/get:
+    get:
+      tags:
+      - Home & Discovery
+      summary: Get home tab data with SVOD (v3.5)
+      operationId: getTabDataWithSvod
+      parameters:
+      - name: tabId
+        in: query
+        required: true
+        schema:
+          type: integer
+      - name: langId
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Home data with SVOD
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+  /v3.6/home/get:
+    get:
+      tags:
+      - Home & Discovery
+      summary: Get home tab data with SVOD new (v3.6)
+      operationId: getTabDataWithSvodNew
+      parameters:
+      - name: tabId
+        in: query
+        required: true
+        schema:
+          type: integer
+      - name: langId
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Home data with SVOD new
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+  /v2.0/carousel/get:
+    get:
+      tags:
+      - Home & Discovery
+      summary: Get carousel data (v2.0)
+      operationId: getCarouselV2
+      parameters:
+      - name: tabId
+        in: query
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Carousel data
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Get carousel data (v2.0)
+  /v2.1/carousel/get:
+    get:
+      tags:
+      - Home & Discovery
+      summary: Get AVOD carousel data (v2.1)
+      operationId: getCarouselV2_1
+      parameters:
+      - name: tabId
+        in: query
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: AVOD carousel data
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Get AVOD carousel data (v2.1)
+  /v2.2/carousel/get:
+    get:
+      tags:
+      - Home & Discovery
+      summary: Get SVOD carousel data (v2.2)
+      operationId: getCarouselV2_2
+      parameters:
+      - name: tabId
+        in: query
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: SVOD carousel data
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Get SVOD carousel data (v2.2)
+  /v1.3/subscription/getpackagelist:
+    get:
+      tags:
+      - Subscription
+      summary: Get subscription packages (legacy)
+      operationId: getSubscriptionPackages
+      responses:
+        '200':
+          description: Subscription packages
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionRootModel'
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get subscription packages (legacy)
+  /v2.0/plans/get:
+    get:
+      tags:
+      - Subscription
+      summary: Get subscription plans (new)
+      operationId: getSubscriptionPlans
+      responses:
+        '200':
+          description: Subscription plans
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /v1/plans:
+    get:
+      tags:
+      - Subscription
+      summary: Get active subscription plans
+      operationId: getActiveSubscriptionPlans
+      responses:
+        '200':
+          description: Active subscription plans
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Get active subscription plans
+  /v1.4/foryousection/get:
+    get:
+      tags:
+      - Home & Discovery
+      summary: Get "For You" section content
+      operationId: getForYouSection
+      responses:
+        '200':
+          description: For You section data
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Get For You section content
+  /v1.6/getdata/featurednew:
+    get:
+      tags:
+      - Home & Discovery
+      summary: Get featured content (v1.6)
+      operationId: getFeatureList
+      parameters:
+      - name: offset
+        in: query
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Featured content
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get featured content (v1.6)
+  /v1.7/getdata/featurednews:
+    get:
+      tags:
+      - Home & Discovery
+      summary: Get featured news
+      operationId: getFeaturedNewsList
+      parameters:
+      - name: offset
+        in: query
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Featured news
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get featured news
+  /v1.7/getdata/featuredsports:
+    get:
+      tags:
+      - Home & Discovery
+      summary: Get featured sports
+      operationId: getFeaturedSportsList
+      parameters:
+      - name: offset
+        in: query
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Featured sports
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get featured sports
+  /getdata/featured:
+    get:
+      tags:
+      - Home & Discovery
+      summary: Get featured videos
+      operationId: getFeaturedVideos
+      responses:
+        '200':
+          description: Featured videos
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get featured videos
+  /v3.0/tab/categoryseeall:
+    get:
+      tags:
+      - Home & Discovery
+      summary: Get category see-all data (v3.0)
+      operationId: getCategorySeeAllDataV3
+      parameters:
+      - name: cat_id
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Category data
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Get category see-all data (v3.0)
+  /v2.0/tab/categoryseeall:
+    get:
+      tags:
+      - Home & Discovery
+      summary: Get category see-all data (v2.0)
+      operationId: getCategorySeeAllDataV2
+      parameters:
+      - name: cat_id
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: type
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Category data
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Get category see-all data (v2.0)
+  /v3.0/tab/seeall:
+    get:
+      tags:
+      - Home & Discovery
+      summary: Get see-all tab data (v3.0)
+      operationId: getSeeAllDataV3
+      parameters:
+      - name: tabId
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: category_name
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: See-all data
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Get see-all tab data (v3.0)
+  /v2.0/tab/seeall:
+    get:
+      tags:
+      - Home & Discovery
+      summary: Get see-all tab data (v2.0)
+      operationId: getSeeAllDataV2
+      parameters:
+      - name: tabId
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: category_name
+        in: query
+        schema:
+          type: string
+      - name: type
+        in: query
+        schema:
+          type: string
+      - name: movieCategoryId
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: See-all data
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Get see-all tab data (v2.0)
+  /v3.0/userlanguage/set:
+    post:
+      tags:
+      - Configuration
+      summary: Update user language preference
+      operationId: updateUserLanguage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                languageId:
+                  type: string
+      responses:
+        '200':
+          description: Language updated
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Update user language preference (v3.0)
+  /v1.4/userlanguage/set:
+    post:
+      tags:
+      - Configuration
+      summary: Update user language preference (legacy)
+      operationId: updateUserLanguageLegacy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Language updated
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Update user language preference (legacy)
+  /getMobileChannelList/get:
+    get:
+      tags:
+      - Channels & EPG
+      summary: Get mobile channel list (legacy)
+      operationId: getMobileChannelList
+      parameters:
+      - name: languageId
+        in: query
+        schema:
+          type: string
+      - name: category
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Channel list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChannelListRootModel'
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get mobile channel list (legacy)
+  /v3.0/getMobileChannelList/get:
+    get:
+      tags:
+      - Channels & EPG
+      summary: Get mobile channel list (v3.0) with optional filters
+      operationId: getMobileChannelListV3
+      parameters:
+      - name: languageId
+        in: query
+        schema:
+          type: string
+      - name: category
+        in: query
+        schema:
+          type: string
+      - name: offset
+        in: query
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: genreId
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Channel listing
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Get mobile channel list (v3.0)
+  /v2.2/getchannelurl/getchannelurl:
+    post:
+      tags:
+      - Playback
+      summary: Get live channel stream URL
+      operationId: getChannelURL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChannelUrlRequest'
+      responses:
+        '200':
+          description: Channel stream URL and metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChannelUrlModel'
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali/com/jio/jioplay/tv/connection/apis/)
+      description: Get live channel stream URL
+  /v1.3/cdntoken/get:
+    get:
+      tags:
+      - Playback
+      summary: Get CDN token for stream authentication
+      operationId: getCdnToken
+      parameters:
+      - name: channel_id
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: stream_type
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: CDN token
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get CDN token for stream auth
+  /v1/geturl:
+    post:
+      tags:
+      - Playback
+      summary: Get playback URL (new system)
+      operationId: getPlaybackURL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                channelId:
+                  type: string
+                streamType:
+                  type: string
+                contentId:
+                  type: string
+      responses:
+        '200':
+          description: Playback URL and metadata
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Get playback URL (new system)
+  /apis/v1.3/getepg/get:
+    get:
+      tags:
+      - Channels & EPG
+      summary: Get EPG program data
+      operationId: getEPGProgramData
+      parameters:
+      - name: channel_id
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: date
+        in: query
+        schema:
+          type: string
+        description: Date string
+      - name: offset
+        in: query
+        schema:
+          type: string
+      - name: languageId
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: EPG data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EPGRootModel'
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /getepg/get:
+    get:
+      tags:
+      - Channels & EPG
+      summary: Get schedule for channel
+      operationId: getScheduleForChannel
+      parameters:
+      - name: channel_id
+        in: query
+        schema:
+          type: integer
+      - name: date
+        in: query
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Channel schedule
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+  /allpastprogs/{channel_id}:
+    get:
+      tags:
+      - Channels & EPG
+      summary: Get past programs for channel
+      operationId: getPastPrograms
+      parameters:
+      - name: channel_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Past programs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PastProgramsModel'
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get past programs for channel (path param)
+  /nextprogram/get:
+    get:
+      tags:
+      - Channels & EPG
+      summary: Get next programs
+      operationId: getNextPrograms
+      parameters:
+      - name: channel_id
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: date
+        in: query
+        schema:
+          type: string
+      - name: languageId
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Next programs
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get next programs
+  /v1.4/recents/getrecents:
+    get:
+      tags:
+      - User Lists
+      summary: Get recent programs/channels
+      operationId: getRecentPrograms
+      parameters:
+      - name: type
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Recent programs
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get recent programs/channels
+  /v1.4/recents/tournament:
+    get:
+      tags:
+      - Sports & Scorecard
+      summary: Get tournament programs
+      operationId: getTournamentPrograms
+      responses:
+        '200':
+          description: Tournament programs
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get tournament programs
+  /similarchannelliveshows/get:
+    get:
+      tags:
+      - Content & VOD
+      summary: Get similar channel live shows
+      operationId: getSimilarPrograms
+      parameters:
+      - name: channelId
+        in: query
+        schema:
+          type: string
+      - name: showId
+        in: query
+        schema:
+          type: string
+      - name: languageId
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Similar programs
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get similar channel live shows
+  /live/channels:
+    post:
+      tags:
+      - Channels & EPG
+      summary: Get live channel list with filters
+      operationId: getFeatureLiveList
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LiveChannelModel'
+      responses:
+        '200':
+          description: Live channels
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get live channel list with filters
+  /live/category:
+    get:
+      tags:
+      - Channels & EPG
+      summary: Get live category list
+      operationId: getFeatureCategoryLiveList
+      parameters:
+      - name: category
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Live category channels
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get live category list
+  /apis/common/v2.7/playbackrights/get/{contentID}:
+    post:
+      tags:
+      - Playback
+      summary: Get playback rights for content
+      operationId: getPlaybackRights
+      parameters:
+      - name: contentID
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: ssotoken
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Playback rights data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChannelUrlModel'
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get playback rights for content
+  /v2.0/getchannelurl/getchannelurl:
+    post:
+      tags:
+      - Playback
+      summary: Get VOD stream URL
+      operationId: getVodChannelURL
+      parameters:
+      - name: channelId
+        in: query
+        schema:
+          type: string
+      - name: stream_type
+        in: query
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: VOD stream URL
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get VOD stream URL
+  /metadata/apis/v1/{content_id}:
+    get:
+      tags:
+      - Content & VOD
+      summary: Get SVOD metadata for content
+      operationId: getSvodMetaData
+      parameters:
+      - name: content_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Content metadata
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get SVOD metadata for content
+  /checkconcurrentstream/check:
+    post:
+      tags:
+      - Subscription
+      summary: Check concurrent stream subscription
+      operationId: checkConcurrentStream
+      parameters:
+      - name: ssoToken
+        in: header
+        schema:
+          type: string
+      - name: channelId
+        in: header
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Subscription permission check
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Check concurrent stream subscription
+  /subscription/check:
+    post:
+      tags:
+      - Subscription
+      summary: Server-side subscription check
+      operationId: checkServerSideSubscription
+      parameters:
+      - name: ssoToken
+        in: header
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Subscription check result
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Server-side subscription check
+  /v1/recharge:
+    post:
+      tags:
+      - Subscription
+      summary: Recharge subscription plan
+      operationId: rechargeSubscriptionPlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Recharge result
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Recharge subscription plan
+  /v1.9/search/search:
+    get:
+      tags:
+      - Search
+      summary: Search content (v1.9)
+      operationId: searchV1_9
+      parameters:
+      - name: query
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: type
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Search results
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Search content (v1.9)
+  /v2.1/search/search:
+    get:
+      tags:
+      - Search
+      summary: Search content with AVOD (v2.1)
+      operationId: searchWithAvod
+      parameters:
+      - name: query
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: type
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Search results with AVOD
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Search content with AVOD (v2.1)
+  /v2.2/search/search:
+    get:
+      tags:
+      - Search
+      summary: Search content with SVOD (v2.2)
+      operationId: searchWithSvod
+      parameters:
+      - name: query
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: type
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Search results with SVOD
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Search content with SVOD (v2.2)
+  /v1.9/search/searchauto:
+    get:
+      tags:
+      - Search
+      summary: Search autocomplete (v1.9)
+      operationId: searchAutoV1_9
+      parameters:
+      - name: query
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: type
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Autocomplete suggestions
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Search content (v1.9)
+  /v2.1/search/searchauto:
+    get:
+      tags:
+      - Search
+      summary: Search autocomplete with AVOD (v2.1)
+      operationId: searchAutoWithAvod
+      parameters:
+      - name: query
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: type
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Autocomplete suggestions with AVOD
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Search content with AVOD (v2.1)
+  /v2.2/search/searchauto:
+    get:
+      tags:
+      - Search
+      summary: Search autocomplete with SVOD (v2.2)
+      operationId: searchAutoWithSvod
+      parameters:
+      - name: tabId
+        in: query
+        schema:
+          type: string
+      - name: category_name
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Autocomplete suggestions with SVOD
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Search content with SVOD (v2.2)
+  /v1.5/promotedsearch/get:
+    get:
+      tags:
+      - Search
+      summary: Get promoted search data
+      operationId: getPromotedSearchData
+      responses:
+        '200':
+          description: Promoted search data
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Get promoted search data
+  /v3.1/promotedsearch/get:
+    get:
+      tags:
+      - Search
+      summary: Get promoted search data (v3.1)
+      operationId: getPromotedSearchDataV3
+      responses:
+        '200':
+          description: Promoted search data
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Get promoted search data (v3.1)
+  /v1.8/cinema/contentmetadata:
+    get:
+      tags:
+      - Content & VOD
+      summary: Get cinema content metadata
+      operationId: getCinemaContentMetadata
+      parameters:
+      - name: content_id
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Cinema content metadata
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Get cinema content metadata
+  /v1.8/cinema/getmetadata:
+    get:
+      tags:
+      - Content & VOD
+      summary: Get cinema metadata with pagination
+      operationId: getCinemaMetadata
+      parameters:
+      - name: content_id
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: page
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Cinema metadata
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Get cinema metadata with pagination
+  /v1.8/cinema/watchlistget:
+    get:
+      tags:
+      - User Lists
+      summary: Get movies watchlist
+      operationId: getMoviesWatchlist
+      responses:
+        '200':
+          description: Movies watchlist
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Get movies watchlist
+  /v1.8/cinema/listadd:
+    post:
+      tags:
+      - User Lists
+      summary: Add to movies watchlist
+      operationId: addToMoviesWatchlist
+      parameters:
+      - name: content_id
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Added to watchlist
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Add to movies watchlist
+  /v1.8/cinema/listdelete:
+    post:
+      tags:
+      - User Lists
+      summary: Remove from movies watchlist
+      operationId: removeFromMoviesWatchlist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemovableMoviesModel'
+      responses:
+        '200':
+          description: Removed from watchlist
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Remove from movies watchlist
+  /v1.4/latestepisodedata/get:
+    get:
+      tags:
+      - Content & VOD
+      summary: Get latest episode data
+      operationId: getLatestEpisodeData
+      parameters:
+      - name: showId
+        in: query
+        schema:
+          type: string
+      - name: languageId
+        in: query
+        schema:
+          type: string
+      - name: type
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Latest episode data
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+  /v1.8/getdata/movies:
+    get:
+      tags:
+      - Content & VOD
+      summary: Get movies list
+      operationId: getMoviesList
+      parameters:
+      - name: uniqueId
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Movies list
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Get movies list
+  /getdata/promotional:
+    get:
+      tags:
+      - Content & VOD
+      summary: Get promotional videos
+      operationId: getPromotionalVideos
+      responses:
+        '200':
+          description: Promotional videos
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+  /v1.4/getdata/promotional:
+    get:
+      tags:
+      - Content & VOD
+      summary: Get promotional videos (v1.4)
+      operationId: getPromotionalVideosV1_4
+      parameters:
+      - name: query
+        in: query
+        schema:
+          type: string
+      - name: type
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Promotional videos
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      description: Get promotional videos
+  /gettrending/get:
+    get:
+      tags:
+      - Content & VOD
+      summary: Get trending content
+      operationId: getTrendingVideos
+      responses:
+        '200':
+          description: Trending content
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get trending content
+  /gettweets/get:
+    get:
+      tags:
+      - Sports & Scorecard
+      summary: Get tweets for sports event
+      operationId: getTweets
+      parameters:
+      - name: matchId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Tweets
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get tweets for sports event
+  /v1.4/scorecard/get:
+    get:
+      tags:
+      - Sports & Scorecard
+      summary: Get scorecard configuration
+      operationId: getScoreCardConfig
+      responses:
+        '200':
+          description: Scorecard config
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get scorecard configuration
+  /v1.4/vodcategorydata/get:
+    get:
+      tags:
+      - Content & VOD
+      summary: Get VOD category data
+      operationId: getSportsAllTagContent
+      parameters:
+      - name: id
+        in: query
+        schema:
+          type: string
+      - name: type
+        in: query
+        schema:
+          type: string
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: offset
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: VOD category data
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+  /v1.4/tag/get:
+    get:
+      tags:
+      - Content & VOD
+      summary: Get content by sport tag
+      operationId: getSportTagResult
+      parameters:
+      - name: id
+        in: query
+        schema:
+          type: string
+      - name: type
+        in: query
+        schema:
+          type: string
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: offset
+        in: query
+        schema:
+          type: integer
+      - name: tag
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Tag content
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+  /v1.4/vodmetadata/get:
+    get:
+      tags:
+      - Content & VOD
+      summary: Get VOD program metadata
+      operationId: getVodProgramMetadata
+      parameters:
+      - name: content_id
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: VOD metadata
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: JioTvNonCDNApiInterface (smali_classes9)
+  /v1.4/list/add:
+    post:
+      tags:
+      - User Lists
+      summary: Add item to user list
+      operationId: addUserList
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListRequest'
+      responses:
+        '200':
+          description: Item added
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Add item to user list
+  /v3.0/list/add:
+    post:
+      tags:
+      - User Lists
+      summary: Add item to user list (v3.0)
+      operationId: addUserListV3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListRequest'
+      responses:
+        '200':
+          description: Item added
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Add item to user list (v3.0)
+  /v1.4/list/get:
+    post:
+      tags:
+      - User Lists
+      summary: Get user list items
+      operationId: getListChannel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListRequest'
+      responses:
+        '200':
+          description: User list items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get user list items
+  /v3.0/list/get:
+    post:
+      tags:
+      - User Lists
+      summary: Get user list items (v3.0)
+      operationId: getListV3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListRequest'
+      responses:
+        '200':
+          description: User list items
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Get user list items (v3.0)
+  /v1.4/list/deletecontent:
+    post:
+      tags:
+      - User Lists
+      summary: Remove item from user list
+      operationId: removeFromList
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListRequest'
+      responses:
+        '200':
+          description: Item removed
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Remove item from user list
+  /v3.0/list/deletecontent:
+    post:
+      tags:
+      - User Lists
+      summary: Remove item from user list (v3.0)
+      operationId: removeFromListV3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListRequest'
+      responses:
+        '200':
+          description: Item removed
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Remove item from user list (v3.0)
+  /v1.5/getuserlist/get:
+    post:
+      tags:
+      - User Lists
+      summary: Get personalized list
+      operationId: getPersonalizedList
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uniqueId:
+                  type: string
+      responses:
+        '200':
+          description: Personalized list
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get personalized list (legacy)
+  /v3.0/getuserlist/get:
+    post:
+      tags:
+      - User Lists
+      summary: Get personalized list (v3.0)
+      operationId: getPersonalizedListV3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Personalized list
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Get personalized list (v3.0)
+  /getuserlist/get:
+    post:
+      tags:
+      - User Lists
+      summary: Get personalized list (legacy)
+      operationId: getPersonalizedListLegacy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Personalized list
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+  /v1.6/recordings/add:
+    post:
+      tags:
+      - User Lists
+      summary: Add recording
+      operationId: recordProgram
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListRequest'
+      responses:
+        '200':
+          description: Recording added
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Add recording
+  /v3.0/recordings/add:
+    post:
+      tags:
+      - User Lists
+      summary: Add recording (v3.0)
+      operationId: recordProgramV3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListRequest'
+      responses:
+        '200':
+          description: Recording added
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Add recording (v3.0)
+  /v1.6/recordings/delete:
+    post:
+      tags:
+      - User Lists
+      summary: Delete recording
+      operationId: removeRecording
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListRequest'
+      responses:
+        '200':
+          description: Recording deleted
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Delete recording
+  /v3.0/recordings/delete:
+    post:
+      tags:
+      - User Lists
+      summary: Delete recording (v3.0)
+      operationId: removeRecordingV3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListRequest'
+      responses:
+        '200':
+          description: Recording deleted
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Delete recording (v3.0)
+  /beginsession/begin:
+    get:
+      tags:
+      - Configuration
+      summary: Begin session (legacy)
+      operationId: callBeginSession
+      parameters:
+      - name: lbcookie
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Session started
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Begin session (legacy)
+  /v1.3/beginsession/begin:
+    get:
+      tags:
+      - Configuration
+      summary: Begin session (v1.3)
+      operationId: callBeginSessionV1_3
+      parameters:
+      - name: lbcookie
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Session started
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali) or JioTvNonCDNApiInterface
+  /v3.0/beginsession/begin:
+    get:
+      tags:
+      - Configuration
+      summary: Begin session (v3.0)
+      operationId: callBeginSessionV3
+      parameters:
+      - name: lbcookie
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Session started
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Begin session (v3.0)
+  /3.0/legacy:
+    get:
+      tags:
+      - Configuration
+      summary: New session call (legacy compatibility)
+      operationId: newCallBeginSession
+      parameters:
+      - name: lbcookie
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Session started
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: New session call (legacy compatibility)
+  /apis/v1.3/dictionary/dictionary:
+    get:
+      tags:
+      - Configuration
+      summary: Get dictionary/resource strings
+      operationId: callDictionary
+      responses:
+        '200':
+          description: Dictionary data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceRootModel'
+      servers:
+      - url: https://jiotvapi.cdn.jio.com/apis/v1.3
+        description: Production
+      x-source: JioTvCDNApiInterface (smali_classes3)
+      description: Get dictionary/resource strings (CDN)
+  /dictionary/dictionary.json:
+    get:
+      tags:
+      - Configuration
+      summary: Get pre-login dictionary
+      operationId: getResourceStrings
+      responses:
+        '200':
+          description: Dictionary data
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PreLoginAPIInterface (smali_classes3)
+      description: Get pre-login dictionary
+  /v1.3/checkversion/checkversion:
+    get:
+      tags:
+      - Configuration
+      summary: Check app version update
+      operationId: checkVersionUpdate
+      parameters:
+      - name: versionCode
+        in: query
+        required: true
+        schema:
+          type: integer
+      - name: os
+        in: query
+        schema:
+          type: string
+      - name: deviceId
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Version check result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckAppUpdateModel'
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Check app version update
+  /checkversion/checkversion:
+    get:
+      tags:
+      - Configuration
+      summary: Check version (pre-login)
+      operationId: checkForUpdate
+      parameters:
+      - name: versionCode
+        in: query
+        required: true
+        schema:
+          type: integer
+      - name: os
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Version check result
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PreLoginAPIInterface (smali_classes3)
+      description: Check version (pre-login)
+  /getstatus/get:
+    get:
+      tags:
+      - Configuration
+      summary: Get server time / status
+      operationId: getTimeFromServer
+      responses:
+        '200':
+          description: Server status/time
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get server time/status
+  /misc/jiocoupons:
+    get:
+      tags:
+      - Miscellaneous
+      summary: Get coupon data
+      operationId: getCouponData
+      parameters:
+      - name: couponId
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Coupon data
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get coupon data
+  /share/social:
+    get:
+      tags:
+      - Miscellaneous
+      summary: Get share URL
+      operationId: getShareUrl
+      parameters:
+      - name: contentId
+        in: query
+        schema:
+          type: string
+      - name: type
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Share URL
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get share URL
+  /apis/common/v2.6/feedback/submit:
+    post:
+      tags:
+      - Miscellaneous
+      summary: Submit user feedback
+      operationId: sendFeedback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackModel'
+      responses:
+        '200':
+          description: Feedback submitted
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Submit user feedback
+  /misc/location:
+    get:
+      tags:
+      - Miscellaneous
+      summary: Get location data
+      operationId: callLocationAPI
+      responses:
+        '200':
+          description: Location data
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      description: Get location data
+  /getcameraurls/url:
+    post:
+      tags:
+      - Miscellaneous
+      summary: Get camera stream URLs
+      operationId: getCameraUrls
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CamUrlRequestModel'
+      responses:
+        '200':
+          description: Camera URLs
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get camera stream URLs
+  /v2.0/engagetoken/get:
+    get:
+      tags:
+      - Authentication
+      summary: Get JWT engagement token
+      operationId: getJWTToken
+      responses:
+        '200':
+          description: JWT token
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get JWT engagement token
+  /v2.0/gamestoken/get:
+    get:
+      tags:
+      - Games
+      summary: Get games authentication token
+      operationId: getGamesToken
+      responses:
+        '200':
+          description: Games token
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get games authentication token
+  /getembmschannellist/get:
+    post:
+      tags:
+      - Miscellaneous
+      summary: Get eMBMS channel list
+      operationId: getEmbmsList
+      parameters:
+      - name: channelId
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: eMBMS channel list
+      servers:
+      - url: https://jiotvapi.media.jio.com
+        description: Production
+      - url: https://jiotvqaapi.jio.ril.com
+        description: PreProd/QA
+      x-source: PostLoginAPIInterface (smali)
+      description: Get eMBMS channel list
+  /api/history/add:
+    post:
+      tags:
+      - JioStream Mini
+      summary: Add video to watch history
+      operationId: addToHistoryWatchedVideo
+      parameters:
+      - name: auth
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: contentType
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddToHistoryRequestBody'
+      responses:
+        '200':
+          description: Added to history
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/history/list:
+    get:
+      tags:
+      - JioStream Mini
+      summary: Get watch history
+      operationId: getHistoryUriList
+      parameters:
+      - name: auth
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Watch history
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/resolve/claims/v2:
+    post:
+      tags:
+      - JioStream Mini
+      summary: Resolve content claims
+      operationId: resolveClaims
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClaimUrlRequestBody'
+      responses:
+        '200':
+          description: Resolved claims data
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/comment/{claimId}/comments/v2:
+    get:
+      tags:
+      - JioStream Mini
+      summary: Get comments for content
+      operationId: getComments
+      parameters:
+      - name: claimId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Comments
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/comment/{videoId}/like/{commentId}:
+    post:
+      tags:
+      - JioStream Mini
+      summary: Like a comment
+      operationId: likeComment
+      parameters:
+      - name: auth
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: contentType
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: videoId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: commentId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LikeCommentRequestBody'
+      responses:
+        '200':
+          description: Comment liked
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/comment/{videoId}/dislike/{commentId}:
+    post:
+      tags:
+      - JioStream Mini
+      summary: Dislike a comment
+      operationId: dislikeComment
+      parameters:
+      - name: auth
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: contentType
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: videoId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: commentId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DislikeCommentRequestBody'
+      responses:
+        '200':
+          description: Comment disliked
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/video/list_homepage:
+    get:
+      tags:
+      - JioStream Mini
+      summary: Get trending videos
+      operationId: getTrendingUriList
+      parameters:
+      - name: offset
+        in: query
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: type
+        in: query
+        schema:
+          type: string
+      - name: sort
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Trending videos
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/channel/videos:
+    get:
+      tags:
+      - JioStream Mini
+      summary: Get more from channel
+      operationId: getMoreFromChannel
+      parameters:
+      - name: auth
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: channelId
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: offset
+        in: query
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: sort
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Channel videos
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/livestream/chat/list:
+    get:
+      tags:
+      - JioStream Mini
+      summary: Get live stream pinned chat messages
+      operationId: getPinChat
+      parameters:
+      - name: auth
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: contentType
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: streamId
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Pinned chat messages
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/playlist/add:
+    post:
+      tags:
+      - JioStream Mini
+      summary: Add to watch later
+      operationId: addToWatchLaterContent
+      parameters:
+      - name: auth
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: contentType
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddToWatchLaterBody'
+      responses:
+        '200':
+          description: Added to watch later
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/playlist/remove:
+    post:
+      tags:
+      - JioStream Mini
+      summary: Remove from watch later
+      operationId: removeFromWatchLaterContent
+      parameters:
+      - name: auth
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: contentType
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoveFromWatchLaterBody'
+      responses:
+        '200':
+          description: Removed from watch later
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/playlist/addedtowatchLater:
+    post:
+      tags:
+      - JioStream Mini
+      summary: Check if video is in watch later
+      operationId: getWatchLaterStatus
+      parameters:
+      - name: auth
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: contentType
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WatchLaterStatusBody'
+      responses:
+        '200':
+          description: Watch later status
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/likes/like:
+    post:
+      tags:
+      - JioStream Mini
+      summary: Like a video
+      operationId: likeVideo
+      parameters:
+      - name: auth
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: contentType
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LikeVideoRequestBody'
+      responses:
+        '200':
+          description: Video liked
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/likes/dislike:
+    post:
+      tags:
+      - JioStream Mini
+      summary: Dislike a video
+      operationId: dislikeVideo
+      parameters:
+      - name: auth
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: contentType
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DislikeVideoRequestBody'
+      responses:
+        '200':
+          description: Video disliked
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/likes/check:
+    post:
+      tags:
+      - JioStream Mini
+      summary: Check if video is liked
+      operationId: checkVideoLike
+      parameters:
+      - name: auth
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: contentType
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckLikedStatusRequestBody'
+      responses:
+        '200':
+          description: Like status
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/file/view_count:
+    post:
+      tags:
+      - JioStream Mini
+      summary: Register video view count
+      operationId: registerViewCount
+      parameters:
+      - name: auth
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: contentType
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ViewCountResponseBody'
+      responses:
+        '200':
+          description: View count registered
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/report/add:
+    post:
+      tags:
+      - JioStream Mini
+      summary: Report content
+      operationId: reportContent
+      parameters:
+      - name: auth
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: contentType
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportBody'
+      responses:
+        '200':
+          description: Content reported
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/subscription/add:
+    post:
+      tags:
+      - JioStream Mini
+      summary: Follow a creator
+      operationId: followCreator
+      parameters:
+      - name: auth
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: contentType
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FollowUnfollowBody'
+      responses:
+        '200':
+          description: Followed
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/subscription/delete:
+    post:
+      tags:
+      - JioStream Mini
+      summary: Unfollow a creator
+      operationId: unfollowCreator
+      parameters:
+      - name: auth
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: contentType
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FollowUnfollowBody'
+      responses:
+        '200':
+          description: Unfollowed
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/user/add:
+    post:
+      tags:
+      - JioStream Mini
+      summary: Get user token for stream
+      operationId: getTokenStream
+      parameters:
+      - name: auth
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: contentType
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenBody'
+      responses:
+        '200':
+          description: Token data
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/config/element/data:
+    get:
+      tags:
+      - JioStream Mini
+      summary: Get listing page element data
+      operationId: getListingPageData
+      parameters:
+      - name: elementId
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Element data
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/config/active:
+    get:
+      tags:
+      - JioStream Mini
+      summary: Get showcase page open data
+      operationId: getShowcasePageOpenData
+      parameters:
+      - name: store
+        in: query
+        schema:
+          type: string
+          enum:
+          - miniapp
+      - name: group
+        in: query
+        schema:
+          type: string
+          enum:
+          - open
+      responses:
+        '200':
+          description: Showcase page data
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /api/v1/analytics/activities:
+    post:
+      tags:
+      - Analytics
+      summary: Send analytics event (JioStream SDK)
+      operationId: sendClickAnalyticsEvent
+      parameters:
+      - name: contentType
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: cookie
+        in: header
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyticsResponseBody'
+      responses:
+        '200':
+          description: Event received
+      servers:
+      - url: https://tv.media.jio.com/apis
+        description: Production
+      - url: https://jiotv.jio.ril.com/apis
+        description: PreProd/QA
+  /postdata/B:
+    post:
+      tags:
+      - Analytics
+      summary: Begin analytics session (Cinema)
+      operationId: beginCinemaAnalytics
+      servers:
+      - url: https://collect.media.jio.com
+        description: Production
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Session began
+      x-source: ApiHelper (smali_classes7) / AnalyticsApiService (smali_classes9)
+  /postdata/event:
+    post:
+      tags:
+      - Analytics
+      summary: Send analytics event (Cinema)
+      operationId: sendCinemaEvents
+      servers:
+      - url: https://collect.media.jio.com
+        description: Production
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Event received
+      x-source: ApiHelper (smali_classes7) / AnalyticsApiService (smali_classes9)
+  /jionetwork/v2/get_client_ip:
+    get:
+      tags:
+      - Configuration
+      summary: Get client IP address
+      operationId: getClientIp
+      servers:
+      - url: http://api.media.jio.com/apis
+        description: Production
+      responses:
+        '200':
+          description: Client IP
+      x-source: AppConfigModel (smali_classes5)
+      description: Get client IP address
+  /jionetwork/v2:
+    get:
+      tags:
+      - Configuration
+      summary: Get network info
+      operationId: getNetworkInfo
+      servers:
+      - url: http://tv.media.jio.com/apis
+        description: Production
+      responses:
+        '200':
+          description: Network info
+      x-source: AppConfigModel (smali_classes5)
+      description: Get network info
+  /jionetwork/v2/testip:
+    get:
+      tags:
+      - Configuration
+      summary: Test network IP
+      operationId: testNetworkIp
+      servers:
+      - url: http://tv.media.jio.com/apis
+        description: Production
+      responses:
+        '200':
+          description: IP test result
+      x-source: AppConfigModel (smali_classes5)
+      description: Get network info
+components:
+  securitySchemes:
+    ssoToken:
+      type: apiKey
+      in: header
+      name: ssotoken
+    authToken:
+      type: apiKey
+      in: header
+      name: auth
+    lbcookie:
+      type: apiKey
+      in: header
+      name: lbcookie
+  schemas:
+    ResponseBaseModel:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        data:
+          type: object
+        message:
+          type: string
+    OtpRequest:
+      type: object
+      properties:
+        mobile:
+          type: string
+          description: Mobile number
+    OtpCheckRequest:
+      type: object
+      properties:
+        mobile:
+          type: string
+        otp:
+          type: string
+        deviceInfo:
+          $ref: '#/components/schemas/DeviceInfo'
+    DeviceInfo:
+      type: object
+      properties:
+        deviceId:
+          type: string
+        info:
+          type: object
+          properties:
+            model:
+              type: string
+            manufacturer:
+              type: string
+    VerifyOtpResponse:
+      type: object
+      properties:
+        ssoToken:
+          type: string
+        authToken:
+          type: string
+        refreshToken:
+          type: string
+        deviceLimitExceeded:
+          $ref: '#/components/schemas/DeviceLimitExceeded'
+    DeviceLimitExceeded:
+      type: object
+      properties:
+        message:
+          type: string
+        show_device_list:
+          type: boolean
+    RefreshSsoTokenResponse:
+      type: object
+      properties:
+        ssoToken:
+          type: string
+    ExchangeTokenRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+        deviceId:
+          type: string
+    ExchangeTokenResponse:
+      type: object
+      properties:
+        authToken:
+          type: string
+        refreshToken:
+          type: string
+    GuestAuthRequest:
+      type: object
+      properties:
+        deviceId:
+          type: string
+    GuestAuthTokenResponse:
+      type: object
+      properties:
+        authToken:
+          type: string
+    RefreshAuthTokenResponse:
+      type: object
+      properties:
+        authToken:
+          type: string
+        refreshToken:
+          type: string
+        deviceLimitExceeded:
+          $ref: '#/components/schemas/DeviceLimitExceeded'
+    ShortTokenResponse:
+      type: object
+      properties:
+        shortToken:
+          type: string
+    ExpireAllUsersResponse:
+      type: object
+      properties:
+        authToken:
+          type: string
+        refreshToken:
+          type: string
+        ssoToken:
+          type: string
+    ChannelListRootModel:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        result:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChannelModel'
+    ChannelModel:
+      type: object
+      properties:
+        channelId:
+          type: integer
+          format: int64
+        channelName:
+          type: string
+        channelIdForRedirect:
+          type: string
+        logoUrl:
+          type: string
+        channelCategoryId:
+          type: integer
+        channelLanguageId:
+          type: integer
+        channelPosition:
+          type: integer
+        broadcasterId:
+          type: integer
+        aspectRatio:
+          type: string
+        isHD:
+          type: boolean
+        isCatchupAvailable:
+          type: boolean
+        isFavorite:
+          type: boolean
+        isPlayAlongEnabled:
+          type: integer
+        playAlongUrl:
+          type: string
+        playAlongIconUrl:
+          type: string
+        businessType:
+          type: string
+        planType:
+          type: string
+        screenType:
+          type: integer
+        isAdsEnabled:
+          type: boolean
+        isMidRoleEnabled:
+          type: boolean
+        enableVideoInterstitial:
+          type: boolean
+        isCam:
+          type: integer
+        isEmbmsChannel:
+          type: boolean
+        isFingerPrint:
+          type: boolean
+        isNewPDP:
+          type: integer
+        isSoreCardEnabled:
+          type: boolean
+        concurrencyCode:
+          type: integer
+        concurrentEnabled:
+          type: boolean
+        enableMidRollAds:
+          type: integer
+        preRollAdSpotId:
+          type: string
+        midRollAdSpotId:
+          type: string
+        postRollAdSpotId:
+          type: string
+        nativeInfeedAdSpotId:
+          type: string
+        midrollCompanionAdSpotId:
+          type: string
+        prerollCompanionAdSpotId:
+          type: string
+        carouselAdSpotId:
+          type: string
+        tab_deep_link:
+          type: string
+        themeForVr:
+          type: integer
+        serverDate:
+          type: string
+        recentsEnabled:
+          type: boolean
+        showPDPExtra:
+          type: boolean
+        pdpExtra:
+          type: string
+    ChannelUrlRequest:
+      type: object
+      properties:
+        channel_id:
+          type: integer
+          format: int64
+        programId:
+          type: string
+        showTime:
+          type: string
+        srno:
+          type: string
+        stream_type:
+          type: string
+        begin:
+          type: string
+        end:
+          type: string
+    ChannelUrlModel:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        result:
+          type: string
+          description: Stream URL
+        mpd:
+          $ref: '#/components/schemas/Mpd'
+        cast:
+          type: string
+        languages:
+          type: array
+          items:
+            $ref: '#/components/schemas/VideoSupportedLanguageModel'
+        adsConfig:
+          $ref: '#/components/schemas/AdsConfig'
+        bitrateConfig:
+          $ref: '#/components/schemas/BitrateConfig'
+        isDRM:
+          type: boolean
+        playbackToken:
+          type: string
+        ssai:
+          $ref: '#/components/schemas/SsaiModel'
+        vodStitch:
+          type: boolean
+        algoName:
+          type: string
+        algoNumber:
+          type: integer
+        extId:
+          type: string
+        bitrates:
+          $ref: '#/components/schemas/VideoQualityLabelModel'
+    Mpd:
+      type: object
+      properties:
+        result:
+          type: string
+          description: DASH manifest URL
+        key:
+          type: string
+          description: DRM key
+        bitrates:
+          $ref: '#/components/schemas/VideoQualityLabelModel'
+    SsaiModel:
+      type: object
+      properties:
+        ssaiPlaybackUrl:
+          type: string
+          description: Server-side ad insertion URL
+        bitrates:
+          $ref: '#/components/schemas/VideoQualityLabelModel'
+    VideoQualityLabelModel:
+      type: object
+      properties:
+        auto:
+          type: string
+        high:
+          type: string
+        medium:
+          type: string
+        low:
+          type: string
+    BitrateConfig:
+      type: object
+      properties:
+        low:
+          $ref: '#/components/schemas/BitrateValue'
+        mid:
+          $ref: '#/components/schemas/BitrateValue'
+        high:
+          $ref: '#/components/schemas/BitrateValue'
+    BitrateValue:
+      type: object
+      properties:
+        min:
+          type: integer
+        max:
+          type: integer
+    AdsConfig:
+      type: object
+      properties:
+        vmapUrl:
+          type: string
+        sonyVodStitchAdsCpCustomerID:
+          $ref: '#/components/schemas/SonyVodStitchAdsCpCustomerID'
+    SonyVodStitchAdsCpCustomerID:
+      type: object
+      properties:
+        preroll:
+          type: string
+        midroll:
+          type: string
+        postroll:
+          type: string
+    VideoSupportedLanguageModel:
+      type: object
+      properties:
+        name:
+          type: string
+        url:
+          type: object
+          properties:
+            auto:
+              type: string
+            high:
+              type: string
+            medium:
+              type: string
+            low:
+              type: string
+        isSelected:
+          type: boolean
+        channel_id:
+          type: integer
+    EPGRootModel:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        result:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChannelScheduleModel'
+    ChannelScheduleModel:
+      type: object
+      properties:
+        channelId:
+          type: integer
+          format: int64
+        chanelName:
+          type: string
+        channelCategoryName:
+          type: string
+        channelPosition:
+          type: integer
+        broadcasterId:
+          type: integer
+          format: int64
+        logoUrl:
+          type: string
+        screenType:
+          type: integer
+          format: int64
+        serverDate:
+          type: string
+        isCam:
+          type: boolean
+        epg:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProgramModel'
+    ProgramModel:
+      type: object
+      properties:
+        contentId:
+          type: string
+        showname:
+          type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+        episodeNum:
+          type: integer
+        episodeDesc:
+          type: string
+        episodePoster:
+          type: string
+        episodeThumbnail:
+          type: string
+        description:
+          type: string
+        director:
+          type: string
+        starCast:
+          type: string
+        channelPlanType:
+          type: string
+        isCatchupAvailable:
+          type: boolean
+        isChannel:
+          type: boolean
+        isCinema:
+          type: boolean
+        isDownloadable:
+          type: boolean
+        canRecord:
+          type: boolean
+        deepLink:
+          type: string
+        deepLinkAndroid:
+          type: string
+        contentType:
+          type: string
+        duration:
+          type: integer
+        logoUrl:
+          type: string
+        showCategory:
+          type: string
+        showGenre:
+          type: array
+          items:
+            type: string
+        showLanguageId:
+          type: integer
+        isAvod:
+          type: integer
+        clipActive:
+          type: integer
+        clipName:
+          type: string
+        clipDescription:
+          type: string
+        clipThumbnail:
+          type: string
+        clipDuration:
+          type: string
+        clipProviderVideoId:
+          type: string
+        clipReleaseDateTime:
+          type: string
+        srno:
+          type: string
+    PastProgramsModel:
+      type: object
+      properties:
+        channelId:
+          type: integer
+        channelName:
+          type: string
+        channelLogoUrl:
+          type: string
+        code:
+          type: string
+        contentId:
+          type: string
+        startTimeInMS:
+          type: integer
+          format: int64
+        endTimeInMS:
+          type: integer
+          format: int64
+        pastData:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProgramModel'
+        recentData:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProgramModel'
+    LiveChannelModel:
+      type: object
+      properties:
+        channelList:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChannelModel'
+    ListRequest:
+      type: object
+      properties:
+        listId:
+          type: integer
+          description: 12=favorite_channel, 11=recent_channel, 21=recent_program, 22=favorite_program, 23=recording_program
+        id:
+          type: string
+        json:
+          type: object
+    ListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProgramModel'
+            unique:
+              type: boolean
+    RemovableMoviesModel:
+      type: object
+      properties:
+        contentId:
+          type: string
+    SubscriptionRootModel:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        subscriptionPackage:
+          $ref: '#/components/schemas/SubscriptionPackage'
+    SubscriptionPackage:
+      type: object
+      properties:
+        packsData:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionPlan'
+    SubscriptionPlan:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        price:
+          type: integer
+        actualPrice:
+          type: integer
+        discount:
+          type: string
+        validity:
+          type: integer
+        description:
+          type: array
+          items:
+            type: string
+        notes:
+          type: array
+          items:
+            type: string
+        providers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Provider'
+    Provider:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        image:
+          type: string
+        provider:
+          type: string
+    FeatureResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FeatureModel'
+    FeatureModel:
+      type: object
+      properties:
+        commonData:
+          type: array
+          items: {}
+        data:
+          type: array
+          items: {}
+        gamesData:
+          type: array
+          items: {}
+        jioCinemaData:
+          type: array
+          items: {}
+        newsData:
+          type: array
+          items: {}
+        promoSearchData:
+          type: array
+          items: {}
+        sportsData:
+          type: array
+          items: {}
+        totalPages:
+          type: integer
+    SearchModel:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SearchData'
+    SearchData:
+      type: object
+      properties:
+        channels:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChannelModel'
+        catchup:
+          type: array
+          items: {}
+        live:
+          type: array
+          items: {}
+        movies:
+          type: array
+          items: {}
+        shows:
+          type: array
+          items: {}
+        videos:
+          type: array
+          items: {}
+        games:
+          type: array
+          items: {}
+        future:
+          type: array
+          items: {}
+    FeedbackModel:
+      type: object
+      description: Feedback submission with obfuscated Gson keys
+      properties:
+        avn:
+          type: string
+          description: App version name
+        phone:
+          type: string
+        akey:
+          type: string
+          description: Auth key
+        lng:
+          type: string
+          description: Longitude
+        lat:
+          type: string
+          description: Latitude
+        uid:
+          type: string
+          description: User ID
+        text:
+          type: string
+          description: Feedback text
+        sub:
+          type: string
+          description: Subject/category
+        crmid:
+          type: string
+        profileid:
+          type: string
+        idamid:
+          type: string
+        sdv:
+          type: string
+        did:
+          type: string
+          description: Device ID
+        pf:
+          type: string
+          description: Platform
+        nwk:
+          type: string
+          description: Network type
+        dtpe:
+          type: string
+          description: Device type
+        dev:
+          type: string
+          description: Device model
+        lle:
+          type: string
+        osv:
+          type: string
+          description: OS version
+        c:
+          type: string
+        mod:
+          type: string
+        res:
+          type: string
+        os:
+          type: string
+        prd:
+          type: string
+        den:
+          type: string
+        mnu:
+          type: string
+        ori:
+          type: string
+        pck:
+          type: string
+    CheckAppUpdateModel:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/CheckAppUpdateData'
+    CheckAppUpdateData:
+      type: object
+      properties:
+        heading:
+          type: string
+        description:
+          type: string
+        mandatory:
+          type: boolean
+        url:
+          type: string
+        version:
+          type: integer
+    ResourceRootModel:
+      type: object
+      description: Contains hundreds of localization/UI string fields
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+    ScoreCardConfig:
+      type: object
+      properties:
+        title:
+          type: string
+        seriesName:
+          type: string
+        seriesid:
+          type: string
+        matchId:
+          type: string
+        imageUrl:
+          type: string
+        deeplink:
+          type: string
+        date:
+          type: string
+        channels:
+          type: array
+          items:
+            type: object
+        persistentStatus:
+          type: boolean
+        startDescription:
+          type: string
+    CamUrlRequestModel:
+      type: object
+      properties:
+        cameraId:
+          type: string
+        languageId:
+          type: string
+        streamType:
+          type: string
+    ShareRequest:
+      type: object
+      properties:
+        deeplink:
+          type: string
+        description:
+          type: string
+        episodeThumbnail:
+          type: string
+        title:
+          type: string
+    AppConfigModel:
+      type: object
+      description: Massive configuration model with 100+ fields controlling app behavior, feature flags, ad configs, UI settings, and API paths. Key fields documented below.
+      properties:
+        apisBasePath:
+          type: string
+        apiBasePathVOD:
+          type: string
+        cdnApiBasePath:
+          type: string
+        categoryBaseUrl:
+          type: string
+        apiRetryCount:
+          type: integer
+        apiTimeout:
+          type: integer
+        bufferTimeout:
+          type: integer
+        adsEnable:
+          type: boolean
+        adsConfig:
+          type: object
+        JioCinemaRedirection:
+          type: boolean
+        autoplayType:
+          type: string
+        autoplaySource:
+          type: string
+        URL_WIFI_NETWORK_CHECK:
+          type: string
+        URL_CHECK_ZLA_NETWORK:
+          type: string
+        appLanguagesList:
+          type: array
+          items:
+            type: string
+        bottomTabList:
+          type: array
+          items: {}
+        carouselAdSpotList:
+          type: array
+          items: {}
+        carouselAdsPosition:
+          type: string
+        broadcastAvailabilityCheckTimeout:
+          type: integer
+        broadcastDeviceBatteryLevelThreshold:
+          type: integer
+        broadcastDeviceTemperatureThresholdOnBattery:
+          type: integer
+        broadcastDeviceTemperatureThresholdOnCharging:
+          type: integer
+        broadcastStartIfDeviceMoving:
+          type: boolean
+        broadcastTimeout:
+          type: integer
+        broadcastUnicastConfig:
+          type: object
+        catchupWriteTime:
+          type: integer
+        DEFAULT_MIN_BUFFER_MS_LIVE:
+          type: integer
+        DEFAULT_MAX_BUFFER_MS_LIVE:
+          type: integer
+        DEFAULT_BUFFER_FOR_PLAYBACK_MS_LIVE:
+          type: integer
+        DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS_LIVE:
+          type: integer
+        DEFAULT_MIN_BUFFER_MS_CATCHUP:
+          type: integer
+        DEFAULT_MAX_BUFFER_MS_CATCHUP:
+          type: integer
+        DEFAULT_BUFFER_FOR_PLAYBACK_MS_CATCHUP:
+          type: integer
+        DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS_CATCHUP:
+          type: integer
+        DEFAULT_MIN_BUFFER_MS_VOD:
+          type: integer
+        DEFAULT_MAX_BUFFER_MS_VOD:
+          type: integer
+        DEFAULT_BUFFER_FOR_PLAYBACK_MS_VOD:
+          type: integer
+        DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS_VOD:
+          type: integer
+        PlayAlongIconInPortraitMode:
+          type: string
+        SportViewsHeight:
+          type: integer
+    AddToHistoryRequestBody:
+      type: object
+      properties:
+        claimId:
+          type: string
+        duration:
+          type: string
+    ClaimUrlRequestBody:
+      type: object
+      properties:
+        claimIds:
+          type: array
+          items:
+            type: string
+        contentType:
+          type: string
+    LikeCommentRequestBody:
+      type: object
+      properties:
+        claimId:
+          type: string
+    DislikeCommentRequestBody:
+      type: object
+      properties:
+        dislike:
+          type: boolean
+    AddToWatchLaterBody:
+      type: object
+      properties:
+        claimId:
+          type: string
+        contentType:
+          type: string
+        channelClaimId:
+          type: string
+    RemoveFromWatchLaterBody:
+      type: object
+      properties:
+        claimId:
+          type: string
+        contentType:
+          type: string
+    WatchLaterStatusBody:
+      type: object
+      properties:
+        claimId:
+          type: string
+    ViewCountResponseBody:
+      type: object
+      properties:
+        claimId:
+          type: string
+    ReportBody:
+      type: object
+      properties:
+        claimId:
+          type: string
+        reportType:
+          type: string
+        description:
+          type: string
+    LikeVideoRequestBody:
+      type: object
+      properties:
+        claimId:
+          type: string
+        channelClaimId:
+          type: string
+        isLike:
+          type: boolean
+    DislikeVideoRequestBody:
+      type: object
+      properties:
+        claimId:
+          type: string
+        channelClaimId:
+          type: string
+        isDislike:
+          type: boolean
+    CheckLikedStatusRequestBody:
+      type: object
+      properties:
+        claimId:
+          type: string
+    FollowUnfollowBody:
+      type: object
+      properties:
+        creatorId:
+          type: string
+        contentType:
+          type: string
+    TokenBody:
+      type: object
+      properties:
+        claimId:
+          type: string
+    AnalyticsResponseBody:
+      type: object
+      properties:
+        eventName:
+          type: string
+        properties:
+          type: object
+security:
+- ssoToken: []
+- authToken: []
