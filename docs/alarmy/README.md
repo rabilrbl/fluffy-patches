@@ -27,15 +27,17 @@ Alarmy uses Google Pairip DRM to verify APK signature and Google Play license. T
 | Smali | Kotlin Metadata | Purpose |
 |-------|-----------------|---------|
 | `pi/b` | `PremiumState` | Core premium state data class |
-| `pi/d` | `PremiumType` | Enum: GOOGLE_SUBSCRIPTION, DELIGHTROOM_SUBSCRIPTION, REMOVE_AD_SUBSCRIPTION, LIFETIME, PLAYPASS, NONE, MANUAL |
-| `pi/c` | `PremiumStateType` | Enum: ACTIVE, ACCOUNT_HOLD, CANCEL, EXPIRED, FAIL |
-| `th/b` | `UserSubscriptionStatusDelegatorImpl` | Repository that fetches and caches premium state |
-| `gj/a` | `UserSubscriptionStatusDelegator` | Interface for accessing premium state |
-
-### Premium Check Methods
-
-All premium gating flows through `pi/b`:
-
+| Patch | Target | What it does |
+|-------|--------|--------------|
+| Bypass pairip license verification | `AndroidManifest.xml` | Replaces Application class with `AlarmyApp`, removes `LicenseContentProvider` and `LicenseActivity`, sets `extractNativeLibs=true` |
+| Disable pairip VM load | `VMRunner.<clinit>()` | Returns immediately, preventing `libpairipcore.so` from loading — this native library's `JNI_OnLoad` runs background integrity checks that detect APK modifications |
+| Disable pairip content provider | `LicenseContentProvider.onCreate()` | Returns immediately without creating a `LicenseClient` |
+| Disable pairip signature check | `SignatureCheck.verifyIntegrity()` | Returns immediately; prevents APK signature mismatch detection |
+| Disable pairip license check | `LicenseClient.initializeLicenseCheck()` | Returns immediately; prevents Google Play license verification |
+| Disable pairip paywall | `LicenseClient.startPaywallActivity()` | Returns immediately; prevents the "Get this app from Play" redirect |
+| Disable pairip error dialog | `LicenseClient.startErrorDialogActivity()` and `handleError()` | Returns immediately; prevents error dialogs |
+| Disable pairip license activity | `LicenseActivity.onStart()` | Finishes the activity immediately if somehow launched |
+| Disable pairip response validation | `LicenseResponseHelper.validateResponse()` | Returns immediately; treats any license response as valid |
 | Smali Name | Kotlin Name | Logic |
 |------------|-------------|-------|
 | `r()` | `isPremium()` | Returns true if any premium type is active (lifetime, playpass, google, manual, delightroom) |

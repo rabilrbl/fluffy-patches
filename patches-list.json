@@ -14,6 +14,18 @@
       "options": []
     },
     {
+      "name": "Disable pairip VM load",
+      "description": "Patches VMRunner.<clinit>() to return immediately, preventing libpairipcore.so from loading. The native library's JNI_OnLoad runs background integrity checks that detect APK modifications and trigger the paywall independently of the Java-side checks.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "droom.sleepIfUCan": [
+          "26.23.0"
+        ]
+      },
+      "options": []
+    },
+    {
       "name": "Disable pairip content provider",
       "description": "Patches LicenseContentProvider.onCreate() to return immediately without creating a LicenseClient, preventing the first license check entry point.",
       "use": true,

@@ -55,6 +55,26 @@ val bypassPairipPatch = resourcePatch(
 }
 
 @Suppress("unused")
+val disablePairipVMLoadPatch = bytecodePatch(
+    name = "Disable pairip VM load",
+    description = "Patches VMRunner.<clinit>() to return immediately, preventing libpairipcore.so from loading. The native library's JNI_OnLoad runs background integrity checks that detect APK modifications and trigger the paywall independently of the Java-side checks.",
+) {
+    compatibleWith(COMPATIBILITY_ALARMY)
+
+    execute {
+        classDefBy("Lcom/pairip/VMRunner;")
+            .methods.first { it.name == "<clinit>" }
+            .toMutable()
+            .addInstructions(
+                0,
+                """
+                    return-void
+                """,
+            )
+    }
+}
+
+@Suppress("unused")
 val disablePairipContentProviderPatch = bytecodePatch(
     name = "Disable pairip content provider",
     description = "Patches LicenseContentProvider.onCreate() to return immediately without creating a LicenseClient, preventing the first license check entry point.",
