@@ -1,3 +1,10 @@
+# [1.0.0-dev.16](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.15...v1.0.0-dev.16) (2026-06-03)
+
+
+### Features
+
+* **alarmy:** add pairip license and signature bypass patches ([8e079c3](https://github.com/rabilrbl/fluffy-patches/commit/8e079c32b3f95b3c3a5986f265ce6b92ac76ee22))
+
 # [1.0.0-dev.15](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.14...v1.0.0-dev.15) (2026-06-03)
 
 
