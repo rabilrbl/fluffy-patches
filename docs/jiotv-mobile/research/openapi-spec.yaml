@@ -13,12 +13,65 @@ info:
     name: Unlicensed
   contact:
     name: JioTV Mobile
-  x-verification-note: Auth flow verified. OTP send (POST v1/loginotp/send with base64-encoded number) returns 204.
-    OTP verify (POST v2/loginotp/verify) returns 200 with authToken, ssoToken, refreshToken. Required headers for authenticated
-    endpoints: appName= RJIL_JioTV, ssotoken, accesstoken, deviceId, uniqueId, usertype, versionCode=371, os=android, devicetype=phone, Connection=close.
-    v2.x endpoints on tv.media.jio.com/apis/ respond with 400 (reachable, need correct body params).
-    v3.0+ endpoints on jiotvapi.media.jio.com/ return 404 (may be decommissioned or require different auth).
-    CDN endpoints (jiotvapi.cdn.jio.com) return 200 (dictionary verified).
+  x-verification-note: |
+    Comprehensive curl verification results (2026-05-11):
+
+    WORKING (200 without auth):
+    - GET /v2.0/carousel/get?tabid=0 → 200
+    - GET /v2.1/carousel/get?tabid=0 → 200
+    - GET /v2.2/carousel/get?tabid=0 → 200
+    - GET /v3.1/promotedsearch/get → 200 (trending searches data)
+    - GET /v1.3/checkversion/checkversion?os=android&devicetype=phone&version=371 → 200
+    - GET jiotvapi.cdn.jio.com/apis/v1.3/dictionary/dictionary → 200
+    - POST /v1/loginotp/send {"number":"<base64>"} → 204
+    - POST /v2/loginotp/verify → 400 with wrong OTP (endpoint exists)
+
+    WORKING (200 with guest auth token):
+    Guest token: POST https://auth.media.jio.com/tokenservice/apis/v1/guest
+    Body: {"appName":"RJIL_JioTV","deviceId":"...","os":"android","deviceType":"phone"}
+    - GET /v2.0/home/get?page=0&tabid=0 → 200 (featuredNewData with channels)
+    - GET /v3.0/home/get?page=0&tabid=0 → 200
+    - GET /v3.0/beginsession/begin → 200 (GET only, POST returns 405)
+    - Guest token works as `accesstoken` header; v3.x endpoints return "version not supported"
+    - Most v1.x search/cinema/list endpoints still 400 (need ssoToken from OTP verify)
+
+    VALID (400 = needs auth/params):
+    tv.media.jio.com/apis/: /v1.9|v2.1|v2.2/search/search, /v1.9/search/searchauto,
+    /v1.8/cinema/watchlistget, /v1.8/cinema/getmetadata, /v1.8/getdata/movies,
+    /v1.4/foryousection/get, /v1.6/getdata/featurednew, /v1.7/getdata/featurednews|featuredsports,
+    /v1.3/cdntoken/get, /v1.3/subscription/getpackagelist, /v2.0/tab/seeall
+    tv.media.jio.com/apis/ POST endpoints: /v3.0/list/(get/add/deletecontent),
+    /v3.0/recordings/(add/delete), /v3.0/userlanguage/set
+    jiotvapi.cdn.jio.com/apis/: /v1.4/vodcategorydata/get, /v1.4/vodmetadata/get, /v1.4/tag/get
+
+    SERVER ERROR (500):
+    - GET /v1.4/getdata/promotional → 500
+
+    DECOMMISSIONED (404) on tv.media.jio.com/apis/:
+    /v1.4/recents/getrecents, /v1.4/list/(get/add/deletecontent),
+    /v1.5/getuserlist/get, /v1.6/recordings/(add/delete),
+    /gettrending/get, /gettweets/get, /v1.4/scorecard/get,
+    /v2.2/getchannelurl/getchannelurl, /v2.0/getchannelurl/getchannelurl,
+    /beginsession/begin, /getMobileChannelList/get, /v1.4/userlanguage/set,
+    /v2.0/tab/categoryseeall, /getconfiguration
+
+    DECOMMISSIONED (404) on jiotvapi.media.jio.com:
+    ALL v3.0+ paths on jiotvapi base domain (moved to tv.media.jio.com/apis/)
+    Also: /logout/logout, /v1.3/getMobileChannelList/get, /v1.3/getepg/get,
+    /live/channels, /live/category, /getstatus/get
+
+    KEY DISCOVERY: v3.0+ endpoints work on tv.media.jio.com/apis/ (NOT jiotvapi.media.jio.com)
+    v3.0/home/get → 200, v3.0/carousel/get → 400, v3.1/promotedsearch/get → 200
+    v3.0/list/get → 405 (needs POST), v3.0/beginsession/begin → 200
+
+    AUTH TOKEN ENDPOINTS:
+    - POST https://jiotvapi.media.jio.com/userservice/apis/v1/loginotp/send → 204
+    - POST https://jiotvapi.media.jio.com/userservice/apis/v2/loginotp/verify → 200 with tokens
+    - POST https://auth.media.jio.com/tokenservice/apis/v1/guest → 200 with guest authToken
+    - POST https://auth.media.jio.com/tokenservice/apis/v2/refreshtoken → 400 (needs valid refreshToken)
+
+    REDIRECTS (301→200 with trailing slash):
+    /misc/location/, /misc/jiocoupons/
 servers:
 - url: https://tv.media.jio.com/apis
   description: Default - Production Main API (each path overrides with exact base URL)
@@ -75,8 +128,10 @@ paths:
             schema:
               $ref: '#/components/schemas/OtpRequest'
       responses:
+        '204':
+          description: OTP sent successfully (No Content)
         '200':
-          description: OTP sent
+          description: OTP sent (legacy response)
           content:
             application/json:
               schema:
@@ -116,7 +171,7 @@ paths:
                 $ref: '#/components/schemas/VerifyOtpResponse'
       x-source: JioTvLoginApiInterface (smali_classes4)
       x-verified: true
-      x-verified-note: 'Confirmed: POST with {"number":"<base64-phone>","otp":"002917","deviceInfo":{...}} returns 200 with authToken, ssoToken, refreshToken, sessionAttributes'
+      x-verified-note: 'Confirmed: POST with {"number":"<base64-phone>","otp":"002917","deviceInfo":{...}} returns 200 with authToken, ssoToken, refreshToken, sessionAttributes. Returns 400 with wrong OTP.'
       description: Verify OTP and authenticate
   /jsclient/v3/dip/user/otp/send:
     post:
@@ -187,25 +242,35 @@ paths:
         description: PreProd/QA
       x-source: PreLoginAPIInterface (smali_classes3)
   /v2.0/loginotp/refresh:
-    get:
+    post:
       tags:
       - Authentication
       summary: Refresh SSO token
       operationId: refreshSsoToken
-      parameters:
-      - name: ssoToken
-        in: query
+      requestBody:
         required: true
-        schema:
-          type: string
-      - name: uniqueId
-        in: query
-        schema:
-          type: string
-      - name: channel_id
-        in: query
-        schema:
-          type: string
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                appName:
+                  type: string
+                  description: Always "RJIL_JioTV"
+                deviceId:
+                  type: string
+                os:
+                  type: string
+                  description: Always "android"
+                deviceType:
+                  type: string
+                  description: Always "phone"
+                uniqueId:
+                  type: string
+                  description: Required for logged-in users
+                refreshToken:
+                  type: string
+                  description: Required for logged-in users
       responses:
         '200':
           description: Refreshed SSO token
@@ -219,6 +284,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'Confirmed POST (not GET). Returns 400 without valid refresh token body.'
       description: Refresh SSO token
   /v1/loginotp/exchangetoken:
     post:
@@ -245,6 +313,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ExchangeTokenResponse'
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'POST with {"number":"<base64-phone>"} on userservice/apis returns 400. Endpoint exists. Correct domain is jiotvapi.media.jio.com/userservice/apis/.'
       description: Exchange token for auth/refresh tokens
   /v1/guest:
     post:
@@ -266,11 +337,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/GuestAuthTokenResponse'
       servers:
-      - url: https://jiotvapi.media.jio.com
+      - url: https://auth.media.jio.com/tokenservice/apis
         description: Production
-      - url: https://jiotvqaapi.jio.ril.com
+      - url: https://jiotvqaapi.jio.ril.com/tokenservice/apis
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      x-verified: true
+      x-verified-status: 200
+      x-verified-note: 'POST with {"appName":"RJIL_JioTV","deviceId":"...","os":"android","deviceType":"phone"} returns guest authToken (JWT). Works as accesstoken header for v2.x+ endpoints.'
       description: Get guest auth token
   /v2/refreshtoken:
     post:
@@ -297,11 +371,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/RefreshAuthTokenResponse'
       servers:
-      - url: https://jiotvapi.media.jio.com/userservice/apis
+      - url: https://auth.media.jio.com/tokenservice/apis
         description: Production
-      - url: https://jiotvqaapi.jio.ril.com/userservice/apis
+      - url: https://jiotvqaapi.jio.ril.com/tokenservice/apis
         description: PreProd/QA
-      x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      x-source: PostLoginNewSystemApiInterface (smali_classes6) / com.jio.jioplayer.h.a (smali_classes3)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'POST with {"appName":"RJIL_JioTV","deviceId":"...","os":"android","deviceType":"phone","uniqueId":"...","refreshToken":"..."} - returns 400 with invalid refreshToken, 401 with expired token. Correct domain is auth.media.jio.com not jiotvapi.media.jio.com.'
       description: Refresh auth token
   /v1/generateshorttoken:
     post:
@@ -370,7 +447,9 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
-      description: Logout (legacy)
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Logout (legacy)
   /v1/logout:
     post:
       tags:
@@ -392,7 +471,9 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
-      description: Logout (new system)
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Logout (new system)
   /v2.0/home/get:
     get:
       tags:
@@ -400,6 +481,10 @@ paths:
       summary: Get home tab data (v2.0)
       operationId: getTabDataV2
       parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
       - name: tabId
         in: query
         required: true
@@ -422,6 +507,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: JioTvNonCDNApiInterface (smali_classes9)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'GET /v2.0/home/get?page=0&tabid=0 returns 400 (needs ssotoken)'
       description: Get home tab data (v2.0)
   /v3.0/home/get:
     get:
@@ -443,11 +531,14 @@ paths:
         '200':
           description: Home data
       servers:
-      - url: https://jiotvapi.media.jio.com
+      - url: https://tv.media.jio.com/apis
         description: Production
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      x-verified: true
+      x-verified-status: 200
+      x-verified-note: '200 with guest accesstoken. Returns featuredNewData array with channel items.'
       description: Get home tab data (v3.x)
   /v3.2/home/get:
     get:
@@ -474,6 +565,8 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      x-decommissioned: true
+      x-verified-status: 404
   /v3.4/home/get:
     get:
       tags:
@@ -524,6 +617,8 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      x-decommissioned: true
+      x-verified-status: 404
   /v3.6/home/get:
     get:
       tags:
@@ -549,6 +644,8 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      x-decommissioned: true
+      x-verified-status: 404
   /v2.0/carousel/get:
     get:
       tags:
@@ -564,12 +661,18 @@ paths:
       responses:
         '200':
           description: Carousel data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarouselResponse'
       servers:
       - url: https://tv.media.jio.com/apis
         description: Production
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: JioTvNonCDNApiInterface (smali_classes9)
+      x-verified: true
+      x-verified-status: 200
       description: Get carousel data (v2.0)
   /v2.1/carousel/get:
     get:
@@ -586,12 +689,18 @@ paths:
       responses:
         '200':
           description: AVOD carousel data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarouselResponse'
       servers:
       - url: https://tv.media.jio.com/apis
         description: Production
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: JioTvNonCDNApiInterface (smali_classes9)
+      x-verified: true
+      x-verified-status: 200
       description: Get AVOD carousel data (v2.1)
   /v2.2/carousel/get:
     get:
@@ -608,12 +717,18 @@ paths:
       responses:
         '200':
           description: SVOD carousel data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarouselResponse'
       servers:
       - url: https://tv.media.jio.com/apis
         description: Production
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: JioTvNonCDNApiInterface (smali_classes9)
+      x-verified: true
+      x-verified-status: 200
       description: Get SVOD carousel data (v2.2)
   /v1.3/subscription/getpackagelist:
     get:
@@ -621,6 +736,19 @@ paths:
       - Subscription
       summary: Get subscription packages (legacy)
       operationId: getSubscriptionPackages
+      parameters:
+      - name: langId
+        in: query
+        schema:
+          type: integer
+      - name: os
+        in: query
+        schema:
+          type: string
+      - name: devicetype
+        in: query
+        schema:
+          type: string
       responses:
         '200':
           description: Subscription packages
@@ -634,6 +762,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'Returns 400 without ssotoken. Verified reachable with langId=6&os=android&devicetype=phone'
       description: Get subscription packages (legacy)
   /v2.0/plans/get:
     get:
@@ -664,7 +795,9 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
-      description: Get active subscription plans
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Get active subscription plans
   /v1.4/foryousection/get:
     get:
       tags:
@@ -680,6 +813,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: JioTvNonCDNApiInterface (smali_classes9)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'Returns 400 without ssotoken'
       description: Get For You section content
   /v1.6/getdata/featurednew:
     get:
@@ -688,7 +824,7 @@ paths:
       summary: Get featured content (v1.6)
       operationId: getFeatureList
       parameters:
-      - name: offset
+      - name: start
         in: query
         schema:
           type: integer
@@ -705,6 +841,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'Returns 400 without ssotoken. Params confirmed: start=0&limit=10'
       description: Get featured content (v1.6)
   /v1.7/getdata/featurednews:
     get:
@@ -713,7 +852,7 @@ paths:
       summary: Get featured news
       operationId: getFeaturedNewsList
       parameters:
-      - name: offset
+      - name: start
         in: query
         schema:
           type: integer
@@ -730,6 +869,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'Returns 400 without ssotoken. Params confirmed: start=0&limit=10'
       description: Get featured news
   /v1.7/getdata/featuredsports:
     get:
@@ -738,7 +880,7 @@ paths:
       summary: Get featured sports
       operationId: getFeaturedSportsList
       parameters:
-      - name: offset
+      - name: start
         in: query
         schema:
           type: integer
@@ -755,6 +897,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'Returns 400 without ssotoken. Params confirmed: start=0&limit=10'
       description: Get featured sports
   /getdata/featured:
     get:
@@ -793,7 +938,9 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
-      description: Get category see-all data (v3.0)
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Get category see-all data (v3.0)
   /v2.0/tab/categoryseeall:
     get:
       tags:
@@ -819,7 +966,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: JioTvNonCDNApiInterface (smali_classes9)
-      description: Get category see-all data (v2.0)
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Get category see-all data (v2.0)
   /v3.0/tab/seeall:
     get:
       tags:
@@ -845,7 +994,9 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
-      description: Get see-all tab data (v3.0)
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Get see-all tab data (v3.0)
   /v2.0/tab/seeall:
     get:
       tags:
@@ -879,6 +1030,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: JioTvNonCDNApiInterface (smali_classes9)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'Returns 400 without ssotoken'
       description: Get see-all tab data (v2.0)
   /v3.0/userlanguage/set:
     post:
@@ -904,7 +1058,9 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
-      description: Update user language preference (v3.0)
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Update user language preference (v3.0)
   /v1.4/userlanguage/set:
     post:
       tags:
@@ -926,7 +1082,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: JioTvNonCDNApiInterface (smali_classes9)
-      description: Update user language preference (legacy)
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Update user language preference (legacy)
   /getMobileChannelList/get:
     get:
       tags:
@@ -955,7 +1113,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
-      description: Get mobile channel list (legacy)
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Get mobile channel list (legacy)
   /v3.0/getMobileChannelList/get:
     get:
       tags:
@@ -992,7 +1152,9 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
-      description: Get mobile channel list (v3.0)
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Get mobile channel list (v3.0)
   /v2.2/getchannelurl/getchannelurl:
     post:
       tags:
@@ -1018,7 +1180,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali/com/jio/jioplay/tv/connection/apis/)
-      description: Get live channel stream URL
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Get live channel stream URL
   /v1.3/cdntoken/get:
     get:
       tags:
@@ -1035,6 +1199,9 @@ paths:
         in: query
         schema:
           type: string
+          enum:
+          - HLS
+          - DASH
       responses:
         '200':
           description: CDN token
@@ -1044,6 +1211,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'Returns 400 without ssotoken. Params confirmed: channel_id=1&stream_type=HLS'
       description: Get CDN token for stream auth
   /v1/geturl:
     post:
@@ -1054,15 +1224,23 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          application/x-www-form-urlencoded:
             schema:
               type: object
               properties:
-                channelId:
+                stream_type:
                   type: string
-                streamType:
+                channel_id:
                   type: string
-                contentId:
+                programId:
+                  type: string
+                showtime:
+                  type: string
+                srno:
+                  type: string
+                begin:
+                  type: string
+                end:
                   type: string
       responses:
         '200':
@@ -1073,13 +1251,16 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
-      description: Get playback URL (new system)
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Get playback URL (new system)
   /apis/v1.3/getepg/get:
     get:
       tags:
       - Channels & EPG
       summary: Get EPG program data
       operationId: getEPGProgramData
+      x-verified-note: 'Path uses /apis/ prefix on tv.media.jio.com server (full URL: tv.media.jio.com/apis/v1.3/getepg/get). Not separately curl-tested.'
       parameters:
       - name: channel_id
         in: query
@@ -1212,7 +1393,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
-      description: Get recent programs/channels
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Get recent programs/channels
   /v1.4/recents/tournament:
     get:
       tags:
@@ -1279,7 +1462,9 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
-      description: Get live channel list with filters
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Get live channel list with filters
   /live/category:
     get:
       tags:
@@ -1300,7 +1485,9 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
-      description: Get live category list
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Get live category list
   /apis/common/v2.7/playbackrights/get/{contentID}:
     post:
       tags:
@@ -1368,7 +1555,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
-      description: Get VOD stream URL
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Get VOD stream URL
   /metadata/apis/v1/{content_id}:
     get:
       tags:
@@ -1470,7 +1659,9 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
-      description: Recharge subscription plan
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Recharge subscription plan
   /v1.9/search/search:
     get:
       tags:
@@ -1496,6 +1687,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: JioTvNonCDNApiInterface (smali_classes9)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'Returns 400 without ssotoken. Params: query=cricket&type=tv'
       description: Search content (v1.9)
   /v2.1/search/search:
     get:
@@ -1522,6 +1716,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: JioTvNonCDNApiInterface (smali_classes9)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'Returns 400 without ssotoken. Params: query=cricket&type=tv'
       description: Search content with AVOD (v2.1)
   /v2.2/search/search:
     get:
@@ -1548,6 +1745,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: JioTvNonCDNApiInterface (smali_classes9)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'Returns 400 without ssotoken. Params: query=cricket&type=tv'
       description: Search content with SVOD (v2.2)
   /v1.9/search/searchauto:
     get:
@@ -1574,7 +1774,10 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: JioTvNonCDNApiInterface (smali_classes9)
-      description: Search content (v1.9)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'Returns 400 without ssotoken. Params: query=cri&type=tv'
+      description: Search autocomplete (v1.9)
   /v2.1/search/searchauto:
     get:
       tags:
@@ -1608,11 +1811,12 @@ paths:
       summary: Search autocomplete with SVOD (v2.2)
       operationId: searchAutoWithSvod
       parameters:
-      - name: tabId
+      - name: query
         in: query
+        required: true
         schema:
           type: string
-      - name: category_name
+      - name: type
         in: query
         schema:
           type: string
@@ -1625,7 +1829,10 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: JioTvNonCDNApiInterface (smali_classes9)
-      description: Search content with SVOD (v2.2)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'Returns 400 without ssotoken. Params: query+type (not tabId/category_name)'
+      description: Search autocomplete with SVOD (v2.2)
   /v1.5/promotedsearch/get:
     get:
       tags:
@@ -1652,11 +1859,14 @@ paths:
         '200':
           description: Promoted search data
       servers:
-      - url: https://jiotvapi.media.jio.com
+      - url: https://tv.media.jio.com/apis
         description: Production
-      - url: https://jiotvqaapi.jio.ril.com
+      - url: https://jiotvqaapi.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      x-verified: true
+      x-verified-status: 200
+      x-verified-note: '200 without auth. Returns curatedSearchData with trending searches.'
       description: Get promoted search data (v3.1)
   /v1.8/cinema/contentmetadata:
     get:
@@ -1679,6 +1889,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: JioTvNonCDNApiInterface (smali_classes9)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'Returns 400 without ssotoken'
       description: Get cinema content metadata
   /v1.8/cinema/getmetadata:
     get:
@@ -1705,6 +1918,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: JioTvNonCDNApiInterface (smali_classes9)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'Returns 400 without ssotoken'
       description: Get cinema metadata with pagination
   /v1.8/cinema/watchlistget:
     get:
@@ -1721,6 +1937,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: JioTvNonCDNApiInterface (smali_classes9)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'Returns 400 without ssotoken'
       description: Get movies watchlist
   /v1.8/cinema/listadd:
     post:
@@ -1814,6 +2033,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: JioTvNonCDNApiInterface (smali_classes9)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'Returns 400 without ssotoken'
       description: Get movies list
   /getdata/promotional:
     get:
@@ -1830,6 +2052,7 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
+      x-verified-note: 'Not tested. May return 500 like v1.4 variant.'
   /v1.4/getdata/promotional:
     get:
       tags:
@@ -1854,6 +2077,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: JioTvNonCDNApiInterface (smali_classes9)
+      x-verified: true
+      x-verified-status: 500
+      x-verified-note: 'Returns HTTP 500 server error'
       description: Get promotional videos
   /gettrending/get:
     get:
@@ -1870,7 +2096,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
-      description: Get trending content
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Get trending content
   /gettweets/get:
     get:
       tags:
@@ -1897,7 +2125,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
-      description: Get tweets for sports event
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Get tweets for sports event
   /v1.4/scorecard/get:
     get:
       tags:
@@ -1913,7 +2143,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
-      description: Get scorecard configuration
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Get scorecard configuration
   /v1.4/vodcategorydata/get:
     get:
       tags:
@@ -1921,6 +2153,18 @@ paths:
       summary: Get VOD category data
       operationId: getSportsAllTagContent
       parameters:
+      - name: langId
+        in: query
+        schema:
+          type: integer
+      - name: os
+        in: query
+        schema:
+          type: string
+      - name: devicetype
+        in: query
+        schema:
+          type: string
       - name: id
         in: query
         schema:
@@ -1941,11 +2185,12 @@ paths:
         '200':
           description: VOD category data
       servers:
-      - url: https://tv.media.jio.com/apis
-        description: Production
-      - url: https://jiotv.jio.ril.com/apis
-        description: PreProd/QA
-      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      - url: https://jiotvapi.cdn.jio.com/apis
+        description: Production CDN
+      x-source: JioTvCDNApiInterface (smali_classes3)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'Returns 400 without auth. Verified on CDN host. Params: langId=6&os=android&devicetype=phone'
   /v1.4/tag/get:
     get:
       tags:
@@ -1953,6 +2198,18 @@ paths:
       summary: Get content by sport tag
       operationId: getSportTagResult
       parameters:
+      - name: langId
+        in: query
+        schema:
+          type: integer
+      - name: os
+        in: query
+        schema:
+          type: string
+      - name: devicetype
+        in: query
+        schema:
+          type: string
       - name: id
         in: query
         schema:
@@ -1977,11 +2234,12 @@ paths:
         '200':
           description: Tag content
       servers:
-      - url: https://tv.media.jio.com/apis
-        description: Production
-      - url: https://jiotv.jio.ril.com/apis
-        description: PreProd/QA
-      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      - url: https://jiotvapi.cdn.jio.com/apis
+        description: Production CDN
+      x-source: JioTvCDNApiInterface (smali_classes3)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'Returns 400 without auth. Verified on CDN host. Params: langId=6&os=android&devicetype=phone'
   /v1.4/vodmetadata/get:
     get:
       tags:
@@ -1989,6 +2247,18 @@ paths:
       summary: Get VOD program metadata
       operationId: getVodProgramMetadata
       parameters:
+      - name: langId
+        in: query
+        schema:
+          type: integer
+      - name: os
+        in: query
+        schema:
+          type: string
+      - name: devicetype
+        in: query
+        schema:
+          type: string
       - name: content_id
         in: query
         required: true
@@ -1998,11 +2268,12 @@ paths:
         '200':
           description: VOD metadata
       servers:
-      - url: https://tv.media.jio.com/apis
-        description: Production
-      - url: https://jiotv.jio.ril.com/apis
-        description: PreProd/QA
-      x-source: JioTvNonCDNApiInterface (smali_classes9)
+      - url: https://jiotvapi.cdn.jio.com/apis
+        description: Production CDN
+      x-source: JioTvCDNApiInterface (smali_classes3)
+      x-verified: true
+      x-verified-status: 400
+      x-verified-note: 'Returns 400 without auth. Verified on CDN host. Params: langId=6&os=android&devicetype=phone'
   /v1.4/list/add:
     post:
       tags:
@@ -2024,7 +2295,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
-      description: Add item to user list
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Add item to user list
   /v3.0/list/add:
     post:
       tags:
@@ -2046,7 +2319,9 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
-      description: Add item to user list (v3.0)
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Add item to user list (v3.0)
   /v1.4/list/get:
     post:
       tags:
@@ -2072,7 +2347,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
-      description: Get user list items
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Get user list items
   /v3.0/list/get:
     post:
       tags:
@@ -2094,7 +2371,9 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
-      description: Get user list items (v3.0)
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Get user list items (v3.0)
   /v1.4/list/deletecontent:
     post:
       tags:
@@ -2116,7 +2395,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
-      description: Remove item from user list
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Remove item from user list
   /v3.0/list/deletecontent:
     post:
       tags:
@@ -2138,7 +2419,9 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
-      description: Remove item from user list (v3.0)
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Remove item from user list (v3.0)
   /v1.5/getuserlist/get:
     post:
       tags:
@@ -2163,7 +2446,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
-      description: Get personalized list (legacy)
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Get personalized list (legacy)
   /v3.0/getuserlist/get:
     post:
       tags:
@@ -2185,13 +2470,17 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
-      description: Get personalized list (v3.0)
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Get personalized list (v3.0)
   /getuserlist/get:
     post:
       tags:
       - User Lists
       summary: Get personalized list (legacy)
       operationId: getPersonalizedListLegacy
+      x-decommissioned: true
+      x-verified-status: 404
       requestBody:
         required: true
         content:
@@ -2228,7 +2517,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
-      description: Add recording
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Add recording
   /v3.0/recordings/add:
     post:
       tags:
@@ -2250,7 +2541,9 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
-      description: Add recording (v3.0)
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Add recording (v3.0)
   /v1.6/recordings/delete:
     post:
       tags:
@@ -2272,7 +2565,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
-      description: Delete recording
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Delete recording
   /v3.0/recordings/delete:
     post:
       tags:
@@ -2294,7 +2589,9 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
-      description: Delete recording (v3.0)
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Delete recording (v3.0)
   /beginsession/begin:
     get:
       tags:
@@ -2315,7 +2612,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
-      description: Begin session (legacy)
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Begin session (legacy)
   /v1.3/beginsession/begin:
     get:
       tags:
@@ -2351,11 +2650,14 @@ paths:
         '200':
           description: Session started
       servers:
-      - url: https://jiotvapi.media.jio.com
+      - url: https://tv.media.jio.com/apis
         description: Production
-      - url: https://jiotvqaapi.jio.ril.com
+      - url: https://jiotvqaapi.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
+      x-verified: true
+      x-verified-status: 200
+      x-verified-note: '200 with guest accesstoken. GET returns 200, POST returns 405.'
       description: Begin session (v3.0)
   /3.0/legacy:
     get:
@@ -2378,23 +2680,38 @@ paths:
         description: PreProd/QA
       x-source: PostLoginNewSystemApiInterface (smali_classes6)
       description: New session call (legacy compatibility)
-  /apis/v1.3/dictionary/dictionary:
+  /dictionary/dictionary:
     get:
       tags:
       - Configuration
       summary: Get dictionary/resource strings
       operationId: callDictionary
+      parameters:
+      - name: langId
+        in: query
+        schema:
+          type: integer
+      - name: os
+        in: query
+        schema:
+          type: string
+      - name: devicetype
+        in: query
+        schema:
+          type: string
       responses:
         '200':
-          description: Dictionary data
+          description: Dictionary data (395+ UI string key-value pairs)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ResourceRootModel'
+                $ref: '#/components/schemas/DictionaryResponse'
       servers:
       - url: https://jiotvapi.cdn.jio.com/apis/v1.3
-        description: Production
+        description: Production CDN
       x-source: JioTvCDNApiInterface (smali_classes3)
+      x-verified: true
+      x-verified-status: 200
       description: Get dictionary/resource strings (CDN)
   /dictionary/dictionary.json:
     get:
@@ -2419,19 +2736,21 @@ paths:
       summary: Check app version update
       operationId: checkVersionUpdate
       parameters:
-      - name: versionCode
+      - name: os
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: devicetype
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: version
         in: query
         required: true
         schema:
           type: integer
-      - name: os
-        in: query
-        schema:
-          type: string
-      - name: deviceId
-        in: query
-        schema:
-          type: string
       responses:
         '200':
           description: Version check result
@@ -2445,6 +2764,9 @@ paths:
       - url: https://jiotv.jio.ril.com/apis
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
+      x-verified: true
+      x-verified-status: 200
+      x-verified-note: 'Confirmed: returns {code: 200, message: "Success"} with os=android&devicetype=phone&version=371'
       description: Check app version update
   /checkversion/checkversion:
     get:
@@ -2487,13 +2809,18 @@ paths:
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
-      description: Get server time/status
+      x-decommissioned: true
+      x-verified-status: 404
+      description: DECOMMISSIONED - Get server time/status
   /misc/jiocoupons:
     get:
       tags:
       - Miscellaneous
       summary: Get coupon data
       operationId: getCouponData
+      x-verified: true
+      x-verified-status: 301
+      x-verified-note: '301 redirect to /misc/jiocoupons/ (with trailing slash). Final 200 with trailing slash.'
       parameters:
       - name: couponId
         in: query
@@ -2510,30 +2837,27 @@ paths:
       x-source: PostLoginAPIInterface (smali)
       description: Get coupon data
   /share/social:
-    get:
+    post:
       tags:
       - Miscellaneous
-      summary: Get share URL
-      operationId: getShareUrl
-      parameters:
-      - name: contentId
-        in: query
-        schema:
-          type: string
-      - name: type
-        in: query
-        schema:
-          type: string
+      summary: Share content on social media
+      operationId: shareSocial
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShareRequest'
       responses:
         '200':
-          description: Share URL
+          description: Share response
       servers:
       - url: https://jiotvapi.media.jio.com
         description: Production
       - url: https://jiotvqaapi.jio.ril.com
         description: PreProd/QA
       x-source: PostLoginAPIInterface (smali)
-      description: Get share URL
+      description: Share content on social media
   /apis/common/v2.6/feedback/submit:
     post:
       tags:
@@ -2562,6 +2886,9 @@ paths:
       - Miscellaneous
       summary: Get location data
       operationId: callLocationAPI
+      x-verified: true
+      x-verified-status: 301
+      x-verified-note: '301 redirect to /misc/location/ (with trailing slash). Final 200 with trailing slash.'
       responses:
         '200':
           description: Location data
@@ -3585,10 +3912,10 @@ components:
     ExchangeTokenRequest:
       type: object
       properties:
-        refreshToken:
+        number:
           type: string
-        deviceId:
-          type: string
+          description: Base64-encoded phone number (same as OTP send)
+      x-verified-note: 'POST body is {"number":"<base64-phone>"} per smali analysis'
     ExchangeTokenResponse:
       type: object
       properties:
@@ -3599,8 +3926,17 @@ components:
     GuestAuthRequest:
       type: object
       properties:
+        appName:
+          type: string
+          description: Always "RJIL_JioTV"
         deviceId:
           type: string
+        os:
+          type: string
+          description: Always "android"
+        deviceType:
+          type: string
+          description: Always "phone"
     GuestAuthTokenResponse:
       type: object
       properties:
@@ -3612,6 +3948,8 @@ components:
         authToken:
           type: string
         refreshToken:
+          type: string
+        ssoToken:
           type: string
         deviceLimitExceeded:
           $ref: '#/components/schemas/DeviceLimitExceeded'
@@ -4051,7 +4389,7 @@ components:
       properties:
         listId:
           type: integer
-          description: 12=favorite_channel, 11=recent_channel, 21=recent_program, 22=favorite_program, 23=recording_program
+          description: 'List type constants: 11=recent_channel, 12=favorite_channel, 21=recent_program, 22=favorite_program, 23=recording_program'
         id:
           type: string
         json:
@@ -4308,6 +4646,93 @@ components:
           type: integer
         message:
           type: string
+    CarouselResponse:
+      type: object
+      description: Response from carousel/get endpoints
+      properties:
+        promotionalData:
+          type: array
+          items:
+            $ref: '#/components/schemas/CarouselItem'
+        code:
+          type: integer
+          description: '200 for success'
+        message:
+          type: string
+          description: '"Success"'
+        surrogate_key:
+          type: string
+    CarouselItem:
+      type: object
+      description: Individual carousel item (show/channel promotional data)
+      properties:
+        channel_id:
+          type: string
+        channel_name:
+          type: string
+        showName:
+          type: string
+        showname:
+          type: string
+        showId:
+          type: string
+        showCategory:
+          type: string
+        showGenre:
+          type: array
+          items:
+            type: string
+        showLanguageId:
+          type: integer
+        langId:
+          type: integer
+        episodePoster:
+          type: string
+        episodeThumbnail:
+          type: string
+        logoUrl:
+          type: string
+        description:
+          type: string
+        director:
+          type: string
+        starCast:
+          type: string
+        duration:
+          type: string
+        startEpoch:
+          type: string
+        endEpoch:
+          type: string
+        showtime:
+          type: string
+        endtime:
+          type: string
+        isAds:
+          type: boolean
+        isCam:
+          type: boolean
+        is_premium:
+          type: boolean
+        plan_type:
+          type: string
+        business_type:
+          type: string
+        pcr:
+          type: string
+        canRecord:
+          type: boolean
+        isCatchupAvailable:
+          type: boolean
+        isLiveAvailable:
+          type: boolean
+    DictionaryResponse:
+      type: object
+      description: CDN dictionary response with 395+ UI string key-value pairs
+      additionalProperties:
+        type: string
+      x-verified: true
+      x-verified-note: 'GET jiotvapi.cdn.jio.com/apis/v1.3/dictionary/dictionary returns 200 with object containing 395 string keys (UI labels, button text, etc.)'
     ScoreCardConfig:
       type: object
       properties:
@@ -4336,22 +4761,27 @@ components:
     CamUrlRequestModel:
       type: object
       properties:
-        cameraId:
+        stream_type:
           type: string
-        languageId:
+          description: Stream type identifier
+        date:
           type: string
-        streamType:
+          description: Date for camera stream
+        showtime:
           type: string
+          description: Show time for camera stream
     ShareRequest:
       type: object
+      description: POST body for /share/social endpoint (not GET query params)
       properties:
         deeplink:
           type: string
-        description:
+        image:
           type: string
-        episodeThumbnail:
-          type: string
+          description: Image URL for share card
         title:
+          type: string
+        description:
           type: string
     AppConfigModel:
       type: object

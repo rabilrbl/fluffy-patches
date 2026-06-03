@@ -32,6 +32,8 @@ Read [targets.md](targets.md) and [session-2026-04-08-latest-uptodown-xapk.md](s
 | [Frida & unpaircore Attempts](research/frida-unpaircore-attempts.md) | Frida hooking and gamepwnage framework testing |
 | [APKM Bundle Analysis](research/apkm-bundle-analysis.md) | APKM bundle structure and split APK findings |
 | [Pairip Hash Change Bypass Research](research/pairip-hash-change-bypass-research.md) | Research on bypassing pairip via hash modification |
+| [API Verification Results](research/api-verification-results.md) | Curl-verified endpoint status, auth flow, request/response schemas |
+| [OpenAPI Spec](research/openapi-spec.yaml) | Complete API specification reverse-engineered from APK smali |
 
 ## Sessions
 
