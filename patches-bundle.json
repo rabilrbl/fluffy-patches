@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-06-03T17:50:40",
-  "description": "# [1.0.0-dev.17](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.16...v1.0.0-dev.17) (2026-06-03)\n\n\n### Bug Fixes\n\n* **alarmy:** comprehensive pairip DRM bypass with defense in depth ([8a5e34b](https://github.com/rabilrbl/fluffy-patches/commit/8a5e34bcc4d8e7404e37f448c50bcfd33c96d7e0))",
-  "download_url": "https://github.com/rabilrbl/fluffy-patches/releases/download/v1.0.0-dev.17/patches-1.0.0-dev.17.mpp",
-  "signature_download_url": "https://github.com/rabilrbl/fluffy-patches/releases/download/v1.0.0-dev.17/patches-1.0.0-dev.17.mpp.asc",
-  "version": "1.0.0-dev.17"
+  "created_at": "2026-06-03T18:13:16",
+  "description": "# [1.0.0-dev.18](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.17...v1.0.0-dev.18) (2026-06-03)\n\n\n### Bug Fixes\n\n* **alarmy:** prevent libpairipcore.so native library from loading ([57de466](https://github.com/rabilrbl/fluffy-patches/commit/57de4666a87d193c25b6f94b5873b77a5af90798))",
+  "download_url": "https://github.com/rabilrbl/fluffy-patches/releases/download/v1.0.0-dev.18/patches-1.0.0-dev.18.mpp",
+  "signature_download_url": "https://github.com/rabilrbl/fluffy-patches/releases/download/v1.0.0-dev.18/patches-1.0.0-dev.18.mpp.asc",
+  "version": "1.0.0-dev.18"
 }
