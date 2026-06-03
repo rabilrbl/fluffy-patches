@@ -1,3 +1,10 @@
+# [1.0.0-dev.15](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.14...v1.0.0-dev.15) (2026-06-03)
+
+
+### Features
+
+* **alarmy:** add unlock pro and remove ads patches ([e23da2c](https://github.com/rabilrbl/fluffy-patches/commit/e23da2ce2d3e21290375f663509d8e50909466d8))
+
 # [1.0.0-dev.14](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.13...v1.0.0-dev.14) (2026-04-06)
 
 
