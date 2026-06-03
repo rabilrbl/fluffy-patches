@@ -18,4 +18,15 @@ object Constants {
             ),
         )
     )
+    val COMPATIBILITY_ALARMY = Compatibility(
+        name = "Alarmy",
+        packageName = "droom.sleepIfUCan",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0xFF6B4C,
+        targets = listOf(
+            AppTarget(
+                version = "26.23.0",
+            ),
+        ),
+    )
 }
