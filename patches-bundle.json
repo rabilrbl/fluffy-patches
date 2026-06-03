@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-06-03T17:35:20",
-  "description": "# [1.0.0-dev.16](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.15...v1.0.0-dev.16) (2026-06-03)\n\n\n### Features\n\n* **alarmy:** add pairip license and signature bypass patches ([8e079c3](https://github.com/rabilrbl/fluffy-patches/commit/8e079c32b3f95b3c3a5986f265ce6b92ac76ee22))",
-  "download_url": "https://github.com/rabilrbl/fluffy-patches/releases/download/v1.0.0-dev.16/patches-1.0.0-dev.16.mpp",
-  "signature_download_url": "https://github.com/rabilrbl/fluffy-patches/releases/download/v1.0.0-dev.16/patches-1.0.0-dev.16.mpp.asc",
-  "version": "1.0.0-dev.16"
+  "created_at": "2026-06-03T17:50:40",
+  "description": "# [1.0.0-dev.17](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.16...v1.0.0-dev.17) (2026-06-03)\n\n\n### Bug Fixes\n\n* **alarmy:** comprehensive pairip DRM bypass with defense in depth ([8a5e34b](https://github.com/rabilrbl/fluffy-patches/commit/8a5e34bcc4d8e7404e37f448c50bcfd33c96d7e0))",
+  "download_url": "https://github.com/rabilrbl/fluffy-patches/releases/download/v1.0.0-dev.17/patches-1.0.0-dev.17.mpp",
+  "signature_download_url": "https://github.com/rabilrbl/fluffy-patches/releases/download/v1.0.0-dev.17/patches-1.0.0-dev.17.mpp.asc",
+  "version": "1.0.0-dev.17"
 }

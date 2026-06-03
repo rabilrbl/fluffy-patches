@@ -1,3 +1,10 @@
+# [1.0.0-dev.17](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.16...v1.0.0-dev.17) (2026-06-03)
+
+
+### Bug Fixes
+
+* **alarmy:** comprehensive pairip DRM bypass with defense in depth ([8a5e34b](https://github.com/rabilrbl/fluffy-patches/commit/8a5e34bcc4d8e7404e37f448c50bcfd33c96d7e0))
+
 # [1.0.0-dev.16](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.15...v1.0.0-dev.16) (2026-06-03)
 
 
