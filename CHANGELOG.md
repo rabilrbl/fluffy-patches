@@ -1,3 +1,10 @@
+# [1.0.0-dev.19](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.18...v1.0.0-dev.19) (2026-06-04)
+
+
+### Bug Fixes
+
+* **alarmy:** remove pairip bypass patches and docs ([9178d49](https://github.com/rabilrbl/fluffy-patches/commit/9178d49f0a2cdbe1cc9110781ca61eda1ea243d5))
+
 # [1.0.0-dev.18](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.17...v1.0.0-dev.18) (2026-06-04)
 
 # [1.0.0-dev.16](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.15...v1.0.0-dev.16) (2026-06-03)
