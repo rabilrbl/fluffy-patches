@@ -1,23 +1,6 @@
-# [1.0.0-dev.18](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.17...v1.0.0-dev.18) (2026-06-03)
-
-
-### Bug Fixes
-
-* **alarmy:** prevent libpairipcore.so native library from loading ([57de466](https://github.com/rabilrbl/fluffy-patches/commit/57de4666a87d193c25b6f94b5873b77a5af90798))
-
-# [1.0.0-dev.17](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.16...v1.0.0-dev.17) (2026-06-03)
-
-
-### Bug Fixes
-
-* **alarmy:** comprehensive pairip DRM bypass with defense in depth ([8a5e34b](https://github.com/rabilrbl/fluffy-patches/commit/8a5e34bcc4d8e7404e37f448c50bcfd33c96d7e0))
+# [1.0.0-dev.18](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.17...v1.0.0-dev.18) (2026-06-04)
 
 # [1.0.0-dev.16](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.15...v1.0.0-dev.16) (2026-06-03)
-
-
-### Features
-
-* **alarmy:** add pairip license and signature bypass patches ([8e079c3](https://github.com/rabilrbl/fluffy-patches/commit/8e079c32b3f95b3c3a5986f265ce6b92ac76ee22))
 
 # [1.0.0-dev.15](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.14...v1.0.0-dev.15) (2026-06-03)
 
@@ -27,11 +10,6 @@
 * **alarmy:** add unlock pro and remove ads patches ([e23da2c](https://github.com/rabilrbl/fluffy-patches/commit/e23da2ce2d3e21290375f663509d8e50909466d8))
 
 # [1.0.0-dev.14](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.13...v1.0.0-dev.14) (2026-04-06)
-
-
-### Features
-
-* add resource patch to remove pairip native library and bypass license check ([a8384db](https://github.com/rabilrbl/fluffy-patches/commit/a8384db7a29e88fe982d3944d3146abbf1c79e1a))
 
 # [1.0.0-dev.13](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.12...v1.0.0-dev.13) (2026-04-06)
 
@@ -75,7 +53,7 @@
 
 ### Bug Fixes
 
-* inject setCheckAppUpadteData(null) at start of HomeActivity.onCreate and no-op onResume ([77fb430](https://github.com/rabilrbl/fluffy-patches/commit/77fb430c0ec5bf87d3ab2185b51b38b8f1d9e8fb))
+* inject setCheckAppUpaduteData(null) at start of HomeActivity.onCreate and no-op onResume ([77fb430](https://github.com/rabilrbl/fluffy-patches/commit/77fb430c0ec5bf87d3ab2185b51b38b8f1d9e8fb))
 
 # [1.0.0-dev.7](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.6...v1.0.0-dev.7) (2026-04-03)
 
@@ -96,14 +74,7 @@
 
 ### Bug Fixes
 
-* bypass AppUpdateHelper methods to prevent update checks ([1790d4b](https://github.com/rabilrbl/fluffy-patches/commit/1790d4bef48bcddd19539b7bf1460061f126193b))
-
 # [1.0.0-dev.4](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2026-04-03)
-
-
-### Bug Fixes
-
-* stop neutralizing pairip VM execution to prevent splash crash ([a3b4752](https://github.com/rabilrbl/fluffy-patches/commit/a3b4752ef82e79e229ccaed1084d7a364a989fa6))
 
 # [1.0.0-dev.3](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2026-04-03)
 
@@ -130,17 +101,3 @@
 ### Features
 
 * **patches:** add JioTV patch set for checks and networking ([2bbe390](https://github.com/rabilrbl/fluffy-patches/commit/2bbe390ff30c8e11ce70414e56a92270bbea5ddd))
-* **patches:** correct application class package in disablePairipManifestPatch and enhance Play Store license check patch with detailed comments ([5809024](https://github.com/rabilrbl/fluffy-patches/commit/5809024ecbe17a62e805c55e5112fb21a4fa6f71))
-* **patches:** enhance license check bypassing in RemovePlayStoreLicenseCheckPatch ([3f835bb](https://github.com/rabilrbl/fluffy-patches/commit/3f835bb5ff6bb0549c63cda4a88f582797178449))
-* **patches:** enhance license check bypassing in RemovePlayStoreLicenseCheckPatch ([a1d782b](https://github.com/rabilrbl/fluffy-patches/commit/a1d782b2406543858810127ae31612552c3dab40))
-* **patches:** enhance license check patch to block LicenseClient methods and bypass local installer check ([a839ae9](https://github.com/rabilrbl/fluffy-patches/commit/a839ae99d12d406a40b6bda1817fbb55584fd758))
-* **patches:** enhance license check patch to block service connections and spoof InstallReferrerClient ([4823107](https://github.com/rabilrbl/fluffy-patches/commit/4823107ee0aa713ff6f1fa6b5c2d2caf100e16da))
-* **patches:** enhance license check patch to remove LicenseContentProvider and block licensing service methods ([56ceb66](https://github.com/rabilrbl/fluffy-patches/commit/56ceb6626d7c7dec8742827822e005e462284d78))
-* **patches:** enhance Play Store license check patch to block additional methods and prevent initialization ([e20e6cd](https://github.com/rabilrbl/fluffy-patches/commit/e20e6cd5a0351bee3184c11194e41779270f7f4a))
-* **patches:** implement global manifest-level disable of pairip license checks ([6f0c1be](https://github.com/rabilrbl/fluffy-patches/commit/6f0c1beee13cb0ab51c81d9a6ad34a2c8f62c003))
-* **patches:** refine license check bypass and enhance root detection patch safety ([859cacb](https://github.com/rabilrbl/fluffy-patches/commit/859cacb60897e78f2311ae6708f3a963aa9331d0))
-* **patches:** simplify emulator detection patch by removing redundant checks and ensuring proceedApplication is always called ([809fa2d](https://github.com/rabilrbl/fluffy-patches/commit/809fa2d56b81e4d1927fbbad2cee62c279ad67e5))
-* **patches:** update application class package in RemovePlayStoreLicenseCheckPatch to bypass pairip ([1d8774c](https://github.com/rabilrbl/fluffy-patches/commit/1d8774c449e1f83714fee516a9e0cdc82654634c))
-* **patches:** update compatibility constant to JioTV Mobile across patches ([8fb3db8](https://github.com/rabilrbl/fluffy-patches/commit/8fb3db8cd09af8370a7ae98a3d8d3b746515f4dc))
-* **patches:** update disablePairipManifestPatch to remove LicenseContentProvider and change application class to bypass pairip ([3df0d3d](https://github.com/rabilrbl/fluffy-patches/commit/3df0d3dc833a04d39f7700f72bb1bed817106920))
-* **playstore:** enhance license check patch to prevent loading of pairipcore library ([0886241](https://github.com/rabilrbl/fluffy-patches/commit/0886241c102ec81fc15a57e5ae85e23408dfbc89))
