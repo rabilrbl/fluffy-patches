@@ -37,3 +37,7 @@ Alarmy uses a local `PremiumState` data class (`pi/b`) to track subscription sta
 - The app uses Google Play Billing (`com.android.vending.BILLING` permission) for in-app purchases.
 - Subscription state is cached locally in `PremiumStatePreferences` (`zg/h`).
 - Patching the local state class is sufficient to unlock UI and features; server-side validation only affects receipt validation for new purchases.
+
+## Mount-install compatibility audit
+
+See `/docs/alarmy/research/mount-install-compat.md` for the mount-install compatibility pass (Google Sign-In / backup / MicroG / Play Integrity / signature-check scope).
