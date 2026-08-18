@@ -1,4 +1,4 @@
-package app.template.patches.alarmy.subscription
+package app.template.patches.alarmy.ads
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
@@ -7,14 +7,14 @@ import app.template.patches.shared.Constants.COMPATIBILITY_ALARMY
 
 @Suppress("unused")
 val removeAdsPatch = bytecodePatch(
-    name = "Remove ads",
-    description = "Removes ads by forcing PremiumState.isRemoveAdPremium() to always return true.",
+    name = "Remove Ads",
+    description = "Removes all ads by forcing ad-free status to true.",
 ) {
     compatibleWith(COMPATIBILITY_ALARMY)
 
     execute {
         classDefBy("Lbi/PremiumState;")
-            .methods.first { it.name == "s" }
+            .methods.first { it.name == "s" && it.returnType == "Z" }
             .toMutable()
             .addInstructions(
                 0,

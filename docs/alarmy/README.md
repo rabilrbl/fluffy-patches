@@ -1,39 +1,62 @@
 # Alarmy Patches
 
-## App Info
+**Target:** Alarmy (`droom.sleepIfUCan`) v26.23.0 → v26.32.1
 
-- **Package:** `droom.sleepIfUCan`
-- **Name:** Alarmy
-- **Version:** 26.32.1
-- **File Type:** APK
+## Patch Status
 
-## Architecture
+### Working Patches (v26.32.1)
+- ✅ Unlock Pro subscription (`subscription/UnlockProPatch.kt`)
+- ✅ Remove ads (`subscription/RemoveAdsPatch.kt`, `ads/RemoveAdsPatch.kt`)
 
-Alarmy uses a local `PremiumState` data class (`bi/c`) to track subscription status. Patching the local state class is sufficient to unlock UI and features; server-side validation only affects receipt validation for new purchases.
+### Removed Patches
+- ❌ Unlock Premium (`premium/UnlockPremiumPatch.kt`) - `ty.a.a()` returns null, not boolean
 
-### Premium State
+## Version Changes
 
-| Smali | Kotlin Name | Logic |
-|-------|-------------|-------|
-| `r()` | `isPremium()` | Returns true if any premium type is active (lifetime, playpass, google, manual, delightroom) |
-| `s()` | `isRemoveAdPremium()` | Returns true if premium type is REMOVE_AD_SUBSCRIPTION and not expired |
-| `o()` | `isLifetimePremium()` | Returns true if premium type is LIFETIME |
-| `q()` | `isPlayPassPremium()` | Returns true if premium type is PLAYPASS |
-| `n()` | `isGooglePremium()` | Returns true if premium type is GOOGLE_SUBSCRIPTION and not expired |
-| `p()` | `isManualPremium()` | Returns true if premium type is MANUAL and not expired |
-| `k()` | `isDelightroomSubscriptionPremium()` | Returns true if premium type is DELIGHTROOM_SUBSCRIPTION and not expired |
+### v26.32.1 (2026-08-18)
+**Class name change:** `bi.c` → `bi.PremiumState`
 
-## Patches
+The obfuscated class `bi.c` was renamed to `bi.PremiumState` in v26.32.1. Methods remain the same:
+- `r(): Boolean` - checks if user has any premium state
+- `s(): Boolean` - checks if user has remove-ad premium
 
-### Premium Patches
+**Patches updated:**
+1. `subscription/UnlockProPatch.kt` - target changed to `Lbi/PremiumState;`
+2. `subscription/RemoveAdsPatch.kt` - target changed to `Lbi/PremiumState;`
+3. `ads/RemoveAdsPatch.kt` - target changed to `Lbi/PremiumState;`
 
-| Patch | Target | What it does |
-|-------|--------|--------------|
-| Unlock Pro subscription | `PremiumState.isPremium()` | Forces the method to always return `true`, unlocking all premium features |
-| Remove ads | `PremiumState.isRemoveAdPremium()` | Forces the method to always return `true`, disabling ads |
+## APK Architecture
 
-## Notes
+Alarmy v26.32.1 is distributed as XAPK with multiple split APKs:
+- `base.apk` - main application
+- `split_config.arm64_v8a.apk` - native libraries
+- Multiple split APKs for different configurations
 
-- The app uses Google Play Billing (`com.android.vending.BILLING` permission) for in-app purchases.
-- Subscription state is cached locally in `PremiumStatePreferences` (`zg/h`).
-- Patching the local state class is sufficient to unlock UI and features; server-side validation only affects receipt validation for new purchases.
+**Testing:** Use the antisplit merged APK for patching.
+
+## Premium State Flow
+
+```kotlin
+// bi.PremiumState class
+public final boolean r() {  // isPremium
+    return o() || q() || n() || p() || k();
+    // lifetime || playpass || google || manual || delightroom
+}
+
+public final boolean s() {  // isRemoveAdPremium
+    return !m() && this.premiumType == e.REMOVE_AD_SUBSCRIPTION;
+}
+```
+
+## Testing Notes
+
+**v26.32.1 Testing (2026-08-18):**
+- Patches compile successfully
+- Target class `bi.PremiumState` confirmed present in APK
+- Methods `r()` and `s()` signatures verified
+- Manual testing required via Morphe Manager
+
+## References
+
+- [MorpheApp/morphe-patches](https://github.com/MorpheApp/morphe-patches)
+- JADX decompilation: `~/Downloads/Backups/droom.sleepIfUCan v26.32.1_antisplit.apk.jadx`

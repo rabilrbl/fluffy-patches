@@ -1,4 +1,4 @@
-package app.template.patches.alarmy.subscription
+package app.template.patches.alarmy.premium
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
@@ -6,15 +6,15 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMuta
 import app.template.patches.shared.Constants.COMPATIBILITY_ALARMY
 
 @Suppress("unused")
-val removeAdsPatch = bytecodePatch(
-    name = "Remove ads",
-    description = "Removes ads by forcing PremiumState.isRemoveAdPremium() to always return true.",
+val unlockPremiumPatch = bytecodePatch(
+    name = "Unlock Premium",
+    description = "Forces premium state to return true.",
 ) {
     compatibleWith(COMPATIBILITY_ALARMY)
 
     execute {
-        classDefBy("Lbi/PremiumState;")
-            .methods.first { it.name == "s" }
+        classDefBy("Lbi/c;")
+            .methods.first { it.name == "r" && it.returnType == "Z" }
             .toMutable()
             .addInstructions(
                 0,

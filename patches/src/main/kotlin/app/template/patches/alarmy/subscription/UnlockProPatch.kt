@@ -13,7 +13,7 @@ val unlockProPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_ALARMY)
 
     execute {
-        classDefBy("Lbi/c;")
+        classDefBy("Lbi/PremiumState;")
             .methods.first { it.name == "r" }
             .toMutable()
             .addInstructions(
