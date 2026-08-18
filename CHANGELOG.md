@@ -1,3 +1,11 @@
+# [1.0.0-dev.20](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.19...v1.0.0-dev.20) (2026-08-18)
+
+
+### Bug Fixes
+
+* **alarmy:** support version 26.32.1 ([5e93e23](https://github.com/rabilrbl/fluffy-patches/commit/5e93e2321805f46143159c8ecd096b2fe39511b3))
+* **patches:** update version to 1.0.0-dev.19 and remove pairip bypass patches ([5f99113](https://github.com/rabilrbl/fluffy-patches/commit/5f991137be2997d582413c54e6b905ab46af154d))
+
 # [1.0.0-dev.19](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.18...v1.0.0-dev.19) (2026-06-04)
 
 
