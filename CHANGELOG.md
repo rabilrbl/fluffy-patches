@@ -1,3 +1,10 @@
+# [1.0.0-dev.21](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.20...v1.0.0-dev.21) (2026-08-18)
+
+
+### Bug Fixes
+
+* **alarmy:** update patches for v26.32.1 class rename ([66eb088](https://github.com/rabilrbl/fluffy-patches/commit/66eb0882c33b940e48b7d2a17a23a05c48f471b6))
+
 # [1.0.0-dev.20](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.19...v1.0.0-dev.20) (2026-08-18)
 
 
