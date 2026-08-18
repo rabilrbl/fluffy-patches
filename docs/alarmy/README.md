@@ -4,32 +4,26 @@
 
 ## Patch Status
 
-### Working Patches (v26.32.1)
-- ✅ Unlock Pro subscription (`subscription/UnlockProPatch.kt`)
-- ✅ Remove ads (`subscription/RemoveAdsPatch.kt`, `ads/RemoveAdsPatch.kt`)
+### v26.32.1
+- `premium/UnlockPremiumPatch.kt` unlocks premium and disables ads.
+- Premium and remove-ad checks are patched together because the app gates ad initialization on either check.
+- Separate Ads and Subscription patches were removed to avoid overlapping patch definitions.
 
-### Removed Patches
-- ❌ Unlock Premium (`premium/UnlockPremiumPatch.kt`) - `ty.a.a()` returns null, not boolean
+## Version Details
 
-## Version Changes
+The runtime class remains the obfuscated `bi.c` (`Lbi/c;`) in v26.32.1. JADX's display name `bi.PremiumState` is not a valid runtime descriptor.
 
-### v26.32.1 (2026-08-18)
-**Class name change:** `bi.c` → `bi.PremiumState`
+Patched methods:
+- `r():Z` — premium entitlement gate
+- `s():Z` — remove-ad entitlement gate
 
-The obfuscated class `bi.c` was renamed to `bi.PremiumState` in v26.32.1. Methods remain the same:
-- `r(): Boolean` - checks if user has any premium state
-- `s(): Boolean` - checks if user has remove-ad premium
-
-**Patches updated:**
-1. `subscription/UnlockProPatch.kt` - target changed to `Lbi/PremiumState;`
-2. `subscription/RemoveAdsPatch.kt` - target changed to `Lbi/PremiumState;`
-3. `ads/RemoveAdsPatch.kt` - target changed to `Lbi/PremiumState;`
+Both method bodies are replaced, rather than prepended, so the original logic cannot overwrite the forced result.
 
 ## APK Architecture
 
 Alarmy v26.32.1 is distributed as XAPK with multiple split APKs:
-- `base.apk` - main application
-- `split_config.arm64_v8a.apk` - native libraries
+- `base.apk` — main application
+- `split_config.arm64_v8a.apk` — native libraries
 - Multiple split APKs for different configurations
 
 **Testing:** Use the antisplit merged APK for patching.
@@ -37,26 +31,22 @@ Alarmy v26.32.1 is distributed as XAPK with multiple split APKs:
 ## Premium State Flow
 
 ```kotlin
-// bi.PremiumState class
-public final boolean r() {  // isPremium
-    return o() || q() || n() || p() || k();
-    // lifetime || playpass || google || manual || delightroom
-}
-
-public final boolean s() {  // isRemoveAdPremium
-    return !m() && this.premiumType == e.REMOVE_AD_SUBSCRIPTION;
-}
+// Runtime descriptor: Lbi/c;
+public final boolean r() { /* premium entitlement */ }
+public final boolean s() { /* remove-ad entitlement */ }
 ```
+
+The consolidated Premium patch forces both methods to `true`, which also prevents the startup ad initializer from running.
 
 ## Testing Notes
 
-**v26.32.1 Testing (2026-08-18):**
-- Patches compile successfully
-- Target class `bi.PremiumState` confirmed present in APK
-- Methods `r()` and `s()` signatures verified
-- Manual testing required via Morphe Manager
+**v26.32.1 analysis:**
+- Original smali verified in `classes18.dex` at `bi/c.smali`.
+- Original methods `r()Z` and `s()Z` verified.
+- The previous generated APK still contained the original method bodies because `addInstructions(0, ...)` only prepended instructions; this caused the runtime result to remain unchanged.
+- The corrected patch replaces both method bodies before adding the forced return.
 
 ## References
 
 - [MorpheApp/morphe-patches](https://github.com/MorpheApp/morphe-patches)
-- JADX decompilation: `~/Downloads/Backups/droom.sleepIfUCan v26.32.1_antisplit.apk.jadx`
+- JADX project: `~/Downloads/Backups/droom.sleepIfUCan v26.32.1_antisplit.apk.jadx`
