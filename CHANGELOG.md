@@ -1,3 +1,10 @@
+# [1.0.0-dev.22](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.21...v1.0.0-dev.22) (2026-08-18)
+
+
+### Bug Fixes
+
+* **alarmy:** replace premium gates ([71e4686](https://github.com/rabilrbl/fluffy-patches/commit/71e468654b86888fd93e07d09b8eff84325ae353))
+
 # [1.0.0-dev.21](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.20...v1.0.0-dev.21) (2026-08-18)
 
 
