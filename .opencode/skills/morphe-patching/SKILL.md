@@ -90,9 +90,9 @@ val patchName = resourcePatch(
 |---------|------------|---------|
 | Patch files | PascalCase + `Patch` suffix | `RemoveRootDetectionPatch.kt` |
 | Patch vals | camelCase + `Patch` suffix | `removeRootDetectionPatch` |
-| Compatibility constants | SCREAMING_SNAKE_CASE | `COMPATIBILITY_JIOTV_MOBILE` |
+| Compatibility constants | SCREAMING_SNAKE_CASE | `COMPATIBILITY_TARGET_APP` |
 | Multi-patch files | camelCase + `Patches` suffix | `miscPatches` |
-| Packages | `app.template.patches.<app>.<category>` | `app.template.patches.jiotv.root` |
+| Packages | `app.template.patches.<app>.<category>` | `app.template.patches.example.premium` |
 
 ### Required Annotations
 

@@ -29,7 +29,7 @@ When ready to implement, run /opsx-apply
    Use the **AskUserQuestion tool** (open-ended, no preset options) to ask:
    > "What patch do you want to create? Describe the app, version, and what behavior you want to change."
 
-   From their description, derive a kebab-case name (e.g., "bypass jiotv root detection" → `bypass-jiotv-root-detection`).
+   From the description, derive a kebab-case name (e.g., "bypass root detection" → "bypass-root-detection").
 
    **IMPORTANT**: Do NOT proceed without understanding:
    - Which app and version

@@ -33,7 +33,6 @@ context: |
   - `revanced-to-morphe`: Convert ReVanced patches to Morphe format
   
   Documentation: All findings, debugging notes, and research go under `docs/<appname>/`
-  with category-based files (e.g., `docs/jiotv/ssl-pinning.md`).
   
   Releases: semantic-release on push to `main` (stable) or `dev` (pre-release).
   Use conventional commits: `feat:`, `fix:`, `chore:`, `refactor:`.

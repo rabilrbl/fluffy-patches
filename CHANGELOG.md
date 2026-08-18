@@ -45,7 +45,6 @@
 
 ### Features
 
-* add jiotv-base-patched-temporary-files to .gitignore ([fa335d8](https://github.com/rabilrbl/fluffy-patches/commit/fa335d8053f19263166372a2bc2c11ee6eafedd3))
 * add play store disabled log for debugging purposes ([436f19e](https://github.com/rabilrbl/fluffy-patches/commit/436f19ee23f287b75d028cdc645ab0d34553d5f8))
 * update dismiss Google Play error dialog patch to prevent dialog from appearing on license check failure ([fca2782](https://github.com/rabilrbl/fluffy-patches/commit/fca27827d54ba84e0c5c55c62cf068121d836cb0))
 
@@ -104,29 +103,3 @@
 ### Bug Fixes
 
 # [1.0.0-dev.4](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2026-04-03)
-
-# [1.0.0-dev.3](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2026-04-03)
-
-
-### Bug Fixes
-
-* correct smali class names and method types for JioTV patches ([d9bef48](https://github.com/rabilrbl/fluffy-patches/commit/d9bef48cbd13c3f839ebae35e9144f9f1acc3cba))
-
-# [1.0.0-dev.2](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2026-04-03)
-
-
-### Bug Fixes
-
-* rebuild all JioTV patches from scratch using JADX analysis ([b7bc14c](https://github.com/rabilrbl/fluffy-patches/commit/b7bc14ca28406890b93127d1641e27ae335ae7e0))
-
-# 1.0.0-dev.1 (2026-04-03)
-
-
-### Bug Fixes
-
-* **patches:** use mutable methods for instruction injection ([571fb6a](https://github.com/rabilrbl/fluffy-patches/commit/571fb6a85fa31a9b1dd5a0d96cb2408a4a06eb7c))
-
-
-### Features
-
-* **patches:** add JioTV patch set for checks and networking ([2bbe390](https://github.com/rabilrbl/fluffy-patches/commit/2bbe390ff30c8e11ce70414e56a92270bbea5ddd))

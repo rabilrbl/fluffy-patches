@@ -160,25 +160,19 @@ If the user mentions a change or you detect one is relevant:
 ## Handling Different Entry Points
 
 **User brings an APK to analyze:**
-```
-User: Here's the JioTV APK, let's figure out the root detection
+```text
+User: Here's an APK, let's figure out the root detection
 
 You: [decompiles with JADX CLI]
 
-     JIOTV APK ANALYSIS
+     APK ANALYSIS
      ════════════════════════════════════════════════
-
-     Package: com.jio.media.jiottv
-     Version: 4.2.1
-     Min SDK: 21
-
+     Package: com.example.app
+     Version: 1.2.3
      Entry points found:
-     • com.jio.media.app.JioTVApplication
-     • com.jio.media.ui.MainActivity
-     
+     • com.example.app.Application
+     • com.example.app.MainActivity
      Let me search for detection patterns...
-
-     [searches for root, emulator, SSL patterns]
 ```
 
 **User is stuck on a failing patch:**
