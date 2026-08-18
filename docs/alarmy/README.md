@@ -4,12 +4,12 @@
 
 - **Package:** `droom.sleepIfUCan`
 - **Name:** Alarmy
-- **Version:** 26.23.0
-- **File Type:** XAPK
+- **Version:** 26.32.1
+- **File Type:** APK
 
 ## Architecture
 
-Alarmy uses a local `PremiumState` data class (`pi/b`) to track subscription status. Patching the local state class is sufficient to unlock UI and features; server-side validation only affects receipt validation for new purchases.
+Alarmy uses a local `PremiumState` data class (`bi/c`) to track subscription status. Patching the local state class is sufficient to unlock UI and features; server-side validation only affects receipt validation for new purchases.
 
 ### Premium State
 

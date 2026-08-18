@@ -15,7 +15,7 @@ Or manually add as a patch source in Morphe: https://github.com/rabilrbl/fluffy-
 | Unlock Pro subscription | Forces `PremiumState.isPremium()` to always return `true`, unlocking all premium features |
 | Remove ads | Forces `PremiumState.isRemoveAdPremium()` to always return `true`, disabling ads |
 
-**Target:** Alarmy v26.23.0 (XAPK)
+**Target:** Alarmy v26.32.1 (APK)
 
 See `docs/alarmy/README.md` for APK architecture details.
 
