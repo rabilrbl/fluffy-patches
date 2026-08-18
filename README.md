@@ -8,19 +8,15 @@ Or manually add as a patch source in Morphe: https://github.com/rabilrbl/fluffy-
 
 ## Supported Apps
 
-### JioTV Mobile (`com.jio.jioplay.tv`)
-
-> [!WARNING]
-> Patches are currently in development and do not work yet.
+### Alarmy (`droom.sleepIfUCan`)
 
 | Patch | Description |
 |-------|-------------|
-| Remove Play Store license check | Bypasses pairip licensing enforcement and app-side update redirects |
-| Remove root detection | Disables root checks and custom security validation |
-| Remove emulator detection | Bypasses device/emulator detection and Fire TV compatibility blocks |
-| Remove certificate pinning | Disables OkHttp3 SSL certificate pinning for MITM proxy support |
-| Enable cleartext traffic | Allows HTTP traffic and trusts user-installed CA certificates |
-| Enable debugging | Sets the internal debug flag to bypass all security gates (includes root + emulator patches) |
+| Unlock Premium | Replaces the premium and remove-ad gates with `true`, unlocking premium features and disabling ads |
+
+**Target:** Alarmy v26.32.1 (APK)
+
+See [`docs/alarmy/README.md`](docs/alarmy/README.md) for patch-target and APK details.
 
 ## Usage
 
@@ -30,9 +26,12 @@ Or manually add as a patch source in Morphe: https://github.com/rabilrbl/fluffy-
 
 ## Building from Source
 
-Requires JDK 17.
+Requires JDK 17 and `ANDROID_HOME`.
 
 ```bash
+export ANDROID_HOME="$HOME/Android/Sdk"
+export GITHUB_ACTOR="your-github-username"
+export GITHUB_TOKEN="your-github-token"
 ./gradlew :patches:buildAndroid
 ```
 
@@ -51,6 +50,7 @@ Output: `patches/build/libs/patches-<version>.mpp`
 1. Add a `Compatibility(...)` entry in `shared/Constants.kt` with the app's package name, APK type, and icon color.
 2. Create a subdirectory under `patches/<appname>/` for the patches.
 3. Reference the new constant in each patch's `compatibleWith(...)` call.
+4. Run `./gradlew :patches:generatePatchesList` to regenerate metadata.
 
 ### Workflow
 

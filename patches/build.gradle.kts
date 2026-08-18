@@ -15,6 +15,7 @@ patches {
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xcontext-parameters")
+        freeCompilerArgs.add("-Xcontext-receivers")
     }
 }
 
@@ -35,11 +36,5 @@ tasks {
     // Used by gradle-semantic-release-plugin.
     publish {
         dependsOn("generatePatchesList")
-    }
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs = listOf("-Xcontext-receivers")
     }
 }
