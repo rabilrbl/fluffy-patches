@@ -12,11 +12,9 @@ Or manually add as a patch source in Morphe: https://github.com/rabilrbl/fluffy-
 
 | Patch | Description |
 |-------|-------------|
-| Unlock Premium | Replaces the premium and remove-ad gates with `true`, unlocking premium features and disabling ads |
+| Unlock Premium | Unlocking premium features and disabling ads |
 
-**Target:** Alarmy v26.32.1 (APK)
-
-See [`docs/alarmy/README.md`](docs/alarmy/README.md) for patch-target and APK details.
+**Target:** Alarmy v26.32.1
 
 ## Usage
 
