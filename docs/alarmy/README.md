@@ -1,6 +1,6 @@
 # Alarmy Patches
 
-**Target:** Alarmy (`droom.sleepIfUCan`) v26.23.0 → v26.32.1
+**Target:** Alarmy (`droom.sleepIfUCan`) v26.32.1
 
 ## Patch Status
 
@@ -49,4 +49,3 @@ The consolidated Premium patch forces both methods to `true`, which also prevent
 ## References
 
 - [MorpheApp/morphe-patches](https://github.com/MorpheApp/morphe-patches)
-- JADX project: `~/Downloads/Backups/droom.sleepIfUCan v26.32.1_antisplit.apk.jadx`
