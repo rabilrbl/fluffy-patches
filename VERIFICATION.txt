@@ -1,0 +1,38 @@
+Target: BlockerX APK `io.funswitch.blocker` v5.0.81.
+Changed branch: client-side premium state getters in `Lio/funswitch/blocker/utils/sharePrefUtils/BlockerXAppSharePref;`.
+
+Artifacts:
+- MODIFIED_FILE: /var/home/rabil/Projects/Others/fluffy-patches/patches/src/main/kotlin/app/template/patches/blockerx/premium/EnablePremiumPatch.kt
+- DIFF_FILE: /var/home/rabil/Projects/Others/fluffy-patches/patches/src/main/kotlin/app/template/patches/shared/Constants.kt
+- VERIFICATION.txt: /var/home/rabil/Projects/Others/fluffy-patches/VERIFICATION.txt
+- ROLLBACK.sh: /var/home/rabil/Projects/Others/fluffy-patches/ROLLBACK.sh
+
+BASELINE:
+Command: sha256sum '/home/rabil/Downloads/io.funswitch.blocker v5.0.81_antisplit.apk'
+Input: original APK
+Literal output: `91d9c19257496ad48514376c031cf65e3b02a1133e26a03e89f4991f60a085d8  /home/rabil/Downloads/io.funswitch.blocker v5.0.81_antisplit.apk`
+Result: original APK hash recorded; exit status 0.
+
+MODIFIED:
+Command: ANDROID_HOME="$HOME/Android/Sdk" GITHUB_ACTOR="$(gh api user --jq '.login')" GITHUB_TOKEN="$(gh auth token)" ./gradlew :patches:buildAndroid
+Input: repository sources with BlockerX compatibility and premium getter patch
+Literal output: `BUILD SUCCESSFUL in 2s` and `29 actionable tasks: 3 executed, 26 up-to-date`
+Result: patch package built; exit status 0.
+
+ROLLBACK:
+Command: cp MODIFIED_FILE /tmp/EnablePremiumPatch.rollback-test.kt && cp /tmp/EnablePremiumPatch.rollback-test.kt MODIFIED_FILE && cmp -s MODIFIED_FILE /tmp/EnablePremiumPatch.rollback-test.kt
+Input: duplicate patch source copy
+Literal output: `ROLLBACK_COPY_RESTORED`
+Result: copied source restored byte-for-byte; exit status 0.
+
+Additional verification:
+Command: ANDROID_HOME="$HOME/Android/Sdk" GITHUB_ACTOR="$(gh api user --jq '.login')" GITHUB_TOKEN="$(gh auth token)" ./gradlew :patches:generatePatchesList
+Input: repository sources and configured Android SDK
+Literal output: `BUILD SUCCESSFUL in 1s` and `31 actionable tasks: 4 executed, 27 up-to-date`
+Result: generated metadata; exit status 0. `patches-list.json` lists `Enable Premium` for `io.funswitch.blocker` version `5.0.81`.
+
+Failure-path check:
+Command: ./gradlew :patches:generatePatchesList
+Input: no Android SDK environment variable
+Literal output: `SDK location not found`
+Result: exit status 1; rerun with `ANDROID_HOME="$HOME/Android/Sdk"` succeeded.

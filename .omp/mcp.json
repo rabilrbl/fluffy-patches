@@ -1,0 +1,15 @@
+{
+  "$schema": "https://raw.githubusercontent.com/can1357/oh-my-pi/main/packages/coding-agent/src/config/mcp-schema.json",
+  "mcpServers": {
+    "jadx-mcp-server": {
+      "type": "stdio",
+      "command": "/var/home/linuxbrew/.linuxbrew/bin/uv",
+      "args": [
+        "--directory",
+        "/home/rabil/Documents/Dev_Projects/jadx-mcp-server/",
+        "run",
+        "jadx_mcp_server.py"
+      ]
+    }
+  }
+}
