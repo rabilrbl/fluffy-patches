@@ -24,6 +24,14 @@ Each method is fully replaced with `true`, preventing the preference delegate fr
 
 This patch changes client-side gates only. Server-side entitlement validation and purchase APIs remain unchanged.
 
+## Instant Approval
+
+`instantapproval/BypassInstantApprovalPatch.kt` replaces `SwitchPageInstantAPApprovalDialog.redeemCoinsForInstantApproval$1()V`.
+The replacement invokes the existing `onClick` callback with the app's `PAYMENT_SUCCESS` enum value and dismisses the dialog, skipping the local coin check and `callRedeemCoins` request.
+
+This is a client-side test bypass. It does not redeem coins, update server-side coin history, or alter backend switch state. The callback's existing continuation must accept `PAYMENT_SUCCESS`; any server-enforced operation outside this dialog remains unchanged.
+
+
 ## APK analysis evidence
 
 - Package: `io.funswitch.blocker`
