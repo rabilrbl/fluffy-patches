@@ -16,4 +16,16 @@ object Constants {
             ),
         ),
     )
+
+    val COMPATIBILITY_BLOCKER_X = Compatibility(
+        name = "BlockerX",
+        packageName = "io.funswitch.blocker",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x5B4BDB,
+        targets = listOf(
+            AppTarget(
+                version = "5.0.81",
+            ),
+        ),
+    )
 }
