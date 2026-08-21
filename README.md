@@ -16,6 +16,15 @@ Or manually add as a patch source in Morphe: https://github.com/rabilrbl/fluffy-
 
 **Target:** Alarmy v26.32.1
 
+### BlockerX (`io.funswitch.blocker`)
+
+| Patch | Description |
+|-------|-------------|
+| Unlock Premium | Unlocking premium features |
+| Bypass Instant Approval | Instant approval button always succeeds without coins |
+
+**Target:** BlockerX v5.0.81
+
 ## Usage
 
 1. Download the latest `.mpp` file from [Releases](../../releases).
