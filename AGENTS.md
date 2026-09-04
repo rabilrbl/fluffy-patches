@@ -202,6 +202,23 @@ Create new markdown files as you discover:
 4. Write patch files with `compatibleWith(NEW_COMPATIBILITY_CONSTANT)`
 5. Run `./gradlew :patches:generatePatchesList` to regenerate metadata
 
+## Upstream & Dependency Sync
+
+Dependency updates are split by what can be safely automated:
+
+| Layer | Mechanism |
+|-------|-----------|
+| GitHub Actions, npm release tooling, Gson | Dependabot (monthly PRs targeting `dev`) |
+| Morphe Gradle plugin, `morphe-patcher`, `smali` | Manual — Dependabot cannot update them: the plugin version lives in `settings.gradle.kts` (not parsed by Dependabot), and `morphe-patcher`/`smali` are catalog aliases consumed by the plugin, not declared dependencies |
+| Template structure ([morphe-patches-template](https://github.com/MorpheApp/morphe-patches-template)) | Periodic manual diff against the upstream template |
+| Target app versions | Manual patch maintenance (see `docs/<appname>/`) |
+
+To upgrade the Morphe toolchain:
+
+1. Check the [morphe-patcher releases](https://github.com/MorpheApp/morphe-patcher/releases) and the [template repo](https://github.com/MorpheApp/morphe-patches-template) for the current plugin/patcher pair (upstream bumps these manually too).
+2. Bump `app.morphe.patches` in `settings.gradle.kts` and `morphe-patcher`/`smali` in `gradle/libs.versions.toml` to match.
+3. Run `./gradlew :patches:buildAndroid` and validate the patched APK in Morphe Manager on a real device before committing. There are no automated tests, so the patcher must be upgraded deliberately, not automatically.
+
 ## Release Process
 
 Releases use semantic-release on push to `main` (stable) or `dev` (pre-release). Use conventional commits: `feat:`, `fix:`, `chore:`, `refactor:`. After release, `main` is auto-backmerged into `dev`.
