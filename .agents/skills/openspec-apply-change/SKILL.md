@@ -75,7 +75,7 @@ Implement patches from an OpenSpec change with iterative testing after each patc
    For each task in the tasks file:
 
    a. **Implement the patch code**
-      - Create/edit the patch file in `patches/src/main/kotlin/app/template/patches/<app>/<category>/`
+      - Create/edit the patch file in `patches/src/main/kotlin/app/fluffy/patches/<app>/<category>/`
       - Follow the design.md for target classes and smali patterns
       - Use the morphe-patching skill for guidance on syntax and conventions
       - Keep the patch minimal and focused

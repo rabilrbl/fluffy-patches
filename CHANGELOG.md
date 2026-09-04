@@ -1,3 +1,12 @@
+## [1.1.0-dev.2](https://github.com/rabilrbl/fluffy-patches/compare/v1.1.0-dev.1...v1.1.0-dev.2) (2026-09-04)
+
+# [1.1.0-dev.1](https://github.com/rabilrbl/fluffy-patches/compare/v1.0.0...v1.1.0-dev.1) (2026-08-21)
+
+
+### Features
+
+* add BlockerX premium and instant approval patches ([#28](https://github.com/rabilrbl/fluffy-patches/issues/28)) ([9148213](https://github.com/rabilrbl/fluffy-patches/commit/9148213857840e479ffdfca0a6a6e164b8b97661))
+
 # 1.0.0 (2026-08-18)
 
 

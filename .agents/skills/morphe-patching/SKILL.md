@@ -1,154 +1,83 @@
 ---
 name: morphe-patching
-description: Create, edit, and debug Morphe patches for Android apps. Use when writing new patches, fixing broken patches, or understanding the Morphe patcher API (bytecodePatch, resourcePatch, compatibleWith, classDefBy, smali injection).
+description: Write and debug Morphe patches for this repo — bytecodePatch/resourcePatch structure, the forced-return and full-body-replacement idioms, smali instruction snippets, and common pitfalls. Use when adding a patch or fixing one that doesn't apply or doesn't take effect.
 license: MIT
-compatibility: opencode
 metadata:
   audience: developers
   workflow: morphe-patches
 ---
 
-## What I do
+Patches live in `patches/src/main/kotlin/app/fluffy/patches/<appname>/<category>/` as
+top-level `@Suppress("unused")` vals (loaded via reflection) calling
+`compatibleWith(COMPATIBILITY_*)` — full skeletons and code style are in the repo
+`AGENTS.md`, which always covers them. This skill focuses on the patcher idioms this
+repo actually uses. For locating targets, use android-apk-analysis; for building and
+device verification, use morphe-testing; for new app versions, use patch-version-bump.
 
-- Create Morphe bytecode and resource patches following project conventions
-- Inject smali instructions to modify app behavior
-- Handle compatibility constants, package naming, and patch structure
-- Debug common patch failures (class not found, method resolution, smali errors)
+## Gotchas
 
-## When to use me
+- **Prepending a return does NOT override the original body.** `addInstructions(0, ...)`
+  inserts *before* the existing instructions, which still run afterwards and overwrite the
+  forced result. To force a result, clear the body first, then insert (see next section).
+  This caused a real bug: the patched Alarmy APK still contained the original method bodies.
+- **JADX display names are not runtime descriptors.** Use `Lbi/c;`, never `bi.PremiumState`.
+  Verify in smali (see android-apk-analysis gotchas).
+- **Match methods on `returnType`**, not just name — overloads are common
+  (`it.name == "r" && it.returnType == "Z"`).
+- **Don't overlap patch definitions.** Two patches touching the same method conflict.
+  When gates are interleaved (Alarmy gates ad init on either premium check), patch them
+  together in one patch instead of defining overlapping patches.
+- **Compatibility constants pin exact versions.** A patch only applies to APK versions
+  listed in its `AppTarget` — verify you're testing the right APK version.
 
-Use this skill when:
-- Adding a new patch for an app
-- Fixing a patch that crashes or doesn't apply
-- Understanding how to target specific methods/classes in an APK
-- Converting smali patches between formats
+## The repo idiom: full body replacement
 
-## Morphe Patch Structure
-
-All patches live under `patches/src/main/kotlin/app/template/patches/<appname>/<category>/`.
-
-### Bytecode Patch Pattern
+`UnlockPremiumPatch.kt` (Alarmy) is the canonical pattern — clear the body, then inject:
 
 ```kotlin
-package app.template.patches.<app>.<category>
-
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
-import app.template.patches.shared.Constants.COMPATIBILITY_<APP>
+import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 
 @Suppress("unused")
-val patchName = bytecodePatch(
-    name = "Human readable name",
-    description = "Detailed description of what this patch does.",
+val unlockPremiumPatch = bytecodePatch(
+    name = "Unlock Premium",
+    description = "Unlocks premium features by forcing both premium gates true.",
 ) {
-    compatibleWith(COMPATIBILITY_TARGET)
+    compatibleWith(COMPATIBILITY_ALARMY)
 
     execute {
-        classDefBy("Lcom/package/ClassName;")
-            .methods.first { it.name == "methodName" }
-            .toMutable()
-            .addInstructions(
-                0,
-                """
-                    const/4 v0, 0x0
-                    return v0
-                """,
-            )
+        val premiumStateClass = mutableClassDefBy("Lbi/c;")
+
+        premiumStateClass.methods.first { it.name == "r" && it.returnType == "Z" }
+            .apply {
+                removeInstructions(0, instructions.count())
+                addInstructions(0, "const/4 v0, 0x1\nreturn v0")
+            }
     }
 }
 ```
 
-### Resource Patch Pattern
+`mutableClassDefBy("Lpkg/Class;")` returns the class with mutable methods — mutate them
+directly, no `.toMutable()` needed. Use `classDefBy(...)` only for read-only inspection.
+
+## Smali snippet library
+
+Injected instruction strings must be valid Dalvik. `p0` is `this` on instance methods;
+type descriptors end in `;` (except primitives); register count must match usage.
 
 ```kotlin
-package app.template.patches.<app>.<category>
+// Return true / false
+addInstructions(0, "const/4 v0, 0x1\nreturn v0")   // or 0x0
 
-import app.morphe.patcher.patch.resourcePatch
-import app.template.patches.shared.Constants.COMPATIBILITY_<APP>
+// Return null
+addInstructions(0, "const/4 v0, 0x0\nreturn-object v0")
 
-@Suppress("unused")
-val patchName = resourcePatch(
-    name = "Human readable name",
-    description = "Detailed description.",
-) {
-    compatibleWith(COMPATIBILITY_TARGET)
+// Return empty string
+addInstructions(0, "const-string v0, \"\"\nreturn-object v0")
 
-    execute {
-        document("AndroidManifest.xml").use { doc ->
-            // DOM manipulation
-        }
-    }
-}
-```
-
-## Key Rules
-
-### Naming Conventions
-
-| Element | Convention | Example |
-|---------|------------|---------|
-| Patch files | PascalCase + `Patch` suffix | `RemoveRootDetectionPatch.kt` |
-| Patch vals | camelCase + `Patch` suffix | `removeRootDetectionPatch` |
-| Compatibility constants | SCREAMING_SNAKE_CASE | `COMPATIBILITY_JIOTV_MOBILE` |
-| Multi-patch files | camelCase + `Patches` suffix | `miscPatches` |
-| Packages | `app.template.patches.<app>.<category>` | `app.template.patches.jiotv.root` |
-
-### Required Annotations
-
-- All patch vals MUST have `@Suppress("unused")` — they are loaded via reflection
-- Always use `classDefBy("Lfully/qualified/ClassName;")` with Dalvik descriptor format
-- Method names use Java-style: `methodName` (not smali style)
-
-### Smali Injection Patterns
-
-#### Return false (bypass check)
-```kotlin
-.addInstructions(
-    0,
-    """
-        const/4 v0, 0x0
-        return v0
-    """,
-)
-```
-
-#### Return true
-```kotlin
-.addInstructions(
-    0,
-    """
-        const/4 v0, 0x1
-        return v0
-    """,
-)
-```
-
-#### Return null
-```kotlin
-.addInstructions(
-    0,
-    """
-        const/4 v0, 0x0
-        return-object v0
-    """,
-)
-```
-
-#### Return empty string
-```kotlin
-.addInstructions(
-    0,
-    """
-        const-string v0, ""
-        return-object v0
-    """,
-)
-```
-
-#### Return empty list
-```kotlin
-.addInstructions(
+// Return empty list
+addInstructions(
     0,
     """
         new-instance v0, Ljava/util/ArrayList;
@@ -156,58 +85,61 @@ val patchName = resourcePatch(
         return-object v0
     """,
 )
+
+// Call an existing method, then dismiss/return (real logic, from BypassInstantApprovalPatch)
+addInstructions(
+    0,
+    """
+        sget-object v0, Lo/removeOnItemTouchListener;->r8lambda4IRRzyoWeWaykEOcgWGjbNoGAkw:Lo/removeOnItemTouchListener;
+        iget-object v1, p0, Lcom/example/Dialog;->onClick:Lkotlin/jvm/functions/Function1;
+        if-eqz v1, :cond_0
+        invoke-interface {v1, v0}, Lkotlin/jvm/functions/Function1;->invoke(Ljava/lang/Object;)Ljava/lang/Object;
+        :cond_0
+        invoke-virtual {p0}, Lcom/example/Dialog;->onDismissClick()V
+        return-void
+    """,
+)
 ```
 
-### Error Handling
+Copy identifiers (enum fields, R8-renamed lambdas) exactly from the target APK's smali —
+they differ per app and per version.
 
-- Use `runCatching { ... }.getOrNull()?.let { ... }` for optional class lookups
-- `.first { }` is acceptable for required methods (throws if not found)
-- Use `.filter { }.forEach { }` for patching multiple methods matching a pattern
+## Resource patches
 
-### Code Style
+XML manipulation uses the DOM API:
 
-- 4 space indentation
-- Blank line between `compatibleWith()` and `execute {}`
-- Blank line between separate `classDefBy` blocks
-- Trailing commas on multi-line calls
-- Follow IntelliJ IDEA style (enforced via ktlint)
-
-## Adding a New App
-
-1. Add `Compatibility` constant in `patches/src/main/kotlin/app/template/patches/shared/Constants.kt`
-2. Create `patches/src/main/kotlin/app/template/patches/<appname>/<category>/` directory
-3. Create `docs/<appname>/` directory and document initial APK analysis
-4. Write patch files with `compatibleWith(NEW_COMPATIBILITY_CONSTANT)`
-5. Run `./gradlew :patches:generatePatchesList` to regenerate metadata
-
-## Build Commands
-
-```bash
-# Build the patch package
-ANDROID_HOME="$HOME/Android/Sdk" GITHUB_ACTOR="$(gh api user --jq '.login')" GITHUB_TOKEN="$(gh auth token)" ./gradlew :patches:buildAndroid
-
-# Generate patches metadata
-./gradlew :patches:generatePatchesList
-
-# Clean build artifacts
-./gradlew :patches:clean
+```kotlin
+execute {
+    document("AndroidManifest.xml").use { doc ->
+        // DOM manipulation
+    }
+}
 ```
 
-## Common Pitfalls
+## Error handling
 
-1. **Class not found**: Verify the class exists in the target APK version. Use JADX to decompile and confirm.
-2. **Method not found**: Check method signature — overloads require matching by parameters, not just name.
-3. **Smali syntax errors**: Dalvik instructions must be valid. Common mistakes: wrong register count, missing `;` in type descriptors.
-4. **Patch not loading**: Ensure `@Suppress("unused")` is present and the val is at file level (not inside a class).
-5. **Wrong compatibility**: Each patch must specify the correct `COMPATIBILITY_*` constant matching the target app version.
+- Optional classes (present in some versions only):
+  `runCatching { classDefBy("Lmaybe/Missing;") }.getOrNull()?.let { ... }`
+- `.first { }` on required methods is fine — failing loudly on a missing target is correct.
+- `.filter { }.forEach { }` when patching every method matching a pattern.
 
-## Debugging Tips
+## Prior art
 
-- Use `adb logcat` to see patcher runtime errors
-- Check the APK with JADX CLI to verify class/method existence before writing patches:
-  ```bash
-  jadx app.apk -d jadx_output --deobf
-  find jadx_output/ -name "*.java" | xargs grep -n "ClassName\|methodName"
-  ```
-- Test patches on a real device/emulator via Morphe Manager
-- Document findings in `docs/<appname>/` for future contributors
+Before designing a patch from scratch, check how the reference Morphe patch repos patch
+the same app or SDK (see "Reference Patch Repositories" in AGENTS.md: MorpheApp,
+Nai64, rushiranpise, hoo-dles, crimera/piko, De-Vanced). They use the same template, so
+their patch files show proven target discovery and smali idioms you can adapt. Patches
+migrated from ReVanced (piko, De-Vanced) also demonstrate translating fingerprint-based
+ReVanced logic into direct targeting.
+
+## Common pitfalls
+
+1. Patch val not top-level or missing `@Suppress("unused")` — patch silently never loads.
+2. Wrong class descriptor or method signature — re-verify against the exact APK version.
+3. Invalid Dalvik in injected strings — build fails or app crashes; check registers and
+   descriptor syntax.
+4. Wrong `COMPATIBILITY_*` constant or missing version in `AppTarget` — patch not offered
+   for the APK being patched.
+5. Prepend-only injection (see gotchas) — patch builds fine but changes nothing at runtime.
+
+Debug runtime failures with `adb logcat` (see morphe-testing for the full loop).
