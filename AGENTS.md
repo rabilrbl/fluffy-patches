@@ -163,6 +163,26 @@ find jadx_output/ -path "*/com/example/*" -name "*.java"
 
 Always verify class/method existence in the target APK before writing patches.
 
+## Reference Patch Repositories
+
+Before writing or debugging a patch, check how other Morphe patch repos handle the same app — or the same SDK/gating mechanism (premium unlocks, license checks, ad initialization, RevenueCat, pairip, root/emulator detection). Most use the same Gradle template as this repo, so their patch files are near drop-in references for target discovery and smali idioms:
+
+| Repository | Coverage |
+|------------|----------|
+| [MorpheApp/morphe-patches](https://github.com/MorpheApp/morphe-patches) | Official Morphe patches — YouTube, YouTube Music, Reddit, plus universal patches |
+| [Nai64/Nai64Patches](https://github.com/Nai64/Nai64Patches) | ~250 patches for Android games and apps — ads, license checks, root hiding, device spoofs |
+| [rushiranpise/morphe-patches](https://github.com/rushiranpise/morphe-patches) | 330+ patches across 230+ utility and media apps |
+| [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) | ~50 apps — Duolingo, CamScanner, SoundCloud, Proton VPN, Nova Launcher, etc. |
+| [crimera/piko](https://github.com/crimera/piko) | Twitter/X and Instagram (originally ReVanced-based, now Morphe) |
+| [RookieEnough/De-Vanced](https://github.com/RookieEnough/De-Vanced) | Apps migrated from ReVanced to Morphe — Twitch, Facebook/Messenger, Google Photos, Strava, etc. |
+
+Search them shallow-cloned:
+
+```bash
+git clone --depth 1 https://github.com/rushiranpise/morphe-patches
+grep -rn "RevenueCat\|pairip" --include="*.kt" morphe-patches/patches/src
+```
+
 ## Available Skills
 
 This project includes agent skills loaded on-demand via the `skill` tool. Use these when the task matches their description. Skills live in `.agents/skills/` (one directory per skill) and follow the [Agent Skills specification](https://agentskills.io/specification) — validate changes with `npx skills-ref@latest validate .agents/skills/<name>`.

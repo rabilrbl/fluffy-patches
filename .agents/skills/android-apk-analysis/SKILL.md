@@ -104,6 +104,10 @@ services, receivers, content providers.
 **Feature targets**: premium/entitlement gates (SharedPreferences getters, RevenueCat
 entitlements), ad initialization, analytics/telemetry, license checks.
 
+**Prior art**: if the app or an SDK it embeds (RevenueCat, pairip, licensing) is covered
+by a reference Morphe patch repo (see "Reference Patch Repositories" in AGENTS.md), read
+that implementation first — it usually reveals the exact classes worth investigating.
+
 ## Reading Smali
 
 ```smali

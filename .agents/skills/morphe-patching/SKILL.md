@@ -123,6 +123,15 @@ execute {
 - `.first { }` on required methods is fine — failing loudly on a missing target is correct.
 - `.filter { }.forEach { }` when patching every method matching a pattern.
 
+## Prior art
+
+Before designing a patch from scratch, check how the reference Morphe patch repos patch
+the same app or SDK (see "Reference Patch Repositories" in AGENTS.md: MorpheApp,
+Nai64, rushiranpise, hoo-dles, crimera/piko, De-Vanced). They use the same template, so
+their patch files show proven target discovery and smali idioms you can adapt. Patches
+migrated from ReVanced (piko, De-Vanced) also demonstrate translating fingerprint-based
+ReVanced logic into direct targeting.
+
 ## Common pitfalls
 
 1. Patch val not top-level or missing `@Suppress("unused")` — patch silently never loads.

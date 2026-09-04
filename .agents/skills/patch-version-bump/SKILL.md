@@ -45,6 +45,9 @@ Work through in order; don't skip the re-verification steps:
 - What has stayed stable so far: well-named preference getters
   (`getSUB_STATUS()Z` in BlockerX) survive version bumps better than obfuscated names —
   but still verify.
+- When a target can't be re-located, check the reference Morphe patch repos
+  (see "Reference Patch Repositories" in AGENTS.md) — another repo may already support
+  the new version or have traced the renamed class.
 
 ## Commit conventions
 
