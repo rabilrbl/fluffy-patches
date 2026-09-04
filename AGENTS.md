@@ -4,7 +4,7 @@ This file provides instructions for agentic coding agents working in this reposi
 
 ## Project Overview
 
-**fluffy-patches** is a Morphe Patches repository for Android apps. Patches are compiled into `.mpp` files consumed by Morphe Manager. Each app gets its own subdirectory under `patches/src/main/kotlin/app/template/patches/<appname>/`.
+**fluffy-patches** is a Morphe Patches repository for Android apps. Patches are compiled into `.mpp` files consumed by Morphe Manager. Each app gets its own subdirectory under `patches/src/main/kotlin/app/fluffy/patches/<appname>/`.
 
 ## Build Commands
 
@@ -70,7 +70,7 @@ A `scripts/` directory does not currently exist. If scripts are needed that oper
 | Patch vals | camelCase + `Patch` suffix | `removeRootDetectionPatch` |
 | Compatibility constants | SCREAMING_SNAKE_CASE | `COMPATIBILITY_JIOTV_MOBILE` |
 | Multi-patch files | camelCase + `Patches` suffix | `miscPatches` |
-| Packages | `app.template.patches.<app>.<category>` | `app.template.patches.jiotv.root` |
+| Packages | `app.fluffy.patches.<app>.<category>` | `app.fluffy.patches.jiotv.root` |
 
 ### Required Annotations
 
@@ -83,7 +83,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
-import app.template.patches.shared.Constants.COMPATIBILITY_*
+import app.fluffy.patches.shared.Constants.COMPATIBILITY_*
 ```
 
 ## Patch Patterns
@@ -196,8 +196,8 @@ Create new markdown files as you discover:
 
 ## Adding a New App
 
-1. Add `Compatibility` constant in `patches/src/main/kotlin/app/template/patches/shared/Constants.kt`
-2. Create `patches/src/main/kotlin/app/template/patches/<appname>/<category>/` directory
+1. Add `Compatibility` constant in `patches/src/main/kotlin/app/fluffy/patches/shared/Constants.kt`
+2. Create `patches/src/main/kotlin/app/fluffy/patches/<appname>/<category>/` directory
 3. Create `docs/<appname>/` directory and document initial APK analysis
 4. Write patch files with `compatibleWith(NEW_COMPATIBILITY_CONSTANT)`
 5. Run `./gradlew :patches:generatePatchesList` to regenerate metadata

@@ -1,10 +1,10 @@
-package app.template.patches.alarmy.premium
+package app.fluffy.patches.alarmy.premium
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.bytecodePatch
-import app.template.patches.shared.Constants.COMPATIBILITY_ALARMY
+import app.fluffy.patches.shared.Constants.COMPATIBILITY_ALARMY
 
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(

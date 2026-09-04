@@ -1,4 +1,4 @@
-group = "app.template"
+group = "app.fluffy"
 
 patches {
     about {
