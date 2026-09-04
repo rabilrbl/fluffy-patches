@@ -44,7 +44,7 @@ ANDROID_HOME="$HOME/Android/Sdk" GITHUB_ACTOR="$(gh api user --jq '.login')" GIT
 
 ## Testing
 
-- All patch updates must be tested on an APK using the Morphe CLI before committing.
+- All patch updates must be tested on an APK using the Morphe CLI before committing (see the `morphe-testing` skill).
 - Use `adb` commands to install and verify the patched APK on a device/emulator when available.
 - Any scripts added to `scripts/` must also be tested against a real APK and verified via ADB.
 
@@ -163,15 +163,37 @@ find jadx_output/ -path "*/com/example/*" -name "*.java"
 
 Always verify class/method existence in the target APK before writing patches.
 
+## Reference Patch Repositories
+
+Before writing or debugging a patch, check how other Morphe patch repos handle the same app — or the same SDK/gating mechanism (premium unlocks, license checks, ad initialization, RevenueCat, pairip, root/emulator detection). Most use the same Gradle template as this repo, so their patch files are near drop-in references for target discovery and smali idioms:
+
+| Repository | Coverage |
+|------------|----------|
+| [MorpheApp/morphe-patches](https://github.com/MorpheApp/morphe-patches) | Official Morphe patches — YouTube, YouTube Music, Reddit, plus universal patches |
+| [Nai64/Nai64Patches](https://github.com/Nai64/Nai64Patches) | ~250 patches for Android games and apps — ads, license checks, root hiding, device spoofs |
+| [rushiranpise/morphe-patches](https://github.com/rushiranpise/morphe-patches) | 330+ patches across 230+ utility and media apps |
+| [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) | ~50 apps — Duolingo, CamScanner, SoundCloud, Proton VPN, Nova Launcher, etc. |
+| [crimera/piko](https://github.com/crimera/piko) | Twitter/X and Instagram (originally ReVanced-based, now Morphe) |
+| [RookieEnough/De-Vanced](https://github.com/RookieEnough/De-Vanced) | Apps migrated from ReVanced to Morphe — Twitch, Facebook/Messenger, Google Photos, Strava, etc. |
+
+Search them shallow-cloned:
+
+```bash
+git clone --depth 1 https://github.com/rushiranpise/morphe-patches
+grep -rn "RevenueCat\|pairip" --include="*.kt" morphe-patches/patches/src
+```
+
 ## Available Skills
 
-This project includes agent skills loaded on-demand via the `skill` tool. Use these when the task matches their description:
+This project includes agent skills loaded on-demand via the `skill` tool. Use these when the task matches their description. Skills live in `.agents/skills/` (one directory per skill) and follow the [Agent Skills specification](https://agentskills.io/specification) — validate changes with `npx skills-ref@latest validate .agents/skills/<name>`.
 
 | Skill | Description | When to Use |
 |-------|-------------|-------------|
 | `morphe-patching` | Create, edit, and debug Morphe patches | Writing new patches, fixing broken patches, smali injection |
 | `android-apk-analysis` | Analyze Android APK structure, decompile with JADX | Reverse-engineering APKs, finding patch targets |
-| `revanced-to-morphe` | Convert ReVanced patches to Morphe patches | Migrating from ReVanced, adapting patching techniques |
+| `patch-version-bump` | Update patches for a new target app version | App shipped a new version, patches stopped matching |
+| `morphe-testing` | Build, apply with morphe-cli, verify via ADB | Before committing patch changes, debugging patched APKs |
+| `release-process` | Commit conventions, semantic-release, generated files | Writing commits, or when touching generated files |
 | `openspec-explore` | Think through ideas and clarify requirements | Exploring ideas before or during a change |
 | `openspec-propose` | Propose a new change with design, specs, and tasks | Quickly describing what to build |
 | `openspec-apply-change` | Implement tasks from an OpenSpec change | Starting or continuing implementation |
