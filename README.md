@@ -20,7 +20,23 @@ Or manually add as a patch source in Morphe: https://github.com/rabilrbl/fluffy-
      To collapse the patches list, remove the word 'EXPANDED' from the comment tag below. -->
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0](https://github.com/rabilrbl/fluffy-patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
+> **[v1.1.0-dev.1](https://github.com/rabilrbl/fluffy-patches/releases/tag/v1.1.0-dev.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
+<details open>
+<summary>📦 BlockerX&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 5.0.81 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Bypass Instant Approval](#bypass-instant-approval) | Bypasses the local coin redemption step for Instant Approval actions. |  |
+| [Enable Premium](#enable-premium) | Enables BlockerX premium gates and premium module access. |  |
+
+</details>
+
 <details open>
 <summary>📦 Alarmy&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
