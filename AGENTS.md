@@ -206,6 +206,8 @@ Create new markdown files as you discover:
 
 Releases use semantic-release on push to `main` (stable) or `dev` (pre-release). Use conventional commits: `feat:`, `fix:`, `chore:`, `refactor:`. After release, `main` is auto-backmerged into `dev`.
 
+The release workflow (`release.yml`) automatically regenerates `patches-list.json` and the README patches section (via `.github/scripts/generate_patches_readme.py`) and commits them. Never hand-edit generated files: `patches-list.json`, `patches-bundle.json`, `CHANGELOG.md`, and the README section between the `<!-- PATCHES_START -->` / `<!-- PATCHES_END -->` markers.
+
 ## Key Files
 
 | File | Purpose |
@@ -213,6 +215,8 @@ Releases use semantic-release on push to `main` (stable) or `dev` (pre-release).
 | `patches/build.gradle.kts` | Patch module config, metadata |
 | `settings.gradle.kts` | Root project config, Morphe plugin version |
 | `gradle/libs.versions.toml` | Dependency versions — `morphe-patcher` and `smali` are required by the plugin, do NOT remove |
-| `patches-list.json` | Generated patch metadata |
+| `patches/src/main/kotlin/util/PatchListGenerator.kt` | Generates `patches-list.json` from the built `.mpp` |
+| `patches-list.json` | Generated patch metadata (rich schema: compatibility name, icon color, per-version targets) |
+| `.github/scripts/generate_patches_readme.py` | Regenerates the README patches section from `patches-list.json` |
 | `.releaserc` | Semantic-release configuration |
 | `.editorconfig` | ktlint code style rules |

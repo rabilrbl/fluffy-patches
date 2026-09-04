@@ -1,16 +1,31 @@
 {
+  "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
   "version": "1.0.0",
   "patches": [
     {
       "name": "Unlock Premium",
       "description": "Unlocks premium features and disables ads by forcing both premium gates true.",
-      "use": true,
+      "default": true,
       "dependencies": [],
-      "compatiblePackages": {
-        "droom.sleepIfUCan": [
-          "26.32.1"
-        ]
-      },
+      "compatiblePackages": [
+        {
+          "packageName": "droom.sleepIfUCan",
+          "name": "Alarmy",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FF6B4C",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "26.32.1",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
       "options": []
     }
   ]

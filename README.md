@@ -2,29 +2,53 @@
 
 A [Morphe Patches](https://morpheapp.github.io) repository with patches for Android apps.
 
+## ❓ About
+
+Patches for Android apps, ready to use with [Morphe Manager](https://github.com/MorpheApp/morphe-manager).
+
+### How to use these patches
+
 Click here to add these patches to Morphe: https://morphe.software/add-source?github=rabilrbl/fluffy-patches
 
 Or manually add as a patch source in Morphe: https://github.com/rabilrbl/fluffy-patches
 
-## Supported Apps
+## 🩹 Patches list
 
-### Alarmy (`droom.sleepIfUCan`)
+<!-- Do not modify the section between the PATCHES markers by hand. It is regenerated
+     from patches-list.json when release.yml creates a new release.
 
-| Patch | Description |
-|-------|-------------|
-| Unlock Premium | Unlocking premium features and disabling ads |
+     To collapse the patches list, remove the word 'EXPANDED' from the comment tag below. -->
 
-**Target:** Alarmy v26.32.1
+<!-- PATCHES_START EXPANDED -->
+> **[v1.0.0](https://github.com/rabilrbl/fluffy-patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
+<details open>
+<summary>📦 Alarmy&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
 
-## Usage
+**🎯 Supported versions:**
+
+| 26.32.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium](#unlock-premium) | Unlocks premium features and disables ads by forcing both premium gates true. |  |
+
+</details>
+
+<!-- PATCHES_END -->
+
+## 🚀 Usage
 
 1. Download the latest `.mpp` file from [Releases](../../releases).
 2. Open Morphe Manager and import the patch package.
 3. Select the target APK and apply the desired patches.
 
-## Building from Source
+Users can also apply `dev` branch pre-releases by enabling `pre-release` patch sources in Morphe Manager.
 
-Requires JDK 17 and `ANDROID_HOME`.
+## 🛠️ Building locally
+
+Requires JDK 21 and `ANDROID_HOME`.
 
 ```bash
 export ANDROID_HOME="$HOME/Android/Sdk"
@@ -33,29 +57,21 @@ export GITHUB_TOKEN="your-github-token"
 ./gradlew :patches:buildAndroid
 ```
 
-Output: `patches/build/libs/patches-<version>.mpp`
+The built patches `.mpp` file is found in `patches/build/libs/patches-*.mpp`.
 
-## Contributing
+## 🧑‍💻 Contributing
 
-### Adding a Patch for an Existing App
+- **Make all changes to the `dev` branch.** Open pull requests targeting `dev`.
+- `main` is the stable release branch — do not push directly. When `dev` is ready, merge `dev` into `main` (merge commit only, no squash) to create a stable release.
+- **Always use semantic release ([release.yml](.github/workflows/release.yml))**. Do not manually create releases — generated files such as `patches-list.json`, `patches-bundle.json`, `CHANGELOG.md`, and the README patches list are updated automatically by the release workflow.
+- Always use [conventional commit](https://kapeli.com/cheat_sheets/Semantic_Commits.docset/Contents/Resources/Documents/index) messages:
+  - `feat: Added a new feature` — creates a minor pre-release on `dev`
+  - `fix: Some problem now fixed` — creates a patch pre-release on `dev`
+  - `chore: Random change you do not want in the user facing changelog` — no release
+- Do not force push semantic release commits, as that breaks all future releases.
 
-1. Create a `.kt` file under `patches/src/main/kotlin/app/template/patches/<appname>/`.
-2. Define a `bytecodePatch` or `resourcePatch` with `compatibleWith(<APP_CONSTANT>)`.
-3. Annotate the top-level `val` with `@Suppress("unused")`.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guidelines.
 
-### Adding a New App
-
-1. Add a `Compatibility(...)` entry in `shared/Constants.kt` with the app's package name, APK type, and icon color.
-2. Create a subdirectory under `patches/<appname>/` for the patches.
-3. Reference the new constant in each patch's `compatibleWith(...)` call.
-4. Run `./gradlew :patches:generatePatchesList` to regenerate metadata.
-
-### Workflow
-
-- Development happens on `dev`; open PRs targeting `dev`.
-- `main` is the release branch — do not push directly.
-- Releases are automated via semantic-release; use conventional commits (`feat:`, `fix:`, `chore:`, `refactor:`).
-
-## License
+## 📜 License
 
 [GPLv3](LICENSE) with Section 7 restriction: the name "Morphe" may not be used in derivative works. See [NOTICE](NOTICE) for full conditions.
