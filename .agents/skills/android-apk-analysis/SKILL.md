@@ -1,247 +1,132 @@
 ---
 name: android-apk-analysis
-description: Analyze Android APK structure, decompile with JADX, find classes/methods, understand app architecture, and identify targets for patching. Use when reverse-engineering an APK or preparing to write patches.
+description: Analyze Android APK structure with JADX, locate patch targets (classes, methods, strings), and map security mechanisms like root, emulator, SSL pinning, and integrity checks. Use when reverse-engineering an APK or finding the code to patch before writing a Morphe patch.
 license: MIT
-compatibility: opencode
 metadata:
   audience: developers
   workflow: reverse-engineering
 ---
 
-## What I do
+Ground every patch in verified decompiled code. This skill covers locating and verifying
+targets. For writing the patch, switch to the morphe-patching skill; for build/apply/verify
+steps, use morphe-testing.
 
-- Guide APK decompilation and analysis workflows
-- Identify classes, methods, and fields relevant to patching
-- Understand app architecture and component relationships
-- Find detection mechanisms, SSL pinning, root detection, and other security features
-- Document findings for patch development
+## Workflow
 
-## When to use me
+1. Inspect the APK (package, version, dex layout)
+2. Decompile with JADX
+3. Search for the behavior to change
+4. Verify exact runtime descriptors in smali
+5. Record targets in `docs/<appname>/`
 
-Use this skill when:
-- Analyzing a new APK to understand its structure
-- Finding the right class/method to patch
-- Investigating why a patch isn't working
-- Documenting app internals for future contributors
-- Converting between Java and smali representations
+## Gotchas
 
-## APK Analysis Workflow
+- **JADX display names are not runtime descriptors.** JADX may rename an obfuscated class
+  for display (e.g. `bi.PremiumState`) while the runtime descriptor is `Lbi/c;`. Patches
+  must use the runtime descriptor. Always confirm the real name in smali (via apktool or
+  the JADX "smali" view) before writing `classDefBy("...")`.
+- **Split APKs (XAPK/APKM) must be merged first.** `base.apk` alone lacks native libraries
+  and configs. Merge with an antisplit tool and patch the merged APK — the same one used
+  for device testing.
+- **Obfuscated names change between app versions.** `Lbi/c;` in one version may be `Lbi/e;`
+  in the next. Locate code by string literals and usage patterns, not just names, and always
+  verify against the exact version being supported.
+- **R8 renames lambdas and enum fields** to identifiers like
+  `r8lambda4IRRzyoWeWaykEOcgWGjbNoGAkw` or unrelated-looking class names
+  (`Lo/removeOnItemTouchListener;`). Reference them exactly as they appear in smali.
+- **Classes can live in any dex file** (e.g. `classes18.dex`). Grep the entire decompiled
+  tree, never a single file.
 
-### 1. Initial APK Inspection
+## Inspect the APK
 
 ```bash
-# Get APK info
+# Package name, version name/code, min SDK
 aapt dump badging app.apk
 
-# List dex files
+# Dex file layout
 unzip -l app.apk | grep ".dex"
 
-# Extract and analyze
-apktool d app.apk -o output_dir
+# Decode resources and smali (for descriptor verification)
+apktool d app.apk -o apktool_output
 ```
 
-### 2. JADX Decompilation
+## Decompile with JADX
 
 ```bash
-# Full decompilation
-jadx app.apk -d output_dir
-
-# With specific options
-jadx app.apk -d output_dir --show-bad-code --deobf
-```
-
-### 3. Key Areas to Investigate
-
-#### Application Entry Points
-- Main Activity (from AndroidManifest.xml)
-- Application class (onCreate method)
-- Content Providers
-- Services
-- Broadcast Receivers
-
-#### Security Mechanisms
-- SSL/TLS pinning (look for `CertificatePinner`, `TrustManager`, `X509TrustManager`)
-- Root detection (look for `su`, `Superuser`, `RootTools`, `Magisk`)
-- Emulator detection (look for `Build.FINGERPRINT`, `Build.MODEL`, `TelephonyManager`)
-- Integrity checks (look for `SafetyNet`, `PlayIntegrity`, `signature`)
-- Debugger detection (look for `Debug.isDebuggerConnected`)
-
-#### Feature Targets
-- Network requests (Retrofit, OkHttp, Volley)
-- Authentication flows
-- Premium/feature gates
-- Ad loading
-- Analytics/telemetry
-
-### 4. Finding Patch Targets
-
-#### By Class Name
-```bash
-# Search for specific patterns
-grep -r "isRooted" output_dir/
-grep -r "sslPinning" output_dir/
-grep -r "isPremium" output_dir/
-```
-
-#### By String Reference
-```bash
-# Find strings in the APK
-jadx --deobf app.apk -d output_dir
-grep -r "feature locked" output_dir/
-```
-
-#### By Method Usage
-```bash
-# Find callers of a method
-# In JADX: right-click method → Find Usage
-# Or search in decompiled code
-grep -r "methodName(" output_dir/
-```
-
-### 5. Smali Analysis
-
-When Java decompilation fails or is unclear, analyze smali directly:
-
-```bash
-# Using apktool
-apktool d app.apk -o smali_output
-
-# Key smali patterns:
-# Method return types:
-#   ->Z = boolean
-#   ->V = void
-#   ->Ljava/lang/String; = String
-#   ->I = int
-#   ->Ljava/util/List; = List
-
-# Register types:
-#   v0, v1, ... = local registers
-#   p0, p1, ... = parameter registers (p0 = this for instance methods)
-```
-
-### 6. Common Smali Patterns for Patching
-
-#### Boolean method returning false
-```smali
-.method public isFeatureLocked()Z
-    .registers 2
-    const/4 v0, 0x0
-    return v0
-.end method
-```
-
-#### Null return
-```smali
-.method public getRestriction()Ljava/lang/String;
-    .registers 2
-    const/4 v0, 0x0
-    return-object v0
-.end method
-```
-
-#### Empty list return
-```smali
-.method public getBlockedFeatures()Ljava/util/List;
-    .registers 3
-    new-instance v0, Ljava/util/ArrayList;
-    invoke-direct {v0}, Ljava/util/ArrayList;-><init>()V
-    return-object v0
-.end method
-```
-
-#### Skip conditional branch
-```smali
-# Original: if-eqz v0, :cond_10
-# Patched:  goto :cond_10
-# Or: const/4 v0, 0x1
-```
-
-## Documentation Guidelines
-
-When documenting findings, create files in `docs/<appname>/`:
-
-- `ssl-pinning.md` — SSL pinning implementation details
-- `root-detection.md` — Root detection mechanisms
-- `emulator-detection.md` — How the app detects emulators
-- `debugging-journey.md` — Step-by-step debugging notes
-- `apk-structure.md` — Overall app architecture
-
-Include:
-- Class names (both Java and Dalvik formats)
-- Method signatures
-- Key strings used for detection
-- Failed patch attempts and why they failed
-- Useful smali patterns discovered
-
-## Tools Reference
-
-### JADX CLI Commands
-
-```bash
-# Full decompilation to directory
+# Standard decompilation
 jadx app.apk -d jadx_output
 
-# With deobfuscation
+# With deobfuscation heuristics for obfuscated apps
 jadx app.apk -d jadx_output --deobf
 
-# Show bad code (when decompilation fails)
+# When decompilation fails on some methods, show the raw code anyway
 jadx app.apk -d jadx_output --show-bad-code
+```
 
-# Export as JAR
-jadx app.apk --output-format jar -d jadx_output
+Get `AndroidManifest.xml` from `jadx_output/resources/AndroidManifest.xml` — entry points,
+permissions, and app components.
 
-# Single class export
-jadx app.apk -d jadx_output --cls com.example.MyClass
+## Search Recipes
 
-# Search for a class name
-jadx app.apk -d jadx_output --deobf
+```bash
+# Find a class by name
 find jadx_output/ -name "*.java" | xargs grep -l "ClassName"
 
-# Search for a method call
-find jadx_output/ -name "*.java" | xargs grep -l "methodName("
+# Find callers of a method
+find jadx_output/ -name "*.java" | xargs grep -n "methodName("
 
-# Search for a string literal
-find jadx_output/ -name "*.java" | xargs grep -l "string to find"
+# Find a string literal (feature labels, gate messages)
+find jadx_output/ -name "*.java" | xargs grep -rn "feature locked"
 
-# Get AndroidManifest.xml
-jadx app.apk -d jadx_output
-cat jadx_output/resources/AndroidManifest.xml
-
-# Get string resources
-find jadx_output/ -name "strings.xml"
-```
-
-### Common JADX CLI Analysis Patterns
-
-```bash
-# Find all classes in a package
+# All classes in a package
 find jadx_output/ -path "*/com/example/*" -name "*.java"
 
-# Find classes implementing an interface
+# Classes implementing/extending a type
 find jadx_output/ -name "*.java" | xargs grep -l "implements SomeInterface"
-
-# Find classes extending a base class
 find jadx_output/ -name "*.java" | xargs grep -l "extends SomeBaseClass"
-
-# Find method references across all decompiled files
-find jadx_output/ -name "*.java" | xargs grep -n "methodName"
-
-# Find all usages of a class
-find jadx_output/ -name "*.java" | xargs grep -n "ClassName"
 ```
 
-### Command Line Tools
+## Where to Look
 
-- `jadx` — Java decompiler (CLI)
-- `apktool` — APK decompiler/recompiler
-- `aapt` — Android Asset Packaging Tool
-- `dex2jar` — Convert dex to jar
-- `jd-gui` — Java decompiler GUI
+**Entry points** (from AndroidManifest.xml): main activity, `Application.onCreate`,
+services, receivers, content providers.
 
-## Tips
+**Security mechanisms** — search for:
 
-1. Always check multiple APK versions — class names may change
-2. Look for obfuscated names (a.b.c()) — track by usage patterns
-3. Check for reflection-based loading — patches may need to target multiple classes
-4. Note the app's minimum SDK version for compatibility
-5. Document everything — future you (or contributors) will thank you
+| Mechanism | Indicators |
+|-----------|------------|
+| SSL pinning | `CertificatePinner`, `TrustManager`, `X509TrustManager`, `network_security_config` |
+| Root detection | `su`, `Superuser`, `RootTools`, `Magisk` |
+| Emulator detection | `Build.FINGERPRINT`, `Build.MODEL`, `TelephonyManager` |
+| Integrity/attestation | `SafetyNet`, `PlayIntegrity`, signature checks |
+| Debugger detection | `Debug.isDebuggerConnected` |
+
+**Feature targets**: premium/entitlement gates (SharedPreferences getters, RevenueCat
+entitlements), ad initialization, analytics/telemetry, license checks.
+
+## Reading Smali
+
+```smali
+# Type descriptors
+Z    -> boolean          I    -> int
+V    -> void             J    -> long
+Ljava/lang/String;       Ljava/util/List;
+
+# Registers
+v0, v1, ...   local registers
+p0            this (instance methods); p1, p2 ... parameters
+```
+
+Prefer JADX's Java view for understanding logic; drop to smali only to verify descriptors,
+instruction order, and exact identifiers.
+
+## Documenting
+
+Record findings in `docs/<appname>/README.md` (create per-app docs on first analysis):
+
+- Runtime descriptors (`Lbi/c;`) **and** JADX display names — both, so future readers
+  aren't confused by either
+- Method signatures and what each gate controls
+- Key strings used for detection/gating
+- Failed approaches and why they failed
+- APK architecture notes (split APKs, dex layout)

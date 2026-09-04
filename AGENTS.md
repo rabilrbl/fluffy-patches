@@ -44,7 +44,7 @@ ANDROID_HOME="$HOME/Android/Sdk" GITHUB_ACTOR="$(gh api user --jq '.login')" GIT
 
 ## Testing
 
-- All patch updates must be tested on an APK using the Morphe CLI before committing.
+- All patch updates must be tested on an APK using the Morphe CLI before committing (see the `morphe-testing` skill).
 - Use `adb` commands to install and verify the patched APK on a device/emulator when available.
 - Any scripts added to `scripts/` must also be tested against a real APK and verified via ADB.
 
@@ -165,13 +165,15 @@ Always verify class/method existence in the target APK before writing patches.
 
 ## Available Skills
 
-This project includes agent skills loaded on-demand via the `skill` tool. Use these when the task matches their description:
+This project includes agent skills loaded on-demand via the `skill` tool. Use these when the task matches their description. Skills live in `.agents/skills/` (one directory per skill) and follow the [Agent Skills specification](https://agentskills.io/specification) — validate changes with `npx skills-ref@latest validate .agents/skills/<name>`.
 
 | Skill | Description | When to Use |
 |-------|-------------|-------------|
 | `morphe-patching` | Create, edit, and debug Morphe patches | Writing new patches, fixing broken patches, smali injection |
 | `android-apk-analysis` | Analyze Android APK structure, decompile with JADX | Reverse-engineering APKs, finding patch targets |
-| `revanced-to-morphe` | Convert ReVanced patches to Morphe patches | Migrating from ReVanced, adapting patching techniques |
+| `patch-version-bump` | Update patches for a new target app version | App shipped a new version, patches stopped matching |
+| `morphe-testing` | Build, apply with morphe-cli, verify via ADB | Before committing patch changes, debugging patched APKs |
+| `release-process` | Commit conventions, semantic-release, generated files | Writing commits, or when touching generated files |
 | `openspec-explore` | Think through ideas and clarify requirements | Exploring ideas before or during a change |
 | `openspec-propose` | Propose a new change with design, specs, and tasks | Quickly describing what to build |
 | `openspec-apply-change` | Implement tasks from an OpenSpec change | Starting or continuing implementation |
