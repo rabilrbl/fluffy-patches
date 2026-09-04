@@ -4,7 +4,7 @@ This file provides instructions for agentic coding agents working in this reposi
 
 ## Project Overview
 
-**fluffy-patches** is a Morphe Patches repository for Android apps. Patches are compiled into `.mpp` files consumed by Morphe Manager. Each app gets its own subdirectory under `patches/src/main/kotlin/app/template/patches/<appname>/`.
+**fluffy-patches** is a Morphe Patches repository for Android apps. Patches are compiled into `.mpp` files consumed by Morphe Manager. Each app gets its own subdirectory under `patches/src/main/kotlin/app/fluffy/patches/<appname>/`.
 
 ## Build Commands
 
@@ -70,7 +70,7 @@ A `scripts/` directory does not currently exist. If scripts are needed that oper
 | Patch vals | camelCase + `Patch` suffix | `removeRootDetectionPatch` |
 | Compatibility constants | SCREAMING_SNAKE_CASE | `COMPATIBILITY_JIOTV_MOBILE` |
 | Multi-patch files | camelCase + `Patches` suffix | `miscPatches` |
-| Packages | `app.template.patches.<app>.<category>` | `app.template.patches.jiotv.root` |
+| Packages | `app.fluffy.patches.<app>.<category>` | `app.fluffy.patches.jiotv.root` |
 
 ### Required Annotations
 
@@ -83,7 +83,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
-import app.template.patches.shared.Constants.COMPATIBILITY_*
+import app.fluffy.patches.shared.Constants.COMPATIBILITY_*
 ```
 
 ## Patch Patterns
@@ -196,15 +196,34 @@ Create new markdown files as you discover:
 
 ## Adding a New App
 
-1. Add `Compatibility` constant in `patches/src/main/kotlin/app/template/patches/shared/Constants.kt`
-2. Create `patches/src/main/kotlin/app/template/patches/<appname>/<category>/` directory
+1. Add `Compatibility` constant in `patches/src/main/kotlin/app/fluffy/patches/shared/Constants.kt`
+2. Create `patches/src/main/kotlin/app/fluffy/patches/<appname>/<category>/` directory
 3. Create `docs/<appname>/` directory and document initial APK analysis
 4. Write patch files with `compatibleWith(NEW_COMPATIBILITY_CONSTANT)`
 5. Run `./gradlew :patches:generatePatchesList` to regenerate metadata
 
+## Upstream & Dependency Sync
+
+Dependency updates are split by what can be safely automated:
+
+| Layer | Mechanism |
+|-------|-----------|
+| GitHub Actions, npm release tooling, Gson | Dependabot (monthly PRs targeting `dev`) |
+| Morphe Gradle plugin, `morphe-patcher`, `smali` | Manual — Dependabot cannot update them: the plugin version lives in `settings.gradle.kts` (not parsed by Dependabot), and `morphe-patcher`/`smali` are catalog aliases consumed by the plugin, not declared dependencies |
+| Template structure ([morphe-patches-template](https://github.com/MorpheApp/morphe-patches-template)) | Periodic manual diff against the upstream template |
+| Target app versions | Manual patch maintenance (see `docs/<appname>/`) |
+
+To upgrade the Morphe toolchain:
+
+1. Check the [morphe-patcher releases](https://github.com/MorpheApp/morphe-patcher/releases) and the [template repo](https://github.com/MorpheApp/morphe-patches-template) for the current plugin/patcher pair (upstream bumps these manually too).
+2. Bump `app.morphe.patches` in `settings.gradle.kts` and `morphe-patcher`/`smali` in `gradle/libs.versions.toml` to match.
+3. Run `./gradlew :patches:buildAndroid` and validate the patched APK in Morphe Manager on a real device before committing. There are no automated tests, so the patcher must be upgraded deliberately, not automatically.
+
 ## Release Process
 
 Releases use semantic-release on push to `main` (stable) or `dev` (pre-release). Use conventional commits: `feat:`, `fix:`, `chore:`, `refactor:`. After release, `main` is auto-backmerged into `dev`.
+
+The release workflow (`release.yml`) automatically regenerates `patches-list.json` and the README patches section (via `.github/scripts/generate_patches_readme.py`) and commits them. Never hand-edit generated files: `patches-list.json`, `patches-bundle.json`, `CHANGELOG.md`, and the README section between the `<!-- PATCHES_START -->` / `<!-- PATCHES_END -->` markers.
 
 ## Key Files
 
@@ -213,6 +232,8 @@ Releases use semantic-release on push to `main` (stable) or `dev` (pre-release).
 | `patches/build.gradle.kts` | Patch module config, metadata |
 | `settings.gradle.kts` | Root project config, Morphe plugin version |
 | `gradle/libs.versions.toml` | Dependency versions — `morphe-patcher` and `smali` are required by the plugin, do NOT remove |
-| `patches-list.json` | Generated patch metadata |
+| `patches/src/main/kotlin/util/PatchListGenerator.kt` | Generates `patches-list.json` from the built `.mpp` |
+| `patches-list.json` | Generated patch metadata (rich schema: compatibility name, icon color, per-version targets) |
+| `.github/scripts/generate_patches_readme.py` | Regenerates the README patches section from `patches-list.json` |
 | `.releaserc` | Semantic-release configuration |
 | `.editorconfig` | ktlint code style rules |

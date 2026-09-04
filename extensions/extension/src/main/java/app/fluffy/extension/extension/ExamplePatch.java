@@ -1,4 +1,4 @@
-package app.template.extension.extension;
+package app.fluffy.extension.extension;
 
 @SuppressWarnings("unused")
 public class ExamplePatch {

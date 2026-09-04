@@ -132,3 +132,14 @@ local.properties
 opencode.json
 
 tmp/
+
+# Kotlin compiler error logs
+.kotlin/
+
+# Eclipse project files
+.project
+.settings/
+
+# Python
+__pycache__/
+.ruff_cache/

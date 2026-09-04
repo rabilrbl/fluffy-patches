@@ -1,10 +1,10 @@
-package app.template.patches.blockerx.instantapproval
+package app.fluffy.patches.blockerx.instantapproval
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.bytecodePatch
-import app.template.patches.shared.Constants.COMPATIBILITY_BLOCKER_X
+import app.fluffy.patches.shared.Constants.COMPATIBILITY_BLOCKER_X
 
 @Suppress("unused")
 val bypassInstantApprovalPatch = bytecodePatch(

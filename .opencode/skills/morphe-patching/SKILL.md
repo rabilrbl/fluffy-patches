@@ -25,17 +25,17 @@ Use this skill when:
 
 ## Morphe Patch Structure
 
-All patches live under `patches/src/main/kotlin/app/template/patches/<appname>/<category>/`.
+All patches live under `patches/src/main/kotlin/app/fluffy/patches/<appname>/<category>/`.
 
 ### Bytecode Patch Pattern
 
 ```kotlin
-package app.template.patches.<app>.<category>
+package app.fluffy.patches.<app>.<category>
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
-import app.template.patches.shared.Constants.COMPATIBILITY_<APP>
+import app.fluffy.patches.shared.Constants.COMPATIBILITY_<APP>
 
 @Suppress("unused")
 val patchName = bytecodePatch(
@@ -62,10 +62,10 @@ val patchName = bytecodePatch(
 ### Resource Patch Pattern
 
 ```kotlin
-package app.template.patches.<app>.<category>
+package app.fluffy.patches.<app>.<category>
 
 import app.morphe.patcher.patch.resourcePatch
-import app.template.patches.shared.Constants.COMPATIBILITY_<APP>
+import app.fluffy.patches.shared.Constants.COMPATIBILITY_<APP>
 
 @Suppress("unused")
 val patchName = resourcePatch(
@@ -92,7 +92,7 @@ val patchName = resourcePatch(
 | Patch vals | camelCase + `Patch` suffix | `removeRootDetectionPatch` |
 | Compatibility constants | SCREAMING_SNAKE_CASE | `COMPATIBILITY_TARGET_APP` |
 | Multi-patch files | camelCase + `Patches` suffix | `miscPatches` |
-| Packages | `app.template.patches.<app>.<category>` | `app.template.patches.example.premium` |
+| Packages | `app.fluffy.patches.<app>.<category>` | `app.fluffy.patches.example.premium` |
 
 ### Required Annotations
 
@@ -174,8 +174,8 @@ val patchName = resourcePatch(
 
 ## Adding a New App
 
-1. Add `Compatibility` constant in `patches/src/main/kotlin/app/template/patches/shared/Constants.kt`
-2. Create `patches/src/main/kotlin/app/template/patches/<appname>/<category>/` directory
+1. Add `Compatibility` constant in `patches/src/main/kotlin/app/fluffy/patches/shared/Constants.kt`
+2. Create `patches/src/main/kotlin/app/fluffy/patches/<appname>/<category>/` directory
 3. Create `docs/<appname>/` directory and document initial APK analysis
 4. Write patch files with `compatibleWith(NEW_COMPATIBILITY_CONSTANT)`
 5. Run `./gradlew :patches:generatePatchesList` to regenerate metadata

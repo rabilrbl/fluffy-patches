@@ -262,7 +262,7 @@ execute {
 
 1. [ ] Identify the ReVanced patch class and its purpose
 2. [ ] Find the target class/method in the APK (use JADX)
-3. [ ] Create the Morphe patch file in `patches/src/main/kotlin/app/template/patches/<app>/<category>/`
+3. [ ] Create the Morphe patch file in `patches/src/main/kotlin/app/fluffy/patches/<app>/<category>/`
 4. [ ] Add `@Suppress("unused")` annotation
 5. [ ] Use `bytecodePatch(name, description)` or `resourcePatch(name, description)`
 6. [ ] Add `compatibleWith(COMPATIBILITY_*)` with correct constant

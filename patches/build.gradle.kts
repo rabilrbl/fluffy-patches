@@ -1,4 +1,4 @@
-group = "app.morphe"
+group = "app.fluffy"
 
 patches {
     about {
@@ -12,16 +12,13 @@ patches {
     }
 }
 
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xcontext-parameters")
-        freeCompilerArgs.add("-Xcontext-receivers")
-    }
-}
+// Separate configuration so gson is available at runtime for the
+// generatePatchesList task but never bundled into the APK.
+val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
 
 dependencies {
-    // Used by JsonGenerator.
-    implementation(libs.gson)
+    compileOnly(libs.gson)
+    patchListGeneratorClasspath(libs.gson)
 }
 
 tasks {
@@ -30,9 +27,10 @@ tasks {
 
         dependsOn(build)
 
-        classpath = sourceSets["main"].runtimeClasspath
-        mainClass.set("app.morphe.util.PatchListGeneratorKt")
+        classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
+        mainClass.set("util.PatchListGeneratorKt")
     }
+
     // Used by gradle-semantic-release-plugin.
     publish {
         dependsOn("generatePatchesList")
